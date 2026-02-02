@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Santa Brasa - Hamburgueria Artesanal</title>
+    <meta name="description" content="Peça os melhores hambúrgueres artesanais da cidade. Delivery e retirada.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">🔥</span>
+                <h1>Santa Brasa</h1>
+            </div>
+            <p class="tagline">Hamburgueria Artesanal</p>
+        </div>
+        <div class="fire-decoration"></div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Burgers Tradicionais -->
+        <section class="menu-section">
+            <h2 class="section-title">
+                <span class="title-icon">🍔</span>
+                Tradicionais
+            </h2>
+            <div class="menu-grid" id="tradicionais">
+                <!-- Items added via JS -->
+            </div>
+        </section>
+
+        <!-- Burgers Especiais -->
+        <section class="menu-section especiais">
+            <h2 class="section-title">
+                <span class="title-icon">⭐</span>
+                Especiais
+            </h2>
+            <div class="menu-grid" id="especiais">
+                <!-- Items added via JS -->
+            </div>
+        </section>
+
+        <!-- Bebidas -->
+        <section class="menu-section bebidas">
+            <h2 class="section-title">
+                <span class="title-icon">🥤</span>
+                Bebidas
+            </h2>
+            <div class="menu-grid" id="bebidas">
+                <!-- Items added via JS -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Cart Button (Fixed) -->
+    <button class="cart-button" id="cartButton" onclick="toggleCart()">
+        <span class="cart-icon">🛒</span>
+        <span class="cart-count" id="cartCount">0</span>
+    </button>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <aside class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h2>Seu Pedido</h2>
+            <button class="close-cart" onclick="toggleCart()">✕</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <!-- Cart items added via JS -->
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal">R$ 0,00</span>
+            </div>
+            <button class="checkout-button" id="checkoutButton" onclick="sendToWhatsApp()">
+                <span class="whatsapp-icon">📱</span>
+                Finalizar pelo WhatsApp
+            </button>
+        </div>
+    </aside>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span class="toast-icon">✓</span>
+        <span class="toast-message" id="toastMessage">Item adicionado!</span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
