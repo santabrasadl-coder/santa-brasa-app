@@ -442,6 +442,9 @@ function toggleChangeInput() {
     changeGroup.style.display = method === 'Dinheiro' ? 'block' : 'none';
 }
 
+// ===== Delivery Fee =====
+const DELIVERY_FEE = 10.00;
+
 // ===== Send to WhatsApp =====
 function sendToWhatsApp() {
     if (cart.length === 0) {
@@ -478,7 +481,8 @@ function sendToWhatsApp() {
         return;
     }
 
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const total = subtotal + DELIVERY_FEE;
 
     let message = `🍔 *PEDIDO SANTA BRASA* 🔥\n`;
     message += `👤 *Cliente:* ${name}\n`;
@@ -501,6 +505,8 @@ function sendToWhatsApp() {
     });
 
     message += "\n━━━━━━━━━━━━━━━━━━\n";
+    message += `Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
+    message += `Taxa de Entrega: R$ ${DELIVERY_FEE.toFixed(2).replace('.', ',')}\n`;
     message += `*TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*\n\n`;
 
     message += "📍 *ENTREGA:*\n";
