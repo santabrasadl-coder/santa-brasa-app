@@ -43,13 +43,13 @@ const menuData = {
             id: 7,
             name: "Santa Fúria",
             description: "Quando a fome perde a paciência: Dois Hambúrgueres Artesanais, Ovo, Tomate, Frango Desfiado, Bacon, Triplo de Queijo, Milho, Alface e Maionese Especial.",
-            price: 44.00
+            price: 46.00
         },
         {
             id: 8,
             name: "Santo Juízo",
             description: "Um verdadeiro tribunal de sabores: Hambúrguer Suculento, Frango Desfiado, Bacon Crocante, Ovo, Triplo de Queijo, Milho, Alface, Tomate e Maionese Especial.",
-            price: 41.00
+            price: 44.00
         },
         {
             id: 9,
@@ -100,13 +100,11 @@ const menuData = {
 
 // ===== Add-ons Data =====
 const ADDONS = [
-    { id: 'bacon', name: 'Bacon Extra', price: 4.00 },
-    { id: 'queijo', name: 'Queijo Extra', price: 3.00 },
-    { id: 'ched', name: 'Cheddar Cremoso', price: 4.00 },
-    { id: 'ovo', name: 'Ovo Extra', price: 2.00 },
-    { id: 'salada', name: 'Salada Extra', price: 2.00 },
-    { id: 'barbecue', name: 'Molho Barbecue', price: 2.00 },
-    { id: 'maionese', name: 'Maionese da Casa', price: 2.50 }
+
+    { id: 'bacon', name: 'Bacon Extra', price: 8.00 },
+    { id: 'queijo', name: 'Queijo Extra', price: 5.00 },
+    { id: 'ovo', name: 'Ovo Extra', price: 4.00 },
+    { id: 'maionese', name: 'Maionese da Casa', price: 3. }
 ];
 
 // ===== Cart State & Modal State =====
