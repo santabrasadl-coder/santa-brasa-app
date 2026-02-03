@@ -116,7 +116,7 @@ let currentModalQuantity = 1;
 let selectedAddons = [];
 
 // ===== WhatsApp Number (configure here) =====
-const WHATSAPP_NUMBER = "5511999999999"; // Altere para o número da hamburgueria
+const WHATSAPP_NUMBER = "5537991030870";
 
 // ===== DOM Elements =====
 const cartButton = document.getElementById('cartButton');
@@ -136,27 +136,63 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartUI();
 });
 
+// ===== Direct Add to Cart (for Drinks) =====
+function addDirectToCart(itemId) {
+    const item = findItemById(itemId);
+    if (!item) return;
+
+    // Unique ID for items without addons (just ID or ID-default)
+    const uniqueCartId = `${item.id}-default`;
+
+    const existingItem = cart.find(i => i.cartId === uniqueCartId);
+
+    if (existingItem) {
+        existingItem.quantity += 1;
+    } else {
+        cart.push({
+            id: item.id,
+            cartId: uniqueCartId,
+            name: item.name,
+            basePrice: item.price,
+            price: item.price,
+            addons: [], // No addons
+            quantity: 1,
+            observation: ''
+        });
+    }
+
+    saveCart();
+    updateCartUI();
+    showToast(`1x ${item.name} adicionado!`);
+}
+
 // ===== Render Menu =====
 function renderMenu() {
     Object.keys(menuData).forEach(category => {
         const container = document.getElementById(category);
         if (!container) return;
 
-        container.innerHTML = menuData[category].map(item => `
+        container.innerHTML = menuData[category].map(item => {
+            // Determine which function to call based on category
+            const clickAction = (category === 'bebidas')
+                ? `addDirectToCart(${item.id})`
+                : `openAddonModal(${item.id})`;
+
+            return `
             <div class="menu-item" data-id="${item.id}">
                 <div class="item-info">
                     <h3 class="item-name">${item.name}</h3>
                     <p class="item-description">${item.description}</p>
                 </div>
+                <div class="menu-item-actions">
+                    <span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
+                    <button class="add-button" onclick="${clickAction}" aria-label="Adicionar ${item.name}">
+                        +
+                    </button>
+                </div>
             </div>
-            <div class="menu-item-actions">
-                <span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
-                <button class="add-button" onclick="openAddonModal(${item.id})" aria-label="Adicionar ${item.name}">
-                    +
-                </button>
-            </div>
-        </div>
-    `).join('');
+            `;
+        }).join('');
     });
 }
 
@@ -278,7 +314,7 @@ function addToCartWithAddons() {
     showToast(`${currentModalQuantity}x ${currentModalItem.name} adicionado!`);
 }
 
-// Legacy function (kept for reference or simple items if needed, but we use modal now)
+// Legacy function
 function addToCart(itemId) {
     openAddonModal(itemId);
 }
@@ -365,14 +401,7 @@ function updateCartUI() {
 
     // Update total
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const formattedTotal = `R$ ${total.toFixed(2).replace('.', ',')}`;
-
-    // Update both total displays (Step 1 and Step 2)
-    const total1 = document.getElementById('cartTotal1');
-    const total2 = document.getElementById('cartTotal2');
-
-    if (total1) total1.textContent = formattedTotal;
-    if (total2) total2.textContent = formattedTotal;
+    cartTotal.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
 }
 
 // ===== Toggle Cart =====
@@ -382,7 +411,7 @@ function toggleCart() {
     document.body.style.overflow = cartSidebar.classList.contains('active') ? 'hidden' : '';
 }
 
-// ===== Save/Load Cart (localStorage) =====
+// ===== Save/Load Cart =====
 function saveCart() {
     localStorage.setItem('santaBrasaCart', JSON.stringify(cart));
 }
@@ -407,8 +436,6 @@ function showToast(message) {
         toast.classList.remove('show');
     }, 2000);
 }
-
-
 
 // ===== Toggle Change Input =====
 function toggleChangeInput() {
@@ -492,34 +519,4 @@ function sendToWhatsApp() {
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
 
     window.open(whatsappUrl, '_blank');
-}
-
-// ===== Multi-Step Checkout Logic =====
-
-function goToCheckout() {
-    if (cart.length === 0) {
-        showToast('Seu carrinho está vazio!');
-        return;
-    }
-    document.getElementById('cartStep1').style.display = 'none';
-    document.getElementById('cartStep2').style.display = 'flex';
-}
-
-function backToCart() {
-    document.getElementById('cartStep2').style.display = 'none';
-    document.getElementById('cartStep1').style.display = 'flex';
-}
-
-// Ensure Step 1 is shown when opening cart
-function toggleCart() {
-    const sidebar = document.getElementById('cartSidebar');
-    const overlay = document.getElementById('cartOverlay');
-
-    sidebar.classList.toggle('active');
-    overlay.classList.toggle('active');
-
-    // Reset to step 1
-    if (sidebar.classList.contains('active')) {
-        backToCart();
-    }
 }

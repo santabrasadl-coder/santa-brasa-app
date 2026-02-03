@@ -340,6 +340,8 @@ body {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--surface-light);
+    flex-shrink: 0;
+    /* Always visible */
 }
 
 .cart-header h2 {
@@ -364,10 +366,19 @@ body {
     background: var(--primary);
 }
 
-.cart-items {
+/* ===== Cart Main Content Area (Scrollable) ===== */
+.cart-scroll-content {
     flex: 1;
     overflow-y: auto;
-    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 2rem;
+}
+
+/* ===== Cart Items ===== */
+.cart-items {
+    padding: 1.5rem;
+    padding-bottom: 0;
 }
 
 .cart-empty {
@@ -382,12 +393,18 @@ body {
     opacity: 0.5;
 }
 
-/* ===== Cart Item ===== */
 .cart-item {
     background: var(--background);
     border-radius: var(--radius-sm);
     padding: 1rem;
     margin-bottom: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    /* Better for obs/mobile */
+    gap: 0.5rem;
+}
+
+.cart-item-main {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -440,18 +457,45 @@ body {
     text-align: center;
 }
 
+.cart-item-obs-container {
+    width: 100%;
+}
+
+.cart-item-obs {
+    width: 100%;
+    background: var(--surface-light);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.75rem;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.cart-item-obs:focus {
+    border-color: var(--primary);
+    background: var(--surface);
+}
+
+.cart-item-obs::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
 /* ===== Checkout Form ===== */
 .checkout-form {
-    padding: 0 1.5rem 1.5rem 1.5rem;
+    padding: 1.5rem;
     border-top: 1px solid var(--surface-light);
-    background: var(--surface);
+    margin-top: 1.5rem;
 }
 
 .checkout-title {
     font-family: 'Bebas Neue', sans-serif;
     color: var(--text-primary);
     font-size: 1.2rem;
-    margin: 1rem 0;
+    margin-bottom: 1rem;
     letter-spacing: 1px;
 }
 
@@ -494,19 +538,14 @@ body {
     box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.1);
 }
 
-/* Fix for cart-items height to accommodate form */
-.cart-items {
-    flex: 1;
-    /* Keep taking available space */
-    min-height: 150px;
-    /* Ensure some space for items */
-}
-
-/* ===== Cart Footer ===== */
+/* ===== Cart Footer (Fixed) ===== */
 .cart-footer {
     padding: 1.5rem;
     border-top: 1px solid var(--surface-light);
-    background: var(--background);
+    background: var(--surface);
+    flex-shrink: 0;
+    z-index: 10;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
 }
 
 .cart-total {
@@ -522,42 +561,6 @@ body {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1.8rem;
     color: var(--primary);
-}
-
-.cart-item {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
-}
-
-.cart-item-main {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-}
-
-.cart-item-obs {
-    width: 100%;
-    background: var(--surface-light);
-    border: 1px solid transparent;
-    border-radius: var(--radius-sm);
-    padding: 0.5rem 0.75rem;
-    color: var(--text-primary);
-    font-size: 0.85rem;
-    font-family: inherit;
-    outline: none;
-    transition: all 0.2s ease;
-}
-
-.cart-item-obs:focus {
-    border-color: var(--primary);
-    background: var(--surface);
-}
-
-.cart-item-obs::placeholder {
-    color: var(--text-secondary);
-    opacity: 0.7;
 }
 
 .checkout-button {
@@ -850,107 +853,3 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--primary);
 }
-
-/* ===== Layout Restore ===== */
-.cart-items {
-    order: 1;
-    display: block;
-    /* Ensure visibility */
-}
-
-.checkout-form {
-    order: 2;
-}
-
-.cart-footer {
-    order: 3;
-}
-
-/* ===== Scroll Fix ===== */
-.cart-scroll-content {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-}
-
-.cart-items {
-    order: 0;
-    flex: none;
-    /* Let it grow naturally */
-    min-height: auto;
-    overflow-y: visible;
-    /* Handle scroll in parent */
-}
-
-.checkout-form {
-    order: 0;
-    flex-shrink: 0;
-}
-
-.cart-footer {
-    order: 0;
-    flex-shrink: 0;
-    z-index: 10;
-    background: var(--surface);
-    /* Ensure visibility over scroll */
-    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
-    /* Lift it up visually */
-
-    /* ===== Multi-Step Checkout Styles ===== */
-    .cart-step {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        flex: 1;
-        overflow: hidden;
-        /* Contains scrollable areas */
-    }
-
-    /* Ensure cart-items takes available space in Step 1 */
-    #cartStep1 .cart-items {
-        flex: 1;
-        overflow-y: auto;
-        padding: 1.5rem;
-        /* Increased padding */
-        padding-bottom: 2rem;
-    }
-
-    /* Ensure checkout-form takes available space in Step 2 */
-    #cartStep2 .checkout-form {
-        flex: 1;
-        overflow-y: auto;
-        padding: 1.5rem;
-        /* Increased padding */
-        padding-bottom: 100px;
-        /* Extra space to ensure input visibility */
-    }
-
-    .checkout-header-nav {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem 1.5rem;
-        background: var(--surface-light);
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        flex-shrink: 0;
-    }
-
-    .back-link {
-        background: none;
-        border: none;
-        color: var(--primary);
-        font-weight: 600;
-        cursor: pointer;
-        font-size: 0.9rem;
-        padding: 0;
-    }
-
-    .back-link:hover {
-        text-decoration: underline;
-    }
-
-    /* Hide the old scroll fix classes as we use cart-step now */
-    .cart-scroll-content {
-        display: none;
-    }

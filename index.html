@@ -71,36 +71,21 @@
     <!-- Cart Sidebar -->
     <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
     <aside class="cart-sidebar" id="cartSidebar">
+        <!-- Header Fixo -->
         <div class="cart-header">
             <h2>Seu Pedido</h2>
             <button class="close-cart" onclick="toggleCart()">✕</button>
         </div>
 
-        <!-- Step 1: Cart Items -->
-        <div class="cart-step" id="cartStep1">
+        <!-- Área de Rolagem Central (Itens + Formulário) -->
+        <div class="cart-scroll-content">
             <div class="cart-items" id="cartItems">
                 <!-- Cart items added via JS -->
             </div>
 
-            <div class="cart-footer">
-                <div class="cart-total">
-                    <span>Total:</span>
-                    <span id="cartTotal1">R$ 0,00</span>
-                </div>
-                <button class="checkout-button" onclick="goToCheckout()">
-                    Continuar para Entrega
-                </button>
-            </div>
-        </div>
-
-        <!-- Step 2: Checkout Form -->
-        <div class="cart-step" id="cartStep2" style="display: none;">
-            <div class="checkout-header-nav">
-                <button class="back-link" onclick="backToCart()">← Voltar</button>
-                <h3>Dados de Entrega</h3>
-            </div>
-
+            <!-- Checkout Form -->
             <div class="checkout-form" id="checkoutForm">
+                <h3 class="checkout-title">Dados de Entrega</h3>
 
                 <div class="form-group">
                     <label>Seu Nome:</label>
@@ -133,17 +118,18 @@
                     <input type="text" id="changeAmount" placeholder="Ex: 50,00">
                 </div>
             </div>
+        </div>
 
-            <div class="cart-footer">
-                <div class="cart-total">
-                    <span>Total:</span>
-                    <span id="cartTotal2">R$ 0,00</span>
-                </div>
-                <button class="checkout-button" onclick="sendToWhatsApp()">
-                    <span class="whatsapp-icon">📱</span>
-                    Finalizar Pedido
-                </button>
+        <!-- Rodapé Fixo (Total + Botão) -->
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal">R$ 0,00</span>
             </div>
+            <button class="checkout-button" id="checkoutButton" onclick="sendToWhatsApp()">
+                <span class="whatsapp-icon">📱</span>
+                Finalizar pelo WhatsApp
+            </button>
         </div>
     </aside>
 
