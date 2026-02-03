@@ -1,4 +1,4 @@
-const WHATSAPP_NUMBER = '5537991030870'; // ===== Menu Data =====
+// ===== Menu Data =====
 const menuData = {
     tradicionais: [
         {
@@ -296,6 +296,7 @@ function sendToWhatsApp() {
 
     window.open(whatsappUrl, '_blank');
 }
+
 
 
 
