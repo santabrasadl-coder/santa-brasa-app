@@ -65,18 +65,10 @@ const menuData = {
         }
     ],
     bebidas: [
-        {
-            id: 11,
-            name: "Heineken Latão",
-            description: "Unidade 473ml",
-            price: 12.00
-        },
-        {
-            id: 12,
-            name: "Antartica Boa",
-            description: "Unidade Lata 350ml",
-            price: 10.00
-        },
+
+
+
+
         {
             id: 13,
             name: "Coca-Cola Zero",
