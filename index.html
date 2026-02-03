@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,9 +8,11 @@
     <meta name="description" content="Peça os melhores hambúrgueres artesanais da cidade. Delivery e retirada.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -72,8 +75,44 @@
             <h2>Seu Pedido</h2>
             <button class="close-cart" onclick="toggleCart()">✕</button>
         </div>
+
+        <!-- Checkout Form -->
+        <div class="checkout-form" id="checkoutForm">
+            <h3 class="checkout-title">Dados de Entrega</h3>
+
+            <div class="form-group">
+                <label>Seu Nome:</label>
+                <input type="text" id="clientName" placeholder="Digite seu nome">
+            </div>
+
+            <div class="form-group">
+                <label>Endereço Completo:</label>
+                <textarea id="clientAddress" placeholder="Rua, Número, Bairro e Complemento" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Forma de Pagamento:</label>
+                <select id="paymentMethod" onchange="toggleChangeInput()">
+                    <option value="">Selecione...</option>
+                    <option value="Pix">Pix</option>
+                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                    <option value="Cartão de Débito">Cartão de Débito</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="changeGroup" style="display: none;">
+                <label>Troco para quanto?</label>
+                <input type="text" id="changeAmount" placeholder="Ex: 50,00">
+            </div>
+        </div>
+
         <div class="cart-items" id="cartItems">
-            <!-- Cart items added via JS -->
+            <!-- Cart items moved to top via CSS or structure adjustments if needed, 
+                 but actually we want logic to swap views or just place form below items.
+                 Let's place form BELOW items list but keep items scrollable. 
+                 Correcting structure: Items -> Form -> Footer
+            -->
         </div>
         <div class="cart-footer">
             <div class="cart-total">
@@ -87,14 +126,43 @@
         </div>
     </aside>
 
+    <!-- Add-ons Modal -->
+    <div class="modal-overlay" id="addonModalOverlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeAddonModal()">✕</button>
+            <div class="modal-header">
+                <h3 id="modalItemName">Nome do Burger</h3>
+                <p id="modalItemDesc">Descrição do item</p>
+                <span class="modal-price" id="modalItemPrice">R$ 0,00</span>
+            </div>
+
+            <div class="modal-body">
+                <h4>Adicionais:</h4>
+                <div class="addons-list" id="addonsList">
+                    <!-- Checkboxes added via JS -->
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div class="quantity-control">
+                    <button onclick="updateModalQuantity(-1)">−</button>
+                    <span id="modalQuantity">1</span>
+                    <button onclick="updateModalQuantity(1)">+</button>
+                </div>
+                <button class="add-to-order-btn" onclick="confirmAddonOrder()">
+                    Adicionar • <span id="modalTotalPrice">R$ 0,00</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div class="toast" id="toast">
         <span class="toast-icon">✓</span>
         <span class="toast-message" id="toastMessage">Item adicionado!</span>
     </div>
 
-    <script src="app.js"></script> 
+    <script src="app.js"></script>
 </body>
+
 </html>
-
-

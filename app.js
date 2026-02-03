@@ -98,11 +98,25 @@ const menuData = {
     ]
 };
 
-// ===== Cart State =====
+// ===== Add-ons Data =====
+const ADDONS = [
+    { id: 'bacon', name: 'Bacon Extra', price: 4.00 },
+    { id: 'queijo', name: 'Queijo Extra', price: 3.00 },
+    { id: 'ched', name: 'Cheddar Cremoso', price: 4.00 },
+    { id: 'ovo', name: 'Ovo Extra', price: 2.00 },
+    { id: 'salada', name: 'Salada Extra', price: 2.00 },
+    { id: 'barbecue', name: 'Molho Barbecue', price: 2.00 },
+    { id: 'maionese', name: 'Maionese da Casa', price: 2.50 }
+];
+
+// ===== Cart State & Modal State =====
 let cart = [];
+let currentModalItem = null;
+let currentModalQuantity = 1;
+let selectedAddons = [];
 
 // ===== WhatsApp Number (configure here) =====
-const WHATSAPP_NUMBER = "5537991030870"; // Altere para o número da hamburgueria
+const WHATSAPP_NUMBER = "5511999999999"; // Altere para o número da hamburgueria
 
 // ===== DOM Elements =====
 const cartButton = document.getElementById('cartButton');
@@ -134,12 +148,15 @@ function renderMenu() {
                     <h3 class="item-name">${item.name}</h3>
                     <p class="item-description">${item.description}</p>
                 </div>
+            </div>
+            <div class="menu-item-actions">
                 <span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
-                <button class="add-button" onclick="addToCart(${item.id})" aria-label="Adicionar ${item.name}">
+                <button class="add-button" onclick="openAddonModal(${item.id})" aria-label="Adicionar ${item.name}">
                     +
                 </button>
             </div>
-        `).join('');
+        </div>
+    `).join('');
     });
 }
 
@@ -152,32 +169,123 @@ function findItemById(id) {
     return null;
 }
 
-// ===== Add to Cart =====
-function addToCart(itemId) {
+// ===== Add-ons Modal Logic =====
+function openAddonModal(itemId) {
     const item = findItemById(itemId);
     if (!item) return;
 
-    const existingItem = cart.find(cartItem => cartItem.id === itemId);
+    currentModalItem = item;
+    currentModalQuantity = 1;
+    selectedAddons = [];
+
+    // Reset Modal UI
+    document.getElementById('modalItemName').textContent = item.name;
+    document.getElementById('modalItemDesc').textContent = item.description;
+
+    // Render Addons List
+    const list = document.getElementById('addonsList');
+    list.innerHTML = ADDONS.map(addon => `
+        <div class="addon-option" onclick="toggleAddon('${addon.id}', this)">
+            <div style="display:flex; align-items:center;">
+                <div class="addon-check"></div>
+                <span>${addon.name}</span>
+            </div>
+            <span style="color: var(--primary); font-weight:600;">+ R$ ${addon.price.toFixed(2).replace('.', ',')}</span>
+        </div>
+    `).join('');
+
+    updateModalTotal();
+
+    const overlay = document.getElementById('addonModalOverlay');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAddonModal() {
+    document.getElementById('addonModalOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function toggleAddon(addonId, element) {
+    const index = selectedAddons.indexOf(addonId);
+    if (index === -1) {
+        selectedAddons.push(addonId);
+        element.classList.add('selected');
+    } else {
+        selectedAddons.splice(index, 1);
+        element.classList.remove('selected');
+    }
+    updateModalTotal();
+}
+
+function updateModalQuantity(change) {
+    const newQty = currentModalQuantity + change;
+    if (newQty >= 1) {
+        currentModalQuantity = newQty;
+        document.getElementById('modalQuantity').textContent = currentModalQuantity;
+        updateModalTotal();
+    }
+}
+
+function updateModalTotal() {
+    let total = currentModalItem.price;
+
+    selectedAddons.forEach(id => {
+        const addon = ADDONS.find(a => a.id === id);
+        if (addon) total += addon.price;
+    });
+
+    total *= currentModalQuantity;
+
+    document.getElementById('modalTotalPrice').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    document.getElementById('modalItemPrice').textContent = `R$ ${currentModalItem.price.toFixed(2).replace('.', ',')}`;
+}
+
+function confirmAddonOrder() {
+    addToCartWithAddons();
+    closeAddonModal();
+}
+
+// ===== Add to Cart (Modified) =====
+function addToCartWithAddons() {
+    if (!currentModalItem) return;
+
+    const addonsObjects = selectedAddons.map(id => ADDONS.find(a => a.id === id));
+
+    // Create Unique ID based on addons to separate items
+    const addonsKey = selectedAddons.sort().join('|');
+    const uniqueCartId = `${currentModalItem.id}-${addonsKey}`;
+
+    const existingItem = cart.find(item => item.cartId === uniqueCartId);
 
     if (existingItem) {
-        existingItem.quantity += 1;
+        existingItem.quantity += currentModalQuantity;
     } else {
         cart.push({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: 1
+            id: currentModalItem.id, // Original Product ID
+            cartId: uniqueCartId,    // Unique combination ID
+            name: currentModalItem.name,
+            basePrice: currentModalItem.price,
+            price: (currentModalItem.price + addonsObjects.reduce((sum, a) => sum + a.price, 0)),
+            addons: addonsObjects,
+            quantity: currentModalQuantity,
+            observation: ''
         });
     }
 
     saveCart();
     updateCartUI();
-    showToast(`${item.name} adicionado!`);
+    showToast(`${currentModalQuantity}x ${currentModalItem.name} adicionado!`);
+}
+
+// Legacy function (kept for reference or simple items if needed, but we use modal now)
+function addToCart(itemId) {
+    openAddonModal(itemId);
 }
 
 // ===== Remove from Cart =====
-function removeFromCart(itemId) {
-    const index = cart.findIndex(item => item.id === itemId);
+function removeFromCart(cartId) {
+    const index = cart.findIndex(item => item.cartId === cartId);
     if (index > -1) {
         cart.splice(index, 1);
         saveCart();
@@ -185,19 +293,28 @@ function removeFromCart(itemId) {
     }
 }
 
-// ===== Update Quantity =====
-function updateQuantity(itemId, delta) {
-    const item = cart.find(item => item.id === itemId);
+// ===== Update Cart Quantity =====
+function updateQuantity(cartId, delta) {
+    const item = cart.find(item => item.cartId === cartId);
     if (!item) return;
 
     item.quantity += delta;
 
     if (item.quantity <= 0) {
-        removeFromCart(itemId);
+        removeFromCart(cartId);
     } else {
         saveCart();
         updateCartUI();
     }
+}
+
+// ===== Update Observation =====
+function updateObservation(cartId, text) {
+    const item = cart.find(item => item.cartId === cartId);
+    if (!item) return;
+
+    item.observation = text;
+    saveCart();
 }
 
 // ===== Update Cart UI =====
@@ -220,14 +337,26 @@ function updateCartUI() {
     } else {
         cartItems.innerHTML = cart.map(item => `
             <div class="cart-item">
-                <div class="cart-item-info">
-                    <div class="cart-item-name">${item.name}</div>
-                    <div class="cart-item-price">R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}</div>
+                <div class="cart-item-main">
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${item.name}</div>
+                        ${item.addons && item.addons.length > 0 ?
+                `<div style="font-size:0.75rem; color:var(--text-secondary);">+ ${item.addons.map(a => a.name).join(', ')}</div>`
+                : ''}
+                        <div class="cart-item-price">R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}</div>
+                    </div>
+                    <div class="cart-item-controls">
+                        <button class="qty-button" onclick="updateQuantity('${item.cartId}', -1)">−</button>
+                        <span class="cart-item-qty">${item.quantity}</span>
+                        <button class="qty-button" onclick="updateQuantity('${item.cartId}', 1)">+</button>
+                    </div>
                 </div>
-                <div class="cart-item-controls">
-                    <button class="qty-button" onclick="updateQuantity(${item.id}, -1)">−</button>
-                    <span class="cart-item-qty">${item.quantity}</span>
-                    <button class="qty-button" onclick="updateQuantity(${item.id}, 1)">+</button>
+                <div class="cart-item-obs-container">
+                    <input type="text" 
+                        class="cart-item-obs" 
+                        placeholder="Alguma observação? (Ex: sem cebola)"
+                        value="${item.observation || ''}"
+                        oninput="updateObservation('${item.cartId}', this.value)">
                 </div>
             </div>
         `).join('');
@@ -272,33 +401,86 @@ function showToast(message) {
     }, 2000);
 }
 
+
+
+// ===== Toggle Change Input =====
+function toggleChangeInput() {
+    const method = document.getElementById('paymentMethod').value;
+    const changeGroup = document.getElementById('changeGroup');
+    changeGroup.style.display = method === 'Dinheiro' ? 'block' : 'none';
+}
+
 // ===== Send to WhatsApp =====
 function sendToWhatsApp() {
-    if (cart.length === 0) return;
+    if (cart.length === 0) {
+        showToast("Seu carrinho está vazio!");
+        return;
+    }
+
+    // Capture form data
+    const name = document.getElementById('clientName').value.trim();
+    const address = document.getElementById('clientAddress').value.trim();
+    const payment = document.getElementById('paymentMethod').value;
+    const change = document.getElementById('changeAmount').value.trim();
+
+    // Validation
+    if (!name) {
+        alert("Por favor, digite seu nome.");
+        document.getElementById('clientName').focus();
+        return;
+    }
+    if (!address) {
+        alert("Por favor, digite seu endereço de entrega.");
+        document.getElementById('clientAddress').focus();
+        return;
+    }
+    if (!payment) {
+        alert("Por favor, selecione a forma de pagamento.");
+        document.getElementById('paymentMethod').focus();
+        return;
+    }
+    if (payment === 'Dinheiro' && !change) {
+        alert("Por favor, informe para quanto é o troco.");
+        document.getElementById('changeAmount').focus();
+        return;
+    }
 
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-    let message = "🍔 *PEDIDO SANTA BRASA* 🔥\n\n";
-    message += "━━━━━━━━━━━━━━━━━━\n";
+    let message = `🍔 *PEDIDO SANTA BRASA* 🔥\n`;
+    message += `👤 *Cliente:* ${name}\n`;
+    message += "━━━━━━━━━━━━━━━━━━\n\n";
 
     cart.forEach(item => {
         message += `▸ ${item.quantity}x ${item.name}\n`;
+
+        if (item.addons && item.addons.length > 0) {
+            item.addons.forEach(addon => {
+                message += `   + ${addon.name}\n`;
+            });
+        }
+
+        if (item.observation) {
+            message += `   📝 _Obs: ${item.observation}_\n`;
+        }
         message += `   R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}\n`;
     });
 
-    message += "━━━━━━━━━━━━━━━━━━\n";
+    message += "\n━━━━━━━━━━━━━━━━━━\n";
     message += `*TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*\n\n`;
-    message += "📍 Endereço para entrega:\n";
-    message += "(Informe seu endereço aqui)";
+
+    message += "📍 *ENTREGA:*\n";
+    message += `${address}\n\n`;
+
+    message += "💰 *PAGAMENTO:*\n";
+    message += `${payment}`;
+
+    if (payment === 'Dinheiro') {
+        message += `\n💵 Troco para: R$ ${change}`;
+    }
 
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
 
     window.open(whatsappUrl, '_blank');
 }
-
-
-
-
-
-
