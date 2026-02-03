@@ -102,7 +102,7 @@ const menuData = {
 let cart = [];
 
 // ===== WhatsApp Number (configure here) =====
-const WHATSAPP_NUMBER = "5511999999999"; // Altere para o número da hamburgueria
+const WHATSAPP_NUMBER = "5537991030870"; // Altere para o número da hamburgueria
 
 // ===== DOM Elements =====
 const cartButton = document.getElementById('cartButton');
@@ -296,6 +296,7 @@ function sendToWhatsApp() {
 
     window.open(whatsappUrl, '_blank');
 }
+
 
 
 
