@@ -76,53 +76,74 @@
             <button class="close-cart" onclick="toggleCart()">✕</button>
         </div>
 
-        <!-- Checkout Form -->
-        <div class="checkout-form" id="checkoutForm">
-            <h3 class="checkout-title">Dados de Entrega</h3>
-
-            <div class="form-group">
-                <label>Seu Nome:</label>
-                <input type="text" id="clientName" placeholder="Digite seu nome">
+        <!-- Step 1: Cart Items -->
+        <div class="cart-step" id="cartStep1">
+            <div class="cart-items" id="cartItems">
+                <!-- Cart items added via JS -->
             </div>
 
-            <div class="form-group">
-                <label>Endereço Completo:</label>
-                <textarea id="clientAddress" placeholder="Rua, Número, Bairro e Complemento" rows="3"></textarea>
-            </div>
-
-            <div class="form-group">
-                <label>Forma de Pagamento:</label>
-                <select id="paymentMethod" onchange="toggleChangeInput()">
-                    <option value="">Selecione...</option>
-                    <option value="Pix">Pix</option>
-                    <option value="Cartão de Crédito">Cartão de Crédito</option>
-                    <option value="Cartão de Débito">Cartão de Débito</option>
-                    <option value="Dinheiro">Dinheiro</option>
-                </select>
-            </div>
-
-            <div class="form-group" id="changeGroup" style="display: none;">
-                <label>Troco para quanto?</label>
-                <input type="text" id="changeAmount" placeholder="Ex: 50,00">
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span>Total:</span>
+                    <span id="cartTotal1">R$ 0,00</span>
+                </div>
+                <button class="checkout-button" onclick="goToCheckout()">
+                    Continuar para Entrega
+                </button>
             </div>
         </div>
 
-        <div class="cart-items" id="cartItems">
-            <!-- Cart items moved to top via CSS or structure adjustments if needed, 
-                 but actually we want logic to swap views or just place form below items.
-                 Let's place form BELOW items list but keep items scrollable. 
-                 Correcting structure: Items -> Form -> Footer
-            -->
-        </div>
-        <div class="cart-footer">
-            <div class="cart-total">
-                <span>Total:</span>
-                <span id="cartTotal">R$ 0,00</span>
+        <!-- Step 2: Checkout Form -->
+        <div class="cart-step" id="cartStep2" style="display: none;">
+            <div class="checkout-header-nav">
+                <button class="back-link" onclick="backToCart()">← Voltar</button>
+                <h3>Dados de Entrega</h3>
             </div>
-            <button class="checkout-button" id="checkoutButton" onclick="sendToWhatsApp()">
-                <span class="whatsapp-icon">📱</span>
-                Finalizar pelo WhatsApp
-            </button>
+
+            <div class="checkout-form" id="checkoutForm">
+
+                <div class="form-group">
+                    <label>Seu Nome:</label>
+                    <input type="text" id="clientName" placeholder="Digite seu nome">
+                </div>
+
+                <div class="form-group">
+                    <label>Endereço Completo:</label>
+                    <textarea id="clientAddress" placeholder="Rua, Número, Bairro e Complemento" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Telefone:</label>
+                    <input type="tel" id="clientPhone" placeholder="(XX) 9XXXX-XXXX">
+                </div>
+
+                <div class="form-group">
+                    <label>Forma de Pagamento:</label>
+                    <select id="paymentMethod" onchange="toggleChangeInput()">
+                        <option value="">Selecione...</option>
+                        <option value="Pix">Pix</option>
+                        <option value="Cartão de Crédito">Cartão de Crédito</option>
+                        <option value="Cartão de Débito">Cartão de Débito</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="changeGroup" style="display: none;">
+                    <label>Troco para quanto?</label>
+                    <input type="text" id="changeAmount" placeholder="Ex: 50,00">
+                </div>
+            </div>
+
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span>Total:</span>
+                    <span id="cartTotal2">R$ 0,00</span>
+                </div>
+                <button class="checkout-button" onclick="sendToWhatsApp()">
+                    <span class="whatsapp-icon">📱</span>
+                    Finalizar Pedido
+                </button>
+            </div>
         </div>
     </aside>
 

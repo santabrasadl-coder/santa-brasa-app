@@ -365,7 +365,14 @@ function updateCartUI() {
 
     // Update total
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    cartTotal.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    const formattedTotal = `R$ ${total.toFixed(2).replace('.', ',')}`;
+
+    // Update both total displays (Step 1 and Step 2)
+    const total1 = document.getElementById('cartTotal1');
+    const total2 = document.getElementById('cartTotal2');
+
+    if (total1) total1.textContent = formattedTotal;
+    if (total2) total2.textContent = formattedTotal;
 }
 
 // ===== Toggle Cart =====
@@ -420,6 +427,7 @@ function sendToWhatsApp() {
     // Capture form data
     const name = document.getElementById('clientName').value.trim();
     const address = document.getElementById('clientAddress').value.trim();
+    const phone = document.getElementById('clientPhone').value.trim();
     const payment = document.getElementById('paymentMethod').value;
     const change = document.getElementById('changeAmount').value.trim();
 
@@ -449,6 +457,7 @@ function sendToWhatsApp() {
 
     let message = `🍔 *PEDIDO SANTA BRASA* 🔥\n`;
     message += `👤 *Cliente:* ${name}\n`;
+    if (phone) message += `📞 *Tel:* ${phone}\n`;
     message += "━━━━━━━━━━━━━━━━━━\n\n";
 
     cart.forEach(item => {
@@ -483,4 +492,34 @@ function sendToWhatsApp() {
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
 
     window.open(whatsappUrl, '_blank');
+}
+
+// ===== Multi-Step Checkout Logic =====
+
+function goToCheckout() {
+    if (cart.length === 0) {
+        showToast('Seu carrinho está vazio!');
+        return;
+    }
+    document.getElementById('cartStep1').style.display = 'none';
+    document.getElementById('cartStep2').style.display = 'flex';
+}
+
+function backToCart() {
+    document.getElementById('cartStep2').style.display = 'none';
+    document.getElementById('cartStep1').style.display = 'flex';
+}
+
+// Ensure Step 1 is shown when opening cart
+function toggleCart() {
+    const sidebar = document.getElementById('cartSidebar');
+    const overlay = document.getElementById('cartOverlay');
+
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+
+    // Reset to step 1
+    if (sidebar.classList.contains('active')) {
+        backToCart();
+    }
 }
