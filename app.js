@@ -1,3 +1,28 @@
+// ╔════════════════════════════════════════════════════════════════╗
+// ║  🔥 CONFIGURAÇÃO DE STATUS DA LOJA                             ║
+// ║  Altere para true = OPEN (Aberto) | false = CLOSED (Fechado)   ║
+// ╚════════════════════════════════════════════════════════════════╝
+const STORE_OPEN = true;  // 👈 MUDE AQUI: true = ABERTO | false = FECHADO
+
+// ===== Função para Atualizar Status Visual =====
+function updateStoreStatus() {
+    const statusIndicator = document.querySelector('.status-indicator');
+    const statusText = document.querySelector('.status-text');
+    const statusBar = document.querySelector('.status-bar');
+
+    if (!statusIndicator || !statusText || !statusBar) return;
+
+    if (STORE_OPEN) {
+        statusText.textContent = 'OPEN';
+        statusBar.classList.remove('closed');
+        statusBar.classList.add('open');
+    } else {
+        statusText.textContent = 'CLOSED';
+        statusBar.classList.remove('open');
+        statusBar.classList.add('closed');
+    }
+}
+
 // ===== Menu Data =====
 const menuData = {
     tradicionais: [
@@ -121,6 +146,7 @@ const toastMessage = document.getElementById('toastMessage');
 
 // ===== Initialize App =====
 document.addEventListener('DOMContentLoaded', () => {
+    updateStoreStatus();  // Atualiza status OPEN/CLOSED
     renderMenu();
     loadCart();
     updateCartUI();
