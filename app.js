@@ -658,4 +658,3 @@ function sendToWhatsApp() {
 
     window.open(whatsappUrl, '_blank');
 }
-
