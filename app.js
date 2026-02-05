@@ -2,7 +2,7 @@
 // ║  🔥 CONFIGURAÇÃO DE STATUS DA LOJA                             ║
 // ║  Altere para true = OPEN (Aberto) | false = CLOSED (Fechado)   ║
 // ╚════════════════════════════════════════════════════════════════╝
-const STORE_OPEN = true;  // 👈 MUDE AQUI: true = ABERTO | false = FECHADO
+const STORE_OPEN = false;  // 👈 MUDE AQUI: true = ABERTO | false = FECHADO
 
 // ===== Função para Atualizar Status Visual =====
 function updateStoreStatus() {
@@ -100,12 +100,8 @@ const menuData = {
             description: "Unidade Lata 350ml",
             price: 7.00
         },
-        {
-            id: 14,
-            name: "Água de Coco",
-            description: "Unidade 500ml",
-            price: 12.00
-        },
+
+
         {
             id: 15,
             name: "Coca-Cola",
@@ -542,5 +538,3 @@ function sendToWhatsApp() {
 
     window.open(whatsappUrl, '_blank');
 }
-
-
