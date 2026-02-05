@@ -2,7 +2,7 @@
 // ║  🔥 CONFIGURAÇÃO DE STATUS DA LOJA                             ║
 // ║  Altere para true = OPEN (Aberto) | false = CLOSED (Fechado)   ║
 // ╚════════════════════════════════════════════════════════════════╝
-const STORE_OPEN = true;  // 👈 MUDE AQUI: true = ABERTO | false = FECHADO
+const STORE_OPEN = false;  // 👈 MUDE AQUI: true = ABERTO | false = FECHADO
 
 // ===== Função para Atualizar Status Visual =====
 function updateStoreStatus() {
@@ -25,6 +25,22 @@ function updateStoreStatus() {
 
 // ===== Menu Data =====
 const menuData = {
+    promocoes: [
+        {
+            id: 1001,
+            name: "Dupla da Alegria",
+            description: "2x X-Salada Clássicos (Pão, Hambúrguer, Queijo, Salada e Maionese). Ideal para dividir!",
+            price: 39.90,
+            badge: "SUPER DESCONTO %"
+        },
+        {
+            id: 1002,
+            name: "Dupla Egg Bacon",
+            description: "2x X-Egg Bacon (O favorito!). Pão, Burger, Bacon Crocante, Ovo, Queijo e Salada.",
+            price: 54.90,
+            badge: "CLÁSSICO EM DOBRO"
+        }
+    ],
     tradicionais: [
         {
             id: 1,
@@ -68,7 +84,8 @@ const menuData = {
             id: 7,
             name: "Santa Fúria",
             description: "Quando a fome perde a paciência: Dois Hambúrgueres Artesanais, Ovo, Tomate, Frango Desfiado, Bacon, Triplo de Queijo, Milho, Alface e Maionese Especial.",
-            price: 46.00
+            price: 46.00,
+            badge: "MAIS VENDIDO 🏆"
         },
         {
             id: 8,
@@ -186,14 +203,19 @@ function renderMenu() {
 
         container.innerHTML = menuData[category].map(item => {
             // Determine which function to call based on category
-            const clickAction = (category === 'bebidas')
-                ? `addDirectToCart(${item.id})`
-                : `openAddonModal(${item.id})`;
+            let clickAction;
+            if (category === 'bebidas') {
+                clickAction = `addDirectToCart(${item.id})`;
+            } else if (category === 'promocoes') {
+                clickAction = `addDoublePromoToCart(${item.id})`;
+            } else {
+                clickAction = `openAddonModal(${item.id})`;
+            }
 
             return `
             <div class="menu-item" data-id="${item.id}">
                 <div class="item-info">
-                    <h3 class="item-name">${item.name}</h3>
+                    <h3 class="item-name">${item.name} ${item.badge ? `<span class="item-badge">${item.badge}</span>` : ''}</h3>
                     <p class="item-description">${item.description}</p>
                 </div>
                 <div class="menu-item-actions">
@@ -324,6 +346,104 @@ function addToCartWithAddons() {
     saveCart();
     updateCartUI();
     showToast(`${currentModalQuantity}x ${currentModalItem.name} adicionado!`);
+}
+
+// ===== Combo Promocional =====
+function addComboToCart() {
+    // 1. Adicionar Santa Fúria
+    const sf = findItemById(7); // ID do Santa Fúria
+    if (sf) {
+        const sfId = `${sf.id}-default`;
+        const existingSf = cart.find(i => i.cartId === sfId);
+        if (existingSf) {
+            existingSf.quantity += 1;
+        } else {
+            cart.push({
+                id: sf.id,
+                cartId: sfId,
+                name: sf.name,
+                basePrice: sf.price,
+                price: sf.price,
+                addons: [],
+                quantity: 1,
+                observation: 'Combo Matador 🔥'
+            });
+        }
+    }
+
+    // 2. Adicionar Coca-Cola
+    const coke = findItemById(15); // ID da Coca-Cola
+    if (coke) {
+        const cokeId = `${coke.id}-combo`; // Diferente do default para marcar que é do combo
+        const existingCoke = cart.find(i => i.cartId === cokeId);
+        if (existingCoke) {
+            existingCoke.quantity += 1;
+        } else {
+            cart.push({
+                id: coke.id,
+                cartId: cokeId,
+                name: coke.name,
+                basePrice: coke.price,
+                price: 3.90, // Preço promocional (Total 49.90: 46 + 3.90) (Normal é 7.00)
+                addons: [],
+                quantity: 1,
+                observation: 'Combo Matador 🔥'
+            });
+        }
+    }
+
+    saveCart();
+    updateCartUI();
+    toggleCart(); // Abrir carrinho para mostrar
+    showToast(`Combo Matador adicionado! 🍔🥤`);
+}
+
+// ===== Promoção Dupla X-Salada & Dupla Egg Bacon =====
+function addDoublePromoToCart(promoId) {
+    let targetItemId = 0;
+    let promoTotal = 0;
+    let promoNameSuffix = "";
+
+    // Configuração das Promoções
+    if (promoId === 1001) {
+        // Dupla X-Salada
+        targetItemId = 1; // ID 1 = X-Salada
+        promoTotal = 39.90;
+        promoNameSuffix = "(Promo Dupla)";
+    } else if (promoId === 1002) {
+        // Dupla Egg Bacon
+        targetItemId = 6; // ID 6 = X-Egg Bacon
+        promoTotal = 54.90;
+        promoNameSuffix = "(Promo Egg Bacon)";
+    } else {
+        return;
+    }
+
+    const item = findItemById(targetItemId);
+
+    if (item) {
+        const unitPrice = promoTotal / 2;
+
+        for (let i = 0; i < 2; i++) {
+            const uniqueSuffix = Date.now() + i;
+
+            cart.push({
+                id: item.id,
+                cartId: `${item.id}-promo-${uniqueSuffix}`,
+                name: `${item.name} ${promoNameSuffix}`,
+                basePrice: item.price,
+                price: unitPrice,
+                addons: [],
+                quantity: 1,
+                observation: 'Item da Promoção Dupla'
+            });
+        }
+
+        saveCart();
+        updateCartUI();
+        toggleCart();
+        showToast(`2x ${item.name} adicionados! 🎉`);
+    }
 }
 
 // Legacy function
@@ -538,4 +658,3 @@ function sendToWhatsApp() {
 
     window.open(whatsappUrl, '_blank');
 }
-

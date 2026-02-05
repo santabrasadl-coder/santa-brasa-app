@@ -968,3 +968,167 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--primary);
 }
+
+/* ===== Promo Banner (Sales Strategy) ===== */
+.promo-banner {
+    background: linear-gradient(135deg, #2A2A2A 0%, #1a1a1a 100%);
+    border: 2px solid var(--primary);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(255, 107, 0, 0.2);
+    animation: promo-pulse 2s infinite ease-in-out;
+}
+
+@keyframes promo-pulse {
+    0% {
+        box-shadow: 0 0 20px rgba(255, 107, 0, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 30px rgba(255, 107, 0, 0.4), 0 0 10px rgba(255, 107, 0, 0.2);
+    }
+
+    100% {
+        box-shadow: 0 0 20px rgba(255, 107, 0, 0.2);
+    }
+}
+
+.promo-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    z-index: 2;
+}
+
+.promo-text {
+    flex: 1;
+}
+
+.promo-tag {
+    background: var(--primary);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    animation: flash 1s infinite alternate;
+}
+
+@keyframes flash {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.8;
+    }
+}
+
+.promo-text h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(45deg, #FFF, #FFB366);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.promo-text p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.promo-price-box {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+}
+
+.old-price {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.new-price {
+    color: var(--success);
+    font-weight: 700;
+    font-size: 1.5rem;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1px;
+}
+
+.promo-button {
+    background: var(--success);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 200, 83, 0.3);
+    white-space: nowrap;
+}
+
+.promo-button:hover {
+    transform: translateY(-2px) scale(1.05);
+    background: #00e660;
+    box-shadow: 0 6px 20px rgba(0, 200, 83, 0.4);
+}
+
+/* ===== Badge Mais Vendido ===== */
+.item-badge {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #000;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    vertical-align: middle;
+    margin-left: 0.5rem;
+    text-shadow: none;
+    box-shadow: 0 2px 5px rgba(255, 215, 0, 0.3);
+    border: 1px solid #FFF;
+}
+
+/* Responsividade Promo Banner */
+@media (max-width: 600px) {
+    .promo-content {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .promo-button {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .promo-text h2 {
+        font-size: 2rem;
+    }
+}
+
+/* ===== Seção Promoções ===== */
+.promocoes-section .menu-item {
+    border: 1px dashed var(--primary);
+    background: linear-gradient(to right, rgba(255, 107, 0, 0.05), transparent);
+}
+
+.promocoes-section .section-title {
+    color: var(--primary);
+}
