@@ -113,7 +113,7 @@ const menuData = {
             id: 2001,
             name: "Mini Pudim Tradicional 150g",
             description: "150g. O melhor pudim da cidade! Cremoso, sem furinhos e com calda de caramelo especial.",
-            price: 22.00,
+            price: 15.00,
             badge: "NOVIDADE ✨"
         }
     ],
@@ -194,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStoreStatus();  // Atualiza status OPEN/CLOSED
     renderMenu();
     loadCart();
+    loadUserData(); // Carrega dados salvos do cliente
     updateCartUI();
 });
 
@@ -590,6 +591,26 @@ function loadCart() {
     }
 }
 
+// ===== Save/Load User Data =====
+function saveUserData(name, address, phone) {
+    const userData = { name, address, phone };
+    localStorage.setItem('santaBrasaUserData', JSON.stringify(userData));
+}
+
+function loadUserData() {
+    const saved = localStorage.getItem('santaBrasaUserData');
+    if (saved) {
+        try {
+            const { name, address, phone } = JSON.parse(saved);
+            if (name) document.getElementById('clientName').value = name;
+            if (address) document.getElementById('clientAddress').value = address;
+            if (phone) document.getElementById('clientPhone').value = phone;
+        } catch (e) {
+            console.error("Erro ao carregar dados do usuário", e);
+        }
+    }
+}
+
 // ===== Show Toast =====
 function showToast(message) {
     toastMessage.textContent = message;
@@ -645,6 +666,9 @@ function sendToWhatsApp() {
         document.getElementById('changeAmount').focus();
         return;
     }
+
+    // Salvar dados para a próxima compra
+    saveUserData(name, address, phone);
 
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const total = subtotal + DELIVERY_FEE;
