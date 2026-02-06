@@ -147,7 +147,7 @@ let currentModalQuantity = 1;
 let selectedAddons = [];
 
 // ===== WhatsApp Number (configure here) =====
-const WHATSAPP_NUMBER = "5537991030870";
+const WHATSAPP_NUMBER = "553799982046";
 
 // ===== DOM Elements =====
 const cartButton = document.getElementById('cartButton');
