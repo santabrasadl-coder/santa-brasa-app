@@ -130,11 +130,12 @@ const menuData = {
 
 // ===== Add-ons Data =====
 const ADDONS = [
-
     { id: 'bacon', name: 'Bacon Extra', price: 8.00 },
     { id: 'queijo', name: 'Queijo Extra', price: 5.00 },
     { id: 'ovo', name: 'Ovo Extra', price: 4.00 },
-    { id: 'maionese', name: 'Maionese da Casa', price: 3. }
+    { id: 'maionese', name: 'Maionese da Casa', price: 3.00 },
+    { id: 'abacaxi', name: 'Abacaxi', price: 3.00 },
+    { id: 'banana', name: 'Banana', price: 3.00 }
 ];
 
 // ===== Cart State & Modal State =====
@@ -144,7 +145,7 @@ let currentModalQuantity = 1;
 let selectedAddons = [];
 
 // ===== WhatsApp Number (configure here) =====
-const WHATSAPP_NUMBER = "5537999982046";
+const WHATSAPP_NUMBER = "5537991030870";
 
 // ===== DOM Elements =====
 const cartButton = document.getElementById('cartButton');
@@ -658,6 +659,3 @@ function sendToWhatsApp() {
 
     window.open(whatsappUrl, '_blank');
 }
-
-
-
