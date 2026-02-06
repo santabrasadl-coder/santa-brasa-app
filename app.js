@@ -76,7 +76,8 @@ const menuData = {
             id: 6,
             name: "X-Egg Bacon",
             description: "Pão, Hambúrguer Artesanal, Bacon, Ovo, Mussarela, Alface, Tomate e Molho Especial.",
-            price: 32.00
+            price: 32.00,
+            badge: "MAIS VENDIDO 🏆"
         }
     ],
     especiais: [
@@ -91,7 +92,8 @@ const menuData = {
             id: 8,
             name: "Santo Juízo",
             description: "Um verdadeiro tribunal de sabores: Hambúrguer Suculento, Frango Desfiado, Bacon Crocante, Ovo, Triplo de Queijo, Milho, Alface, Tomate e Maionese Especial.",
-            price: 44.00
+            price: 44.00,
+            badge: "MAIS VENDIDO 🏆"
         },
         {
             id: 9,
