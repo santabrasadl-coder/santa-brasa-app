@@ -113,7 +113,7 @@ const menuData = {
             id: 2001,
             name: "Mini Pudim Tradicional 150g",
             description: "150g. O melhor pudim da cidade! Cremoso, sem furinhos e com calda de caramelo especial.",
-            price: 15.00,
+            price: 12.00,
             badge: "NOVIDADE ✨"
         }
     ],
@@ -122,19 +122,19 @@ const menuData = {
             id: 3001,
             name: "Bolo de Maracujá com Chocolate",
             description: "Fatia generosa. Massa fofinha de chocolate recheada com mousse de maracujá.",
-            price: 22.00
+            price: 15.00
         },
         {
             id: 3002,
             name: "Bolo de Chocolate",
             description: "Fatia generosa. Massa de chocolate fofinha com recheio de chocolate ao leite e cobertura de chocolate meio amargo.",
-            price: 22.00
+            price: 15.00
         },
         {
             id: 3003,
             name: "Bolo de Cenoura com Chocolate",
             description: "Fatia generosa. Massa de cenoura fresquinha com aquela cobertura de chocolate que crackela.",
-            price: 22.00
+            price: 15.00
         }
     ],
     bebidas: [
