@@ -1162,3 +1162,67 @@ body {
 .promocoes-section .section-title {
     color: var(--primary);
 }
+
+/* ===== Fluorescent Green Promo (Neon) ===== */
+.promo-banner.neon-green {
+    border-color: #00FF41;
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+    animation: promo-pulse-green 2s infinite ease-in-out;
+}
+
+@keyframes promo-pulse-green {
+    0% {
+        box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 30px rgba(0, 255, 65, 0.5), 0 0 10px rgba(0, 255, 65, 0.3);
+    }
+
+    100% {
+        box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+    }
+}
+
+.promo-banner.neon-green .promo-tag {
+    background: #00FF41;
+    color: #000;
+    box-shadow: 0 0 10px #00FF41;
+    animation: flash-green 1s infinite alternate;
+}
+
+@keyframes flash-green {
+    0% {
+        opacity: 1;
+        box-shadow: 0 0 5px #00FF41;
+    }
+
+    100% {
+        opacity: 0.8;
+        box-shadow: 0 0 15px #00FF41;
+    }
+}
+
+.promo-banner.neon-green .promo-text h2 {
+    background: linear-gradient(45deg, #00FF41, #FFF);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}
+
+.promo-banner.neon-green .new-price {
+    color: #00FF41;
+    text-shadow: 0 0 10px #00FF41;
+}
+
+.promo-banner.neon-green .promo-button {
+    background: #00FF41;
+    color: #000;
+    box-shadow: 0 4px 15px rgba(0, 255, 65, 0.4);
+}
+
+.promo-banner.neon-green .promo-button:hover {
+    background: #00e63a;
+    box-shadow: 0 6px 25px rgba(0, 255, 65, 0.6);
+}

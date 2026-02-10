@@ -430,6 +430,31 @@ function addComboToCart() {
     showToast(`Combo Matador adicionado! 🍔🥤`);
 }
 
+// ===== Promoção Relâmpago (Single Item) =====
+function addPromoBurger(itemId, promoPrice) {
+    const item = findItemById(itemId);
+    if (!item) return;
+
+    // Unique ID for promo item
+    const uniqueCartId = `${item.id}-promo-${Date.now()}`;
+
+    cart.push({
+        id: item.id,
+        cartId: uniqueCartId,
+        name: `${item.name} (PROMO ⚡)`,
+        basePrice: item.price,
+        price: promoPrice,
+        addons: [],
+        quantity: 1,
+        observation: 'OFERTA RELÂMPAGO ⚡'
+    });
+
+    saveCart();
+    updateCartUI();
+    toggleCart();
+    showToast(`${item.name} em promoção adicionado! ⚡`);
+}
+
 // ===== Promoção Dupla X-Salada & Dupla Egg Bacon =====
 function addDoublePromoToCart(promoId) {
     let targetItemId = 0;
@@ -713,5 +738,3 @@ function sendToWhatsApp() {
 
     window.open(whatsappUrl, '_blank');
 }
-
-
