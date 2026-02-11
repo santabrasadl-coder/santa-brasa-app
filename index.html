@@ -24,8 +24,7 @@
     <header class="header">
         <div class="header-content">
             <div class="logo">
-                <span class="logo-icon">🔥</span>
-                <h1>Santa Brasa</h1>
+                <img src="logo.png" alt="Santa Brasa Logo" class="logo-image">
             </div>
             <p class="tagline">Hamburgueria Artesanal</p>
         </div>
@@ -53,7 +52,7 @@
 
         <!-- Promoções -->
         <section class="menu-section promocoes-section">
-            <h2 class="section-title">
+            <h2 class="section-title neon-green-text">
                 <span class="title-icon">🔥</span>
                 Promoções
             </h2>
@@ -64,7 +63,7 @@
 
         <!-- Burgers Tradicionais -->
         <section class="menu-section">
-            <h2 class="section-title">
+            <h2 class="section-title neon-white">
                 <span class="title-icon">🍔</span>
                 Tradicionais
             </h2>
@@ -75,7 +74,7 @@
 
         <!-- Burgers Especiais -->
         <section class="menu-section especiais">
-            <h2 class="section-title">
+            <h2 class="section-title neon-white">
                 <span class="title-icon">⭐</span>
                 Especiais
             </h2>
@@ -86,7 +85,7 @@
 
         <!-- Sobremesas -->
         <section class="menu-section sobremesas">
-            <h2 class="section-title">
+            <h2 class="section-title neon-white">
                 <span class="title-icon">🍮</span>
                 Sobremesas
             </h2>
@@ -97,7 +96,7 @@
 
         <!-- Fatias de Bolo -->
         <section class="menu-section bolos">
-            <h2 class="section-title">
+            <h2 class="section-title neon-white">
                 <span class="title-icon">🍰</span>
                 Fatias de Bolo
             </h2>
@@ -108,7 +107,7 @@
 
         <!-- Bebidas -->
         <section class="menu-section bebidas">
-            <h2 class="section-title">
+            <h2 class="section-title neon-white">
                 <span class="title-icon">🥤</span>
                 Bebidas
             </h2>
@@ -118,11 +117,15 @@
         </section>
     </main>
 
-    <!-- Cart Button (Fixed) -->
     <button class="cart-button" id="cartButton" onclick="toggleCart()">
         <span class="cart-icon">🛒</span>
         <span class="cart-count" id="cartCount">0</span>
     </button>
+
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/553799982046" class="whatsapp-float" target="_blank" aria-label="Contato via WhatsApp">
+        <span class="whatsapp-float-icon">📱</span>
+    </a>
 
     <!-- Cart Sidebar -->
     <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
@@ -224,7 +227,6 @@
         <span class="toast-icon">✓</span>
         <span class="toast-message" id="toastMessage">Item adicionado!</span>
     </div>
-
     <!-- Firebase SDK (Common/Database) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>

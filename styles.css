@@ -1,8 +1,8 @@
 /* ===== CSS Variables ===== */
 :root {
-    --primary: #FF6B00;
-    --primary-dark: #E55A00;
-    --primary-light: #FF8C33;
+    --primary: #FF3131;
+    --primary-dark: #CC0000;
+    --primary-light: #FF5C5C;
     --secondary: #1A1A1A;
     --background: #0D0D0D;
     --surface: #1F1F1F;
@@ -10,9 +10,9 @@
     --text-primary: #FFFFFF;
     --text-secondary: #B3B3B3;
     --success: #00C853;
-    --gradient-fire: linear-gradient(135deg, #FF6B00 0%, #FF8C33 50%, #FFB366 100%);
+    --gradient-fire: linear-gradient(135deg, #FF3131 0%, #FF5C5C 50%, #FF7A7A 100%);
     --gradient-dark: linear-gradient(180deg, #1A1A1A 0%, #0D0D0D 100%);
-    --shadow-glow: 0 0 30px rgba(255, 107, 0, 0.3);
+    --shadow-glow: 0 0 30px rgba(255, 49, 49, 0.3);
     --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
     --radius-sm: 8px;
     --radius-md: 12px;
@@ -154,6 +154,66 @@ body {
     }
 }
 
+/* ===== Neon White Effect ===== */
+.neon-white {
+    color: #FFFFFF !important;
+    text-shadow:
+        0 0 5px #FFFFFF,
+        0 0 10px #FFFFFF,
+        0 0 20px #FFFFFF,
+        0 0 40px #FFFFFF;
+    animation: neon-glow-white 1.5s ease-in-out infinite alternate !important;
+}
+
+@keyframes neon-glow-white {
+    0% {
+        text-shadow:
+            0 0 5px #FFFFFF,
+            0 0 10px #FFFFFF,
+            0 0 20px #FFFFFF,
+            0 0 40px #FFFFFF;
+    }
+
+    100% {
+        text-shadow:
+            0 0 10px #FFFFFF,
+            0 0 20px #FFFFFF,
+            0 0 40px #FFFFFF,
+            0 0 80px #FFFFFF,
+            0 0 120px #FFFFFF;
+    }
+}
+
+/* ===== Neon Green Effect (for Titles) ===== */
+.neon-green-text {
+    color: #00FF41 !important;
+    text-shadow:
+        0 0 5px #00FF41,
+        0 0 10px #00FF41,
+        0 0 20px #00FF41,
+        0 0 40px #00FF41;
+    animation: neon-glow-green 1.5s ease-in-out infinite alternate !important;
+}
+
+@keyframes neon-glow-green {
+    0% {
+        text-shadow:
+            0 0 5px #00FF41,
+            0 0 10px #00FF41,
+            0 0 20px #00FF41,
+            0 0 40px #00FF41;
+    }
+
+    100% {
+        text-shadow:
+            0 0 10px #00FF41,
+            0 0 20px #00FF41,
+            0 0 40px #00FF41,
+            0 0 80px #00FF41,
+            0 0 120px #00FF41;
+    }
+}
+
 /* ===== Header ===== */
 .header {
     background: var(--gradient-dark);
@@ -170,7 +230,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(ellipse at center bottom, rgba(255, 107, 0, 0.15) 0%, transparent 70%);
+    background: radial-gradient(ellipse at center bottom, rgba(255, 49, 49, 0.15) 0%, transparent 70%);
     pointer-events: none;
 }
 
@@ -183,34 +243,20 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
     margin-bottom: 0.5rem;
 }
 
-.logo-icon {
-    font-size: 2.5rem;
-    animation: flame 1s ease-in-out infinite alternate;
+.logo-image {
+    max-width: 180px;
+    height: auto;
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(255, 49, 49, 0.4);
+    transition: all 0.3s ease;
 }
 
-@keyframes flame {
-    0% {
-        transform: scale(1) rotate(-3deg);
-    }
-
-    100% {
-        transform: scale(1.1) rotate(3deg);
-    }
-}
-
-.logo h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 3rem;
-    letter-spacing: 3px;
-    background: var(--gradient-fire);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-transform: uppercase;
+.logo-image:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(255, 49, 49, 0.6);
 }
 
 .tagline {
@@ -306,8 +352,47 @@ body {
 .item-price {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1.4rem;
-    color: var(--primary);
+    color: #00FF41;
     white-space: nowrap;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}
+
+/* ===== Floating WhatsApp Button ===== */
+.whatsapp-float {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 1.5rem;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    box-shadow: 0 0 15px rgba(37, 211, 102, 0.4), var(--shadow-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    animation: whatsapp-glow 2s infinite alternate;
+}
+
+.whatsapp-float:hover {
+    transform: scale(1.1) translateY(-5px);
+    box-shadow: 0 0 25px rgba(37, 211, 102, 0.6);
+}
+
+.whatsapp-float-icon {
+    font-size: 1.8rem;
+}
+
+@keyframes whatsapp-glow {
+    0% {
+        box-shadow: 0 0 10px rgba(37, 211, 102, 0.3), var(--shadow-card);
+    }
+
+    100% {
+        box-shadow: 0 0 25px rgba(37, 211, 102, 0.7), var(--shadow-card);
+    }
 }
 
 .add-button {
@@ -374,8 +459,8 @@ body {
 
 /* ===== Especiais Section ===== */
 .menu-section.especiais .menu-item {
-    background: linear-gradient(135deg, var(--surface) 0%, rgba(255, 107, 0, 0.1) 100%);
-    border: 1px solid rgba(255, 107, 0, 0.2);
+    background: linear-gradient(135deg, var(--surface) 0%, rgba(255, 49, 49, 0.1) 100%);
+    border: 1px solid rgba(255, 49, 49, 0.2);
 }
 
 .menu-section.especiais .item-name::after {
@@ -681,7 +766,7 @@ body {
 .form-group select:focus {
     border-color: var(--primary);
     background: var(--background);
-    box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.1);
+    box-shadow: 0 0 0 2px rgba(255, 49, 49, 0.1);
 }
 
 /* ===== Cart Footer (Fixed) ===== */
@@ -857,7 +942,7 @@ body {
 
 .addon-option.selected {
     border-color: var(--primary);
-    background: rgba(255, 107, 0, 0.1);
+    background: rgba(255, 49, 49, 0.1);
 }
 
 .addon-check {
@@ -1136,6 +1221,24 @@ body {
     text-shadow: none;
     box-shadow: 0 2px 5px rgba(255, 215, 0, 0.3);
     border: 1px solid #FFF;
+}
+
+/* ===== Badge Dourada Neon Elegante ===== */
+.badge-gold {
+    background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
+    color: #FFF;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 0.5rem;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.4);
 }
 
 /* Responsividade Promo Banner */

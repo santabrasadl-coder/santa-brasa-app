@@ -31,14 +31,16 @@ const menuData = {
             name: "Dupla da Alegria",
             description: "2x X-Salada Clássicos (Pão, Hambúrguer, Queijo, Salada e Maionese). Ideal para dividir!",
             price: 39.90,
-            badge: "SUPER DESCONTO %"
+            badge: "SUPER DESCONTO %",
+            badgeClass: "badge-gold"
         },
         {
             id: 1002,
             name: "Dupla Egg Bacon",
             description: "2x X-Egg Bacon (O favorito!). Pão, Burger, Bacon Crocante, Ovo, Queijo e Salada.",
             price: 54.90,
-            badge: "CLÁSSICO EM DOBRO"
+            badge: "CLÁSSICO EM DOBRO",
+            badgeClass: "badge-gold"
         }
     ],
     tradicionais: [
@@ -113,7 +115,7 @@ const menuData = {
             id: 2001,
             name: "Mini Pudim Tradicional 150g",
             description: "150g. O melhor pudim da cidade! Cremoso, sem furinhos e com calda de caramelo especial.",
-            price: 12.00,
+            price: 15.00,
             badge: "NOVIDADE ✨"
         }
     ],
@@ -122,19 +124,22 @@ const menuData = {
             id: 3001,
             name: "Bolo de Maracujá com Chocolate",
             description: "Fatia generosa. Massa fofinha de chocolate recheada com mousse de maracujá.",
-            price: 15.00
+            price: 18.00,
+            badge: "NOVIDADE ✨"
         },
         {
             id: 3002,
             name: "Bolo de Chocolate",
             description: "Fatia generosa. Massa de chocolate fofinha com recheio de chocolate ao leite e cobertura de chocolate meio amargo.",
-            price: 15.00
+            price: 18.00,
+            badge: "NOVIDADE ✨"
         },
         {
             id: 3003,
             name: "Bolo de Cenoura com Chocolate",
             description: "Fatia generosa. Massa de cenoura fresquinha com aquela cobertura de chocolate que crackela.",
-            price: 15.00
+            price: 18.00,
+            badge: "NOVIDADE ✨"
         }
     ],
     bebidas: [
@@ -247,7 +252,7 @@ function renderMenu() {
             return `
             <div class="menu-item" data-id="${item.id}">
                 <div class="item-info">
-                    <h3 class="item-name">${item.name} ${item.badge ? `<span class="item-badge">${item.badge}</span>` : ''}</h3>
+                    <h3 class="item-name">${item.name} ${item.badge ? `<span class="item-badge ${item.badgeClass || ''}">${item.badge}</span>` : ''}</h3>
                     <p class="item-description">${item.description}</p>
                 </div>
                 <div class="menu-item-actions">
