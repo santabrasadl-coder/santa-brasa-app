@@ -759,8 +759,9 @@ const firebaseConfig = {
 
 // Inicializar Tracker se configurado
 if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    // Evita erro de inicialização múltipla
+    const app = !firebase.apps.length ? firebase.initializeApp(firebaseConfig) : firebase.app();
+    const db = app.database();
 
     // 1. Presença Real-time (Online/Offline)
     const myPresenceRef = db.ref('presence').push();
@@ -768,22 +769,27 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
 
     connectedRef.on('value', (snap) => {
         if (snap.val() === true) {
+            console.log("Tracker conectado ao Firebase.");
             myPresenceRef.onDisconnect().remove();
             myPresenceRef.set(true);
             logEvent("Novo visitante entrou");
             dbIncrement("total_visits");
+        } else {
+            console.warn("Tracker desconectado do Firebase.");
         }
     });
 
     // Função para Incrementar Métricas
     window.dbIncrement = function (metricPath) {
-        db.ref('metrics/' + metricPath).transaction(current => (current || 0) + 1);
+        db.ref('metrics/' + metricPath).transaction(current => (current || 0) + 1)
+            .catch(err => console.error("Erro ao incrementar métrica:", metricPath, err));
     }
 
     // Função para Logar Atividade
     window.logEvent = function (msg) {
+        console.log("Logando evento:", msg);
         const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        db.ref('logs').push({ time, msg });
+        db.ref('logs').push({ time, msg }).catch(err => console.error("Erro ao logar evento:", err));
     }
 } else {
     // Fallback silencioso se não houver Firebase
