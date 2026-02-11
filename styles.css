@@ -158,29 +158,23 @@ body {
 .neon-white {
     color: #FFFFFF !important;
     text-shadow:
-        0 0 5px #FFFFFF,
-        0 0 10px #FFFFFF,
-        0 0 20px #FFFFFF,
-        0 0 40px #FFFFFF;
-    animation: neon-glow-white 1.5s ease-in-out infinite alternate !important;
+        0 0 4px rgba(255, 255, 255, 0.8),
+        0 0 10px rgba(255, 255, 255, 0.4);
+    animation: neon-glow-white 2s ease-in-out infinite alternate !important;
 }
 
 @keyframes neon-glow-white {
     0% {
         text-shadow:
-            0 0 5px #FFFFFF,
-            0 0 10px #FFFFFF,
-            0 0 20px #FFFFFF,
-            0 0 40px #FFFFFF;
+            0 0 4px rgba(255, 255, 255, 0.8),
+            0 0 10px rgba(255, 255, 255, 0.4);
     }
 
     100% {
         text-shadow:
-            0 0 10px #FFFFFF,
-            0 0 20px #FFFFFF,
-            0 0 40px #FFFFFF,
-            0 0 80px #FFFFFF,
-            0 0 120px #FFFFFF;
+            0 0 8px rgba(255, 255, 255, 0.9),
+            0 0 18px rgba(255, 255, 255, 0.5),
+            0 0 30px rgba(255, 255, 255, 0.2);
     }
 }
 
@@ -188,29 +182,23 @@ body {
 .neon-green-text {
     color: #00FF41 !important;
     text-shadow:
-        0 0 5px #00FF41,
-        0 0 10px #00FF41,
-        0 0 20px #00FF41,
-        0 0 40px #00FF41;
-    animation: neon-glow-green 1.5s ease-in-out infinite alternate !important;
+        0 0 4px rgba(0, 255, 65, 0.8),
+        0 0 10px rgba(0, 255, 65, 0.4);
+    animation: neon-glow-green 2s ease-in-out infinite alternate !important;
 }
 
 @keyframes neon-glow-green {
     0% {
         text-shadow:
-            0 0 5px #00FF41,
-            0 0 10px #00FF41,
-            0 0 20px #00FF41,
-            0 0 40px #00FF41;
+            0 0 4px rgba(0, 255, 65, 0.8),
+            0 0 10px rgba(0, 255, 65, 0.4);
     }
 
     100% {
         text-shadow:
-            0 0 10px #00FF41,
-            0 0 20px #00FF41,
-            0 0 40px #00FF41,
-            0 0 80px #00FF41,
-            0 0 120px #00FF41;
+            0 0 8px rgba(0, 255, 65, 0.9),
+            0 0 18px rgba(0, 255, 65, 0.5),
+            0 0 30px rgba(0, 255, 65, 0.2);
     }
 }
 
