@@ -311,12 +311,12 @@ body {
 }
 
 .add-button {
-    background: var(--gradient-fire);
+    background: linear-gradient(135deg, #00FF41 0%, #00cc33 100%);
     border: none;
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    color: white;
+    color: #000;
     font-size: 1.5rem;
     cursor: pointer;
     display: flex;
@@ -324,11 +324,12 @@ body {
     justify-content: center;
     transition: all 0.3s ease;
     flex-shrink: 0;
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
 }
 
 .add-button:hover {
     transform: scale(1.15) rotate(90deg);
-    box-shadow: var(--shadow-glow);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
 }
 
 .add-button:active {
@@ -917,18 +918,20 @@ body {
 
 .add-to-order-btn {
     flex: 1;
-    background: var(--gradient-fire);
+    background: linear-gradient(135deg, #00FF41 0%, #00cc33 100%);
     border: none;
     padding: 1rem;
     border-radius: var(--radius-md);
-    color: white;
+    color: #000;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
 }
 
 .add-to-order-btn:hover {
     transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
 }
 
 /* ===== Toast Notification ===== */

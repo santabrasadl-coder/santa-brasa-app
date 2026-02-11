@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Santa Brasa - Dashboard Live</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #1a1a1a;
+            --neon-green: #00FF41;
+            --neon-orange: #FF6B00;
+            --text: #ffffff;
+            --text-dim: #b3b3b3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 1rem;
+        }
+
+        h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            color: var(--neon-orange);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #333;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--neon-green);
+        }
+
+        .stat-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3.5rem;
+            display: block;
+            margin: 0.5rem 0;
+            color: var(--neon-green);
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .live-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 10px var(--neon-green);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .log-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #333;
+        }
+
+        .log-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--neon-orange);
+        }
+
+        .log-list {
+            list-style: none;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+
+        .log-time {
+            color: var(--text-dim);
+            margin-right: 15px;
+        }
+
+        .log-msg {
+            flex: 1;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 10px;
+        }
+
+        .setup-alert {
+            background: rgba(255, 107, 0, 0.1);
+            border: 1px solid var(--neon-orange);
+            color: var(--neon-orange);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Santa Brasa • Live Control</h1>
+        <div id="connection-status">
+            <span class="live-dot" style="background-color: #ff4141; box-shadow: 0 0 10px #ff4141;"></span>
+            <span id="status-text" style="color: #ff4141;">Aguardando Firebase...</span>
+        </div>
+    </header>
+
+    <div class="setup-alert" id="setup-hint">
+        <strong>⚠️ Ação Necessária:</strong> Insira as chaves do Firebase no arquivo <code>dashboard.js</code> para
+        ativar o monitoramento ao vivo.
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-label">Online Agora</span>
+            <span class="stat-value" id="count-live">0</span>
+            <div style="font-size: 0.7rem; color: var(--neon-green)">● AO VIVO</div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Total de Visitas</span>
+            <span class="stat-value" id="count-total">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Cliques Pedidos</span>
+            <span class="stat-value" id="count-orders">0</span>
+        </div>
+    </div>
+
+    <div class="log-section">
+        <h3 class="log-title">Atividade Recente</h3>
+        <ul class="log-list" id="activity-log">
+            <li class="log-item">
+                <span class="log-time">--:--</span>
+                <span class="log-msg">Iniciando sistema de monitoramento...</span>
+            </li>
+        </ul>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+
+</html>

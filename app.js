@@ -737,4 +737,56 @@ function sendToWhatsApp() {
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
 
     window.open(whatsappUrl, '_blank');
+
+    // Log do Pedido para o Dashboard
+    logEvent("Iniciou pedido via WhatsApp");
+    dbIncrement("total_orders_clicked");
+}
+
+// ╔════════════════════════════════════════════════════════════════╗
+// ║  ⚙️ MONITORAMENTO LIVE (TRACKER)                                ║
+// ║  Instruções: Copie as chaves do seu projeto Firebase abaixo     ║
+// ╚════════════════════════════════════════════════════════════════╝
+const firebaseConfig = {
+    apiKey: "AIzaSyCUj8OC1NUnPiAHLLbRpKCEVFOG1Xf8q3A",
+    authDomain: "metric-s-939ee.firebaseapp.com",
+    databaseURL: "https://metric-s-939ee-default-rtdb.firebaseio.com",
+    projectId: "metric-s-939ee",
+    storageBucket: "metric-s-939ee.firebasestorage.app",
+    messagingSenderId: "814379379973",
+    appId: "1:814379379973:web:eb1535e2301c1366bb5b6c"
+};
+
+// Inicializar Tracker se configurado
+if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // 1. Presença Real-time (Online/Offline)
+    const myPresenceRef = db.ref('presence').push();
+    const connectedRef = db.ref('.info/connected');
+
+    connectedRef.on('value', (snap) => {
+        if (snap.val() === true) {
+            myPresenceRef.onDisconnect().remove();
+            myPresenceRef.set(true);
+            logEvent("Novo visitante entrou");
+            dbIncrement("total_visits");
+        }
+    });
+
+    // Função para Incrementar Métricas
+    window.dbIncrement = function (metricPath) {
+        db.ref('metrics/' + metricPath).transaction(current => (current || 0) + 1);
+    }
+
+    // Função para Logar Atividade
+    window.logEvent = function (msg) {
+        const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        db.ref('logs').push({ time, msg });
+    }
+} else {
+    // Fallback silencioso se não houver Firebase
+    window.dbIncrement = () => { };
+    window.logEvent = () => { };
 }
