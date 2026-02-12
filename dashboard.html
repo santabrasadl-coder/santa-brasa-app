@@ -9,10 +9,10 @@
         rel="stylesheet">
     <style>
         :root {
-            --bg: #0a0a0a;
-            --surface: #1a1a1a;
+            --bg: #0D0D0D;
+            --surface: #1F1F1F;
             --neon-green: #00FF41;
-            --neon-orange: #FF6B00;
+            --primary: #FF3131;
             --text: #ffffff;
             --text-dim: #b3b3b3;
         }
@@ -43,7 +43,8 @@
             font-family: 'Bebas Neue', sans-serif;
             font-size: 2.5rem;
             letter-spacing: 2px;
-            color: var(--neon-orange);
+            color: var(--primary);
+            text-shadow: 0 0 15px rgba(255, 49, 49, 0.4);
         }
 
         .stats-grid {
@@ -59,12 +60,14 @@
             border-radius: 12px;
             border: 1px solid #333;
             text-align: center;
-            transition: transform 0.3s;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-card);
         }
 
         .stat-card:hover {
             transform: translateY(-5px);
-            border-color: var(--neon-green);
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(255, 49, 49, 0.2);
         }
 
         .stat-value {
@@ -73,7 +76,7 @@
             display: block;
             margin: 0.5rem 0;
             color: var(--neon-green);
-            text-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
         }
 
         .stat-label {
@@ -122,7 +125,7 @@
             font-family: 'Bebas Neue', sans-serif;
             font-size: 1.5rem;
             margin-bottom: 1rem;
-            color: var(--neon-orange);
+            color: var(--primary);
         }
 
         .log-list {
@@ -163,9 +166,9 @@
         }
 
         .setup-alert {
-            background: rgba(255, 107, 0, 0.1);
-            border: 1px solid var(--neon-orange);
-            color: var(--neon-orange);
+            background: rgba(255, 49, 49, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
             padding: 1rem;
             border-radius: 8px;
             margin-bottom: 1.5rem;

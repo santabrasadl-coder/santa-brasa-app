@@ -762,42 +762,51 @@ const firebaseConfig = {
     appId: "1:814379379973:web:eb1535e2301c1366bb5b6c"
 };
 
-// Inicializar Tracker se configurado
+// Funções de Fallback e Incremento (Definidas antes do uso)
+window.dbIncrement = () => { };
+window.logEvent = () => { };
+
 if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
-    // Evita erro de inicialização múltipla
-    const app = !firebase.apps.length ? firebase.initializeApp(firebaseConfig) : firebase.app();
-    const db = app.database();
+    try {
+        // Inicializar Firebase
+        const app = !firebase.apps.length ? firebase.initializeApp(firebaseConfig) : firebase.app();
+        const db = app.database();
 
-    // 1. Presença Real-time (Online/Offline)
-    const myPresenceRef = db.ref('presence').push();
-    const connectedRef = db.ref('.info/connected');
-
-    connectedRef.on('value', (snap) => {
-        if (snap.val() === true) {
-            console.log("Tracker conectado ao Firebase.");
-            myPresenceRef.onDisconnect().remove();
-            myPresenceRef.set(true);
-            logEvent("Novo visitante entrou");
-            dbIncrement("total_visits");
-        } else {
-            console.warn("Tracker desconectado do Firebase.");
+        // 1. Função para Incrementar Métricas
+        window.dbIncrement = function (metricPath) {
+            db.ref('metrics/' + metricPath).transaction(current => (current || 0) + 1)
+                .catch(err => console.error("Erro ao incrementar métrica:", metricPath, err));
         }
-    });
 
-    // Função para Incrementar Métricas
-    window.dbIncrement = function (metricPath) {
-        db.ref('metrics/' + metricPath).transaction(current => (current || 0) + 1)
-            .catch(err => console.error("Erro ao incrementar métrica:", metricPath, err));
-    }
+        // 2. Função para Logar Atividade
+        window.logEvent = function (msg) {
+            console.log("Logando evento:", msg);
+            const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            db.ref('logs').push({ time, msg }).catch(err => console.error("Erro ao logar evento:", err));
+        }
 
-    // Função para Logar Atividade
-    window.logEvent = function (msg) {
-        console.log("Logando evento:", msg);
-        const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        db.ref('logs').push({ time, msg }).catch(err => console.error("Erro ao logar evento:", err));
+        // 3. Monitoramento de Conexão e Presença
+        const connectedRef = db.ref('.info/connected');
+        connectedRef.on('value', (snap) => {
+            if (snap.val() === true) {
+                console.log("✅ Tracker Conectado ao Firebase.");
+
+                // Registro de Presença
+                const myPresenceRef = db.ref('presence').push();
+                myPresenceRef.onDisconnect().remove();
+                myPresenceRef.set(true);
+
+                // Eventos de Entrada
+                logEvent("Novo visitante entrou");
+                dbIncrement("total_visits");
+            } else {
+                console.warn("⚠️ Tracker Desconectado do Firebase.");
+            }
+        });
+
+    } catch (error) {
+        console.error("❌ Falha crítica no tracker:", error);
     }
 } else {
-    // Fallback silencioso se não houver Firebase
-    window.dbIncrement = () => { };
-    window.logEvent = () => { };
+    console.warn("ℹ️ Tracker: Chaves do Firebase não configuradas.");
 }
