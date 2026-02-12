@@ -85,3 +85,57 @@ function initDashboard() {
         addLogRow(log.time, log.msg);
     });
 }
+
+// ===== Funções Auxiliares =====
+function addLogRow(time, msg) {
+    const list = document.getElementById('activity-log');
+    if (!list) return;
+
+    const li = document.createElement('li');
+    li.className = 'log-item';
+    li.innerHTML = `
+        <span class="log-time">${time}</span>
+        <span class="log-msg">${msg}</span>
+    `;
+
+    // Manter apenas os últimos 15
+    if (list.children.length >= 15) {
+        list.removeChild(list.lastChild);
+    }
+    list.prepend(li);
+}
+
+function animateValue(id, endValue) {
+    const obj = document.getElementById(id);
+    if (!obj) return;
+
+    let startValue = parseInt(obj.textContent) || 0;
+    let duration = 1000;
+    let startTimestamp = null;
+
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        obj.textContent = Math.floor(progress * (endValue - startValue) + startValue);
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+
+// ===== Segurança Simples: Senha de Acesso =====
+(function checkAccess() {
+    const MASTER_PASSWORD = "brasa-admin"; // 👈 Defina sua senha aqui
+    const authorized = sessionStorage.getItem('dashboard_auth');
+
+    if (authorized !== 'true') {
+        const pass = prompt("Digite a senha de administrador para acessar o Painel:");
+        if (pass === MASTER_PASSWORD) {
+            sessionStorage.setItem('dashboard_auth', 'true');
+        } else {
+            alert("Senha incorreta. Acesso negado.");
+            document.body.innerHTML = "<h2 style='color:red; text-align:center; margin-top:50px;'>Acesso Não Autorizado</h2>";
+        }
+    }
+})();
