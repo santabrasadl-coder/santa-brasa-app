@@ -2,7 +2,7 @@
 // ║  🔥 CONFIGURAÇÃO DE STATUS DA LOJA                             ║
 // ║  Altere para true = OPEN (Aberto) | false = CLOSED (Fechado)   ║
 // ╚════════════════════════════════════════════════════════════════╝
-const STORE_OPEN = false;  // 👈 MUDE AQUI: true = ABERTO | false = FECHADO
+const STORE_OPEN = true;  // 👈 MUDE AQUI: true = ABERTO | false = FECHADO
 
 // ===== Função para Atualizar Status Visual =====
 function updateStoreStatus() {
@@ -810,6 +810,7 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
 } else {
     console.warn("ℹ️ Tracker: Chaves do Firebase não configuradas.");
 }
+
 
 
 
