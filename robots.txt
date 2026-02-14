@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /dashboard.html
 
-Sitemap: https://santabrasa.app/sitemap.xml
+Sitemap: https://zepeg.github.io/santa-brasa-app/sitemap.xml
