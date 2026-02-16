@@ -201,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCart();
     loadUserData(); // Carrega dados salvos do cliente
     updateCartUI();
+    startFlashSaleCountdown(); // Inicia cronômetro da oferta
 });
 
 // ===== Direct Add to Cart (for Drinks) =====
@@ -617,6 +618,26 @@ function toggleChat() {
     }
 }
 
+// Close chat on Escape or click outside
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const chatWidget = document.getElementById('chatWidget');
+        if (chatWidget && chatWidget.classList.contains('active')) {
+            toggleChat();
+        }
+    }
+});
+
+document.addEventListener('click', (e) => {
+    const chatWidget = document.getElementById('chatWidget');
+    if (chatWidget && chatWidget.classList.contains('active')) {
+        // If click is outside chat-widget AND not on the toggle button
+        if (!chatWidget.contains(e.target)) {
+            toggleChat();
+        }
+    }
+});
+
 function sendChatToWhatsApp() {
     const chatInput = document.getElementById('chatInput');
     const message = chatInput.value.trim();
@@ -846,4 +867,42 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
     }
 } else {
     console.warn("ℹ️ Tracker: Chaves do Firebase não configuradas.");
+}
+
+// ===== Flash Sale Countdown =====
+function startFlashSaleCountdown() {
+    const banner = document.getElementById('flashSaleBanner');
+    const timerDisplay = document.getElementById('flashTimer');
+    const duration = 120 * 60 * 1000; // 120 minutos em ms
+
+    let flashSaleStartTime = localStorage.getItem('flashSaleStartTime');
+
+    if (!flashSaleStartTime) {
+        flashSaleStartTime = Date.now();
+        localStorage.setItem('flashSaleStartTime', flashSaleStartTime);
+    }
+
+    function updateTimer() {
+        const now = Date.now();
+        const elapsed = now - flashSaleStartTime;
+        const remaining = duration - elapsed;
+
+        if (remaining <= 0) {
+            banner.style.display = 'none';
+            clearInterval(timerInterval);
+            return;
+        }
+
+        banner.style.display = 'block';
+
+        const hours = Math.floor(remaining / (1000 * 60 * 60));
+        const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+        timerDisplay.textContent =
+            `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    updateTimer();
+    const timerInterval = setInterval(updateTimer, 1000);
 }
