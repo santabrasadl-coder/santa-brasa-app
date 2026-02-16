@@ -128,10 +128,36 @@
         <span class="cart-count" id="cartCount">0</span>
     </button>
 
-    <!-- Floating WhatsApp Button -->
-    <a href="https://wa.me/553799982046" class="whatsapp-float" target="_blank" aria-label="Contato via WhatsApp">
-        <span class="whatsapp-float-icon">📱</span>
-    </a>
+    <!-- Chat Widget -->
+    <div class="chat-widget" id="chatWidget">
+        <div class="chat-container" id="chatContainer">
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <img src="logo.png" alt="Santa Brasa" class="chat-avatar">
+                    <div class="chat-status-info">
+                        <span class="chat-name">Santa Brasa</span>
+                        <span class="chat-status">Online</span>
+                    </div>
+                </div>
+                <button class="chat-close" onclick="toggleChat()">✕</button>
+            </div>
+            <div class="chat-messages">
+                <div class="chat-bubble received">
+                    Olá! Como podemos te ajudar hoje? 🔥
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Digite sua mensagem..."
+                    onkeypress="handleChatKey(event)">
+                <button class="chat-send" onclick="sendChatToWhatsApp()">
+                    <span>➤</span>
+                </button>
+            </div>
+        </div>
+        <button class="chat-toggle" onclick="toggleChat()" aria-label="Abrir Chat">
+            <span class="chat-toggle-icon">💬</span>
+        </button>
+    </div>
 
     <!-- Cart Sidebar -->
     <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>

@@ -605,6 +605,43 @@ function toggleCart() {
     document.body.style.overflow = cartSidebar.classList.contains('active') ? 'hidden' : '';
 }
 
+// ===== Chat Widget Logic =====
+function toggleChat() {
+    const chatWidget = document.getElementById('chatWidget');
+    const chatInput = document.getElementById('chatInput');
+
+    chatWidget.classList.toggle('active');
+
+    if (chatWidget.classList.contains('active')) {
+        setTimeout(() => chatInput.focus(), 300);
+    }
+}
+
+function sendChatToWhatsApp() {
+    const chatInput = document.getElementById('chatInput');
+    const message = chatInput.value.trim();
+
+    if (!message) return;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
+
+    window.open(whatsappUrl, '_blank');
+
+    // Clear and close
+    chatInput.value = '';
+    toggleChat();
+
+    logEvent("Enviou mensagem via Chat Widget");
+    dbIncrement("chat_messages_sent");
+}
+
+function handleChatKey(event) {
+    if (event.key === 'Enter') {
+        sendChatToWhatsApp();
+    }
+}
+
 // ===== Save/Load Cart =====
 function saveCart() {
     localStorage.setItem('santaBrasaCart', JSON.stringify(cart));
@@ -810,5 +847,3 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
 } else {
     console.warn("ℹ️ Tracker: Chaves do Firebase não configuradas.");
 }
-
-
