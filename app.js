@@ -2,24 +2,33 @@
 // ║  🔥 CONFIGURAÇÃO DE STATUS DA LOJA                             ║
 // ║  Altere para true = OPEN (Aberto) | false = CLOSED (Fechado)   ║
 // ╚════════════════════════════════════════════════════════════════╝
-const STORE_OPEN = true;  // 👈 MUDE AQUI: true = ABERTO | false = FECHADO
+const STORE_OPEN = false;  // 👈 MUDE AQUI: true = ABERTO | false = FECHADO
 
 // ===== Função para Atualizar Status Visual =====
 function updateStoreStatus() {
     const statusIndicator = document.querySelector('.status-indicator');
     const statusText = document.querySelector('.status-text');
     const statusBar = document.querySelector('.status-bar');
+    const checkoutButton = document.getElementById('checkoutButton');
 
     if (!statusIndicator || !statusText || !statusBar) return;
 
     if (STORE_OPEN) {
-        statusText.textContent = 'OPEN';
+        statusText.textContent = 'ABERTO';
         statusBar.classList.remove('closed');
         statusBar.classList.add('open');
+        if (checkoutButton) {
+            checkoutButton.disabled = cart.length === 0;
+            checkoutButton.innerHTML = '<span class="whatsapp-icon">📱</span> Pedir agora';
+        }
     } else {
-        statusText.textContent = 'CLOSED';
+        statusText.textContent = 'FECHADO';
         statusBar.classList.remove('open');
         statusBar.classList.add('closed');
+        if (checkoutButton) {
+            checkoutButton.disabled = true;
+            checkoutButton.innerHTML = 'LOJA FECHADA';
+        }
     }
 }
 
@@ -206,6 +215,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== Direct Add to Cart (for Drinks) =====
 function addDirectToCart(itemId) {
+    if (!STORE_OPEN) {
+        showToast("Ops! A loja está fechada no momento.");
+        return;
+    }
     const item = findItemById(itemId);
     if (!item) return;
 
@@ -279,6 +292,10 @@ function findItemById(id) {
 
 // ===== Add-ons Modal Logic =====
 function openAddonModal(itemId) {
+    if (!STORE_OPEN) {
+        showToast("Ops! A loja está fechada no momento.");
+        return;
+    }
     const item = findItemById(itemId);
     if (!item) return;
 
@@ -388,6 +405,10 @@ function addToCartWithAddons() {
 
 // ===== Combo Promocional =====
 function addComboToCart() {
+    if (!STORE_OPEN) {
+        showToast("Ops! A loja está fechada no momento.");
+        return;
+    }
     // 1. Adicionar Santa Fúria
     const sf = findItemById(7); // ID do Santa Fúria
     if (sf) {
@@ -438,6 +459,10 @@ function addComboToCart() {
 
 // ===== Promoção Relâmpago (Single Item) =====
 function addPromoBurger(itemId, promoPrice) {
+    if (!STORE_OPEN) {
+        showToast("Ops! A loja está fechada no momento.");
+        return;
+    }
     const item = findItemById(itemId);
     if (!item) return;
 
@@ -463,6 +488,10 @@ function addPromoBurger(itemId, promoPrice) {
 
 // ===== Promoção Dupla X-Salada & Dupla Egg Bacon =====
 function addDoublePromoToCart(promoId) {
+    if (!STORE_OPEN) {
+        showToast("Ops! A loja está fechada no momento.");
+        return;
+    }
     let targetItemId = 0;
     let promoTotal = 0;
     let promoNameSuffix = "";
@@ -591,7 +620,7 @@ function updateCartUI() {
                 </div>
             </div>
         `).join('');
-        checkoutButton.disabled = false;
+        checkoutButton.disabled = !STORE_OPEN;
     }
 
     // Update total
@@ -721,6 +750,10 @@ const DELIVERY_FEE = 10.00;
 
 // ===== Send to WhatsApp =====
 function sendToWhatsApp() {
+    if (!STORE_OPEN) {
+        showToast("Desculpe, a loja está fechada!");
+        return;
+    }
     if (cart.length === 0) {
         showToast("Seu carrinho está vazio!");
         return;
@@ -906,5 +939,3 @@ function startFlashSaleCountdown() {
     updateTimer();
     const timerInterval = setInterval(updateTimer, 1000);
 }
-
-
