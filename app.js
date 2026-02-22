@@ -2,7 +2,7 @@
 // ║  🔥 CONFIGURAÇÃO DE STATUS DA LOJA                             ║
 // ║  Altere para true = OPEN (Aberto) | false = CLOSED (Fechado)   ║
 // ╚════════════════════════════════════════════════════════════════╝
-const STORE_OPEN = false;  // 👈 MUDE AQUI: true = ABERTO | false = FECHADO
+const STORE_OPEN = true;  // 👈 MUDE AQUI: true = ABERTO | false = FECHADO
 
 // ===== Função para Atualizar Status Visual =====
 function updateStoreStatus() {
@@ -181,7 +181,7 @@ let currentModalQuantity = 1;
 let selectedAddons = [];
 
 // ===== WhatsApp Number (configure here) =====
-const WHATSAPP_NUMBER = "553799982046";
+const WHATSAPP_NUMBER = "5537991030870";
 
 // ===== DOM Elements =====
 const cartButton = document.getElementById('cartButton');
@@ -906,6 +906,3 @@ function startFlashSaleCountdown() {
     updateTimer();
     const timerInterval = setInterval(updateTimer, 1000);
 }
-
-
-
