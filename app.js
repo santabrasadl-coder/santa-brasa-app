@@ -2,7 +2,7 @@
 // ║  🔥 CONFIGURAÇÃO DE STATUS DA LOJA                             ║
 // ║  Altere para true = OPEN (Aberto) | false = CLOSED (Fechado)   ║
 // ╚════════════════════════════════════════════════════════════════╝
-const STORE_OPEN = false;
+const STORE_OPEN = true;
 
 // ===== Função para Atualizar Status Visual =====
 function updateStoreStatus() {
@@ -985,3 +985,4 @@ function startFlashSaleCountdown() {
     updateTimer();
     const timerInterval = setInterval(updateTimer, 1000);
 }
+
