@@ -2,7 +2,7 @@
 // ║  🔥 CONFIGURAÇÃO DE STATUS DA LOJA                             ║
 // ║  Altere para true = OPEN (Aberto) | false = CLOSED (Fechado)   ║
 // ╚════════════════════════════════════════════════════════════════╝
-const STORE_OPEN = true;  // 👈 MUDE AQUI: true = ABERTO | false = FECHADO
+const STORE_OPEN = false;
 
 // ===== Função para Atualizar Status Visual =====
 function updateStoreStatus() {
@@ -37,7 +37,7 @@ const menuData = {
     promocoes: [
         {
             id: 1001,
-            name: "Dupla da Alegria",
+            name: "Dupla de X-Salada",
             description: "2x X-Salada Clássicos (Pão, Hambúrguer, Queijo, Salada e Maionese). Ideal para dividir!",
             price: 39.90,
             badge: "SUPER DESCONTO %",
@@ -49,6 +49,54 @@ const menuData = {
             description: "2x X-Egg Bacon (O favorito!). Pão, Burger, Bacon Crocante, Ovo, Queijo e Salada.",
             price: 54.90,
             badge: "CLÁSSICO EM DOBRO",
+            badgeClass: "badge-gold"
+        },
+        {
+            id: 4001,
+            name: "X-Salada + Mini Pudim",
+            description: "1x X-Salada Clássico + 1x Mini Pudim Cremoso. A sobremesa perfeita!",
+            price: 34.90,
+            badge: "COM PUDIM 🍮",
+            badgeClass: "badge-gold"
+        },
+        {
+            id: 4002,
+            name: "Santo Juízo + Mini Pudim",
+            description: "1x Santo Juízo (O Completo) + 1x Mini Pudim Cremoso. Satisfação garantida.",
+            price: 52.90,
+            badge: "COM PUDIM 🍮",
+            badgeClass: "badge-gold"
+        },
+        {
+            id: 4003,
+            name: "2x Egg Bacon + 2x Pudim",
+            description: "2x X-Egg Bacon + 2x Mini Pudins. Ideal para compartilhar com quem você ama.",
+            price: 84.90,
+            badge: "DOSE DUPLA 🎉",
+            badgeClass: "badge-gold"
+        },
+        {
+            id: 4004,
+            name: "X-Bacon + Bolo de Cenoura",
+            description: "1x X-Bacon + 1x Fatia de Bolo de Cenoura. Uma explosão de sabores!",
+            price: 42.90,
+            badge: "COMBINAÇÃO REAL ✨",
+            badgeClass: "badge-gold"
+        },
+        {
+            id: 4005,
+            name: "Santa Fúria + Coca-Cola",
+            description: "1x Santa Fúria (O Gigante) + 1x Coca-Cola Lata 350ml. Mate sua fome!",
+            price: 49.90,
+            badge: "O BRABO 🔥",
+            badgeClass: "badge-gold"
+        },
+        {
+            id: 4006,
+            name: "Dupla Milagre Cremoso",
+            description: "2x Milagre Cremoso. Frango, Bacon e muito Queijo em dose dupla!",
+            price: 74.90,
+            badge: "OFERTA %",
             badgeClass: "badge-gold"
         }
     ],
@@ -254,11 +302,12 @@ function renderMenu() {
         if (!container) return;
 
         container.innerHTML = menuData[category].map(item => {
+            let clickAction = '';
             // Determine which function to call based on category
             if (category === 'bebidas' || category === 'sobremesas' || category === 'bolos') {
                 clickAction = `addDirectToCart(${item.id})`;
             } else if (category === 'promocoes') {
-                clickAction = `addDoublePromoToCart(${item.id})`;
+                clickAction = `handlePromoClick(${item.id})`;
             } else {
                 clickAction = `openAddonModal(${item.id})`;
             }
@@ -486,59 +535,56 @@ function addPromoBurger(itemId, promoPrice) {
     showToast(`${item.name} em promoção adicionado! ⚡`);
 }
 
-// ===== Promoção Dupla X-Salada & Dupla Egg Bacon =====
-function addDoublePromoToCart(promoId) {
-    if (!STORE_OPEN) {
-        showToast("Ops! A loja está fechada no momento.");
-        return;
-    }
-    let targetItemId = 0;
-    let promoTotal = 0;
-    let promoNameSuffix = "";
+// ===== Router de Promoções =====
+function handlePromoClick(promoId) {
+    if (!STORE_OPEN) return showToast("Ops! A loja está fechada no momento.");
 
-    // Configuração das Promoções
-    if (promoId === 1001) {
-        // Dupla X-Salada
-        targetItemId = 1; // ID 1 = X-Salada
-        promoTotal = 39.90;
-        promoNameSuffix = "(Promo Dupla)";
-    } else if (promoId === 1002) {
-        // Dupla Egg Bacon
-        targetItemId = 6; // ID 6 = X-Egg Bacon
-        promoTotal = 54.90;
-        promoNameSuffix = "(Promo Egg Bacon)";
-    } else {
-        return;
-    }
+    const configs = {
+        1001: { items: [{ id: 1, qty: 2 }], total: 39.90, suffix: "(Promo Dupla)" },
+        1002: { items: [{ id: 6, qty: 2 }], total: 54.90, suffix: "(Promo Egg Bacon)" },
+        4001: { items: [{ id: 1, qty: 1 }, { id: 2001, qty: 1 }], total: 34.90, suffix: "(Combo Pudim)" },
+        4002: { items: [{ id: 8, qty: 1 }, { id: 2001, qty: 1 }], total: 52.90, suffix: "(Combo Especial)" },
+        4003: { items: [{ id: 6, qty: 2 }, { id: 2001, qty: 2 }], total: 84.90, suffix: "(Pudim em Dobro)" },
+        4004: { items: [{ id: 4, qty: 1 }, { id: 3003, qty: 1 }], total: 42.90, suffix: "(Burger & Bolo)" },
+        4005: { items: [{ id: 7, qty: 1 }, { id: 15, qty: 1 }], total: 49.90, suffix: "(Santa Coca)" },
+        4006: { items: [{ id: 9, qty: 2 }], total: 74.90, suffix: "(Promo Milagre)" }
+    };
 
-    const item = findItemById(targetItemId);
+    const config = configs[promoId];
+    if (!config) return;
 
-    if (item) {
-        const unitPrice = promoTotal / 2;
+    const totalOriginal = config.items.reduce((sum, ci) => {
+        const item = findItemById(ci.id);
+        return sum + (item ? item.price * ci.qty : 0);
+    }, 0);
 
-        for (let i = 0; i < 2; i++) {
-            const uniqueSuffix = Date.now() + i;
+    const ratio = config.total / totalOriginal;
 
+    config.items.forEach(ci => {
+        const item = findItemById(ci.id);
+        if (!item) return;
+
+        const promoPrice = item.price * ratio;
+        for (let i = 0; i < ci.qty; i++) {
             cart.push({
                 id: item.id,
-                cartId: `${item.id}-promo-${uniqueSuffix}`,
-                name: `${item.name} ${promoNameSuffix}`,
+                cartId: `${item.id}-promo-${Date.now()}-${promoId}-${i}`,
+                name: `${item.name} ${config.suffix}`,
                 basePrice: item.price,
-                price: unitPrice,
+                price: promoPrice,
                 addons: [],
                 quantity: 1,
-                observation: 'Item da Promoção Dupla'
+                observation: 'Combo Promocional'
             });
         }
+    });
 
-        saveCart();
-        updateCartUI();
-        toggleCart();
-        showToast(`2x ${item.name} adicionados! 🎉`);
-    }
+    saveCart();
+    updateCartUI();
+    toggleCart();
+    showToast(`Combo adicionado com sucesso! 🎉`);
 }
 
-// Legacy function
 function addToCart(itemId) {
     openAddonModal(itemId);
 }
@@ -939,6 +985,3 @@ function startFlashSaleCountdown() {
     updateTimer();
     const timerInterval = setInterval(updateTimer, 1000);
 }
-
-
-
