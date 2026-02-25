@@ -36,27 +36,11 @@ function updateStoreStatus() {
 const menuData = {
     promocoes: [
         {
-            id: 1001,
-            name: "Dupla de X-Salada",
-            description: "2x X-Salada Clássicos (Pão, Hambúrguer, Queijo, Salada e Maionese). Ideal para dividir!",
-            price: 39.90,
-            badge: "SUPER DESCONTO %",
-            badgeClass: "badge-gold"
-        },
-        {
             id: 1002,
             name: "Dupla Egg Bacon",
             description: "2x X-Egg Bacon (O favorito!). Pão, Burger, Bacon Crocante, Ovo, Queijo e Salada.",
             price: 54.90,
             badge: "CLÁSSICO EM DOBRO",
-            badgeClass: "badge-gold"
-        },
-        {
-            id: 4001,
-            name: "X-Salada + Mini Pudim",
-            description: "1x X-Salada Clássico + 1x Mini Pudim Cremoso. A sobremesa perfeita!",
-            price: 34.90,
-            badge: "COM PUDIM 🍮",
             badgeClass: "badge-gold"
         },
         {
@@ -68,35 +52,11 @@ const menuData = {
             badgeClass: "badge-gold"
         },
         {
-            id: 4003,
-            name: "2x Egg Bacon + 2x Pudim",
-            description: "2x X-Egg Bacon + 2x Mini Pudins. Ideal para compartilhar com quem você ama.",
-            price: 84.90,
-            badge: "DOSE DUPLA 🎉",
-            badgeClass: "badge-gold"
-        },
-        {
-            id: 4004,
-            name: "X-Bacon + Bolo de Cenoura",
-            description: "1x X-Bacon + 1x Fatia de Bolo de Cenoura. Uma explosão de sabores!",
-            price: 42.90,
-            badge: "COMBINAÇÃO REAL ✨",
-            badgeClass: "badge-gold"
-        },
-        {
             id: 4005,
             name: "Santa Fúria + Coca-Cola",
             description: "1x Santa Fúria (O Gigante) + 1x Coca-Cola Lata 350ml. Mate sua fome!",
             price: 49.90,
             badge: "O BRABO 🔥",
-            badgeClass: "badge-gold"
-        },
-        {
-            id: 4006,
-            name: "Dupla Milagre Cremoso",
-            description: "2x Milagre Cremoso. Frango, Bacon e muito Queijo em dose dupla!",
-            price: 74.90,
-            badge: "OFERTA %",
             badgeClass: "badge-gold"
         }
     ],
@@ -985,4 +945,3 @@ function startFlashSaleCountdown() {
     updateTimer();
     const timerInterval = setInterval(updateTimer, 1000);
 }
-
