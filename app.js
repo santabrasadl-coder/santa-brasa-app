@@ -1,15 +1,11 @@
-// ╔════════════════════════════════════════════════════════════════╗
-// ║  🔥 CONFIGURAÇÃO DE STATUS DA LOJA                             ║
-// ║  Altere para true = OPEN (Aberto) | false = CLOSED (Fechado)   ║
-// ╚════════════════════════════════════════════════════════════════╝
 const STORE_OPEN = true;
+const WHATSAPP_NUMBER = "553799982046"; // Formato literal baseado no pedido do usuário (37 9998-2046)
 
 // ===== Função para Atualizar Status Visual =====
 function updateStoreStatus() {
     const statusIndicator = document.querySelector('.status-indicator');
     const statusText = document.querySelector('.status-text');
     const statusBar = document.querySelector('.status-bar');
-    const checkoutButton = document.getElementById('checkoutButton');
 
     if (!statusIndicator || !statusText || !statusBar) return;
 
@@ -17,19 +13,12 @@ function updateStoreStatus() {
         statusText.textContent = 'ABERTO';
         statusBar.classList.remove('closed');
         statusBar.classList.add('open');
-        if (checkoutButton) {
-            checkoutButton.disabled = cart.length === 0;
-            checkoutButton.innerHTML = '<span class="whatsapp-icon">📱</span> Pedir agora';
-        }
     } else {
         statusText.textContent = 'FECHADO';
         statusBar.classList.remove('open');
         statusBar.classList.add('closed');
-        if (checkoutButton) {
-            checkoutButton.disabled = true;
-            checkoutButton.innerHTML = 'LOJA FECHADA';
-        }
     }
+    updateCartUI(); // Unifica a atualização do botão no UI do carrinho
 }
 
 // ===== Menu Data =====
@@ -198,7 +187,7 @@ let currentModalQuantity = 1;
 let selectedAddons = [];
 
 // ===== WhatsApp Number (configure here) =====
-const WHATSAPP_NUMBER = " 37999982046";
+// O WHATSAPP_NUMBER agora é gerenciado globalmente no topo do arquivo
 
 // ===== DOM Elements =====
 const cartButton = document.getElementById('cartButton');
@@ -945,4 +934,3 @@ function startFlashSaleCountdown() {
     updateTimer();
     const timerInterval = setInterval(updateTimer, 1000);
 }
-
