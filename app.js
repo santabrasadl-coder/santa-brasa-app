@@ -1,25 +1,61 @@
-const STORE_OPEN = true;
-const WHATSAPP_NUMBER = "553799982046"; // Formato literal baseado no pedido do usuário (37 9998-2046)
+const CLOSE_HOUR = 22;
+const CLOSE_MINUTE = 30;
+const WHATSAPP_NUMBER = "553799982046";
+
+function isStoreOpen() {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+
+    // Converte tudo para minutos do dia para facilitar comparação
+    const currentMinutes = (hours * 60) + minutes;
+    const closeMinutes = (CLOSE_HOUR * 60) + CLOSE_MINUTE;
+
+    return currentMinutes < closeMinutes;
+}
 
 // ===== Função para Atualizar Status Visual =====
 function updateStoreStatus() {
-    const statusIndicator = document.querySelector('.status-indicator');
     const statusText = document.querySelector('.status-text');
     const statusBar = document.querySelector('.status-bar');
+    const headerTimer = document.getElementById('headerClosingTimer');
 
-    if (!statusIndicator || !statusText || !statusBar) return;
+    if (!statusText || !statusBar || !headerTimer) return;
 
-    if (STORE_OPEN) {
+    const open = isStoreOpen();
+
+    if (open) {
         statusText.textContent = 'ABERTO';
         statusBar.classList.remove('closed');
         statusBar.classList.add('open');
+
+        // Cálculo do tempo para fechar
+        const now = new Date();
+        const closeTime = new Date();
+        closeTime.setHours(CLOSE_HOUR, CLOSE_MINUTE, 0);
+
+        const diffMs = closeTime - now;
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+        if (diffMinutes <= 60 && diffMinutes > 0) {
+            headerTimer.textContent = `🚨 FECHA EM ${diffMinutes} MINUTOS`;
+            headerTimer.style.display = 'block';
+            statusBar.classList.add('closing-soon');
+        } else {
+            headerTimer.style.display = 'none';
+            statusBar.classList.remove('closing-soon');
+        }
     } else {
         statusText.textContent = 'FECHADO';
-        statusBar.classList.remove('open');
+        statusBar.classList.remove('open', 'closing-soon');
         statusBar.classList.add('closed');
+        headerTimer.style.display = 'none';
     }
-    updateCartUI(); // Unifica a atualização do botão no UI do carrinho
+    updateCartUI();
 }
+
+// Atualiza o status a cada minuto
+setInterval(updateStoreStatus, 60000);
 
 // ===== Menu Data =====
 const menuData = {
@@ -212,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== Direct Add to Cart (for Drinks) =====
 function addDirectToCart(itemId) {
-    if (!STORE_OPEN) {
+    if (!isStoreOpen()) {
         showToast("Ops! A loja está fechada no momento.");
         return;
     }
@@ -290,7 +326,7 @@ function findItemById(id) {
 
 // ===== Add-ons Modal Logic =====
 function openAddonModal(itemId) {
-    if (!STORE_OPEN) {
+    if (!isStoreOpen()) {
         showToast("Ops! A loja está fechada no momento.");
         return;
     }
@@ -403,7 +439,7 @@ function addToCartWithAddons() {
 
 // ===== Combo Promocional =====
 function addComboToCart() {
-    if (!STORE_OPEN) {
+    if (!isStoreOpen()) {
         showToast("Ops! A loja está fechada no momento.");
         return;
     }
@@ -457,7 +493,7 @@ function addComboToCart() {
 
 // ===== Promoção Relâmpago (Single Item) =====
 function addPromoBurger(itemId, promoPrice) {
-    if (!STORE_OPEN) {
+    if (!isStoreOpen()) {
         showToast("Ops! A loja está fechada no momento.");
         return;
     }
@@ -486,7 +522,7 @@ function addPromoBurger(itemId, promoPrice) {
 
 // ===== Router de Promoções =====
 function handlePromoClick(promoId) {
-    if (!STORE_OPEN) return showToast("Ops! A loja está fechada no momento.");
+    if (!isStoreOpen()) return showToast("Ops! A loja está fechada no momento.");
 
     const configs = {
         1001: { items: [{ id: 1, qty: 2 }], total: 39.90, suffix: "(Promo Dupla)" },
@@ -615,7 +651,14 @@ function updateCartUI() {
                 </div>
             </div>
         `).join('');
-        checkoutButton.disabled = !STORE_OPEN;
+        // Update checkout button state
+        if (!isStoreOpen()) {
+            checkoutButton.disabled = true;
+            checkoutButton.innerHTML = 'LOJA FECHADA';
+        } else {
+            checkoutButton.disabled = false;
+            checkoutButton.innerHTML = '<span class="whatsapp-icon">📱</span> Pedir agora';
+        }
     }
 
     // Update total
@@ -745,7 +788,7 @@ const DELIVERY_FEE = 10.00;
 
 // ===== Send to WhatsApp =====
 function sendToWhatsApp() {
-    if (!STORE_OPEN) {
+    if (!isStoreOpen()) {
         showToast("Desculpe, a loja está fechada!");
         return;
     }

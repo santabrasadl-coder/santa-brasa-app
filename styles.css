@@ -110,6 +110,12 @@ body {
     }
 }
 
+/* Status Bar Closing Soon (Removed countdown from here, just keeping general open style) */
+.status-bar.closing-soon {
+    background: linear-gradient(135deg, #1a0a0a 0%, #0d0d0d 100%);
+    border-bottom-color: rgba(255, 49, 49, 0.4);
+}
+
 /* ===== Status CLOSED (Vermelho) ===== */
 .status-bar.closed {
     border-bottom-color: rgba(255, 65, 65, 0.2);
@@ -253,6 +259,31 @@ body {
     letter-spacing: 1px;
     opacity: 0.9;
     text-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+}
+
+.header-closing-timer {
+    color: #FF3131;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 2px;
+    margin-top: 0.25rem;
+    text-shadow:
+        0 0 5px rgba(255, 49, 49, 0.5),
+        0 0 10px rgba(255, 49, 49, 0.3);
+    animation: flash-timer 1s infinite alternate;
+}
+
+@keyframes flash-timer {
+    0% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
 }
 
 .fire-decoration {
