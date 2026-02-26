@@ -61,9 +61,18 @@ setInterval(updateStoreStatus, 60000);
 const menuData = {
     promocoes: [
         {
+            id: 8,
+            name: "Santo Juízo (OFERTA RELÂMPAGO ⚡)",
+            description: "Hambúrguer Suculento, Frango Desfiado, Bacon Suculento, Ovo, Triplo de Queijo, Milho e Salada. Molho especial!",
+            price: 38.90,
+            badge: "PROMOÇÃO 🔥",
+            badgeClass: "badge-gold",
+            isFlash: true
+        },
+        {
             id: 1002,
             name: "Dupla Egg Bacon",
-            description: "2x X-Egg Bacon (O favorito!). Pão, Burger, Bacon Crocante, Ovo, Queijo e Salada.",
+            description: "2x X-Egg Bacon (O favorito!). Pão, Burger, Bacon Suculento, Ovo, Queijo e Salada.",
             price: 54.90,
             badge: "CLÁSSICO EM DOBRO",
             badgeClass: "badge-gold"
@@ -135,14 +144,14 @@ const menuData = {
         {
             id: 8,
             name: "Santo Juízo",
-            description: "Um verdadeiro tribunal de sabores: Hambúrguer Suculento, Frango Desfiado, Bacon Crocante, Ovo, Triplo de Queijo, Milho, Alface, Tomate e Maionese Especial.",
+            description: "Um verdadeiro tribunal de sabores: Hambúrguer Suculento, Frango Desfiado, Bacon Suculento, Ovo, Triplo de Queijo, Milho, Alface, Tomate e Maionese Especial.",
             price: 44.00,
             badge: "MAIS VENDIDO 🏆"
         },
         {
             id: 9,
             name: "Milagre Cremoso",
-            description: "O sabor que faz milagre: Frango Desfiado, Bacon Crocante, Triplo de Queijo, Milho e Maionese Especial.",
+            description: "O sabor que faz milagre: Frango Desfiado, Bacon Suculento, Triplo de Queijo, Milho e Maionese Especial.",
             price: 40.00
         },
         {
@@ -298,7 +307,7 @@ function renderMenu() {
             }
 
             return `
-            <div class="menu-item" data-id="${item.id}">
+            <div class="menu-item ${item.isFlash ? 'flash-item' : ''}" data-id="${item.id}">
                 <div class="item-info">
                     <h3 class="item-name">${item.name} ${item.badge ? `<span class="item-badge ${item.badgeClass || ''}">${item.badge}</span>` : ''}</h3>
                     <p class="item-description">${item.description}</p>
