@@ -59,41 +59,6 @@ setInterval(updateStoreStatus, 60000);
 
 // ===== Menu Data =====
 const menuData = {
-    promocoes: [
-        {
-            id: 8,
-            name: "Santo Juízo (OFERTA RELÂMPAGO ⚡)",
-            description: "Hambúrguer Suculento, Frango Desfiado, Bacon Suculento, Ovo, Triplo de Queijo, Milho e Salada. Molho especial!",
-            price: 38.90,
-            badge: "PROMOÇÃO 🔥",
-            badgeClass: "badge-gold",
-            isFlash: true
-        },
-        {
-            id: 1002,
-            name: "Dupla Egg Bacon",
-            description: "2x X-Egg Bacon (O favorito!). Pão, Burger, Bacon Suculento, Ovo, Queijo e Salada.",
-            price: 54.90,
-            badge: "CLÁSSICO EM DOBRO",
-            badgeClass: "badge-gold"
-        },
-        {
-            id: 4002,
-            name: "Santo Juízo + Mini Pudim",
-            description: "1x Santo Juízo (O Completo) + 1x Mini Pudim Cremoso. Satisfação garantida.",
-            price: 52.90,
-            badge: "COM PUDIM 🍮",
-            badgeClass: "badge-gold"
-        },
-        {
-            id: 4005,
-            name: "Santa Fúria + Coca-Cola",
-            description: "1x Santa Fúria (O Gigante) + 1x Coca-Cola Lata 350ml. Mate sua fome!",
-            price: 49.90,
-            badge: "O BRABO 🔥",
-            badgeClass: "badge-gold"
-        }
-    ],
     tradicionais: [
         {
             id: 1,
@@ -252,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCart();
     loadUserData(); // Carrega dados salvos do cliente
     updateCartUI();
-    startFlashSaleCountdown(); // Inicia cronômetro da oferta
 });
 
 // ===== Direct Add to Cart (for Drinks) =====
@@ -300,14 +264,12 @@ function renderMenu() {
             // Determine which function to call based on category
             if (category === 'bebidas' || category === 'sobremesas' || category === 'bolos') {
                 clickAction = `addDirectToCart(${item.id})`;
-            } else if (category === 'promocoes') {
-                clickAction = `handlePromoClick(${item.id})`;
             } else {
                 clickAction = `openAddonModal(${item.id})`;
             }
 
             return `
-            <div class="menu-item ${item.isFlash ? 'flash-item' : ''}" data-id="${item.id}">
+            <div class="menu-item" data-id="${item.id}">
                 <div class="item-info">
                     <h3 class="item-name">${item.name} ${item.badge ? `<span class="item-badge ${item.badgeClass || ''}">${item.badge}</span>` : ''}</h3>
                     <p class="item-description">${item.description}</p>
@@ -444,139 +406,6 @@ function addToCartWithAddons() {
     saveCart();
     updateCartUI();
     showToast(`${currentModalQuantity}x ${currentModalItem.name} adicionado!`);
-}
-
-// ===== Combo Promocional =====
-function addComboToCart() {
-    if (!isStoreOpen()) {
-        showToast("Ops! A loja está fechada no momento.");
-        return;
-    }
-    // 1. Adicionar Santa Fúria
-    const sf = findItemById(7); // ID do Santa Fúria
-    if (sf) {
-        const sfId = `${sf.id}-default`;
-        const existingSf = cart.find(i => i.cartId === sfId);
-        if (existingSf) {
-            existingSf.quantity += 1;
-        } else {
-            cart.push({
-                id: sf.id,
-                cartId: sfId,
-                name: sf.name,
-                basePrice: sf.price,
-                price: sf.price,
-                addons: [],
-                quantity: 1,
-                observation: 'Combo Matador 🔥'
-            });
-        }
-    }
-
-    // 2. Adicionar Coca-Cola
-    const coke = findItemById(15); // ID da Coca-Cola
-    if (coke) {
-        const cokeId = `${coke.id}-combo`; // Diferente do default para marcar que é do combo
-        const existingCoke = cart.find(i => i.cartId === cokeId);
-        if (existingCoke) {
-            existingCoke.quantity += 1;
-        } else {
-            cart.push({
-                id: coke.id,
-                cartId: cokeId,
-                name: coke.name,
-                basePrice: coke.price,
-                price: 3.90, // Preço promocional (Total 49.90: 46 + 3.90) (Normal é 7.00)
-                addons: [],
-                quantity: 1,
-                observation: 'Combo Matador 🔥'
-            });
-        }
-    }
-
-    saveCart();
-    updateCartUI();
-    toggleCart(); // Abrir carrinho para mostrar
-    showToast(`Combo Matador adicionado! 🍔🥤`);
-}
-
-// ===== Promoção Relâmpago (Single Item) =====
-function addPromoBurger(itemId, promoPrice) {
-    if (!isStoreOpen()) {
-        showToast("Ops! A loja está fechada no momento.");
-        return;
-    }
-    const item = findItemById(itemId);
-    if (!item) return;
-
-    // Unique ID for promo item
-    const uniqueCartId = `${item.id}-promo-${Date.now()}`;
-
-    cart.push({
-        id: item.id,
-        cartId: uniqueCartId,
-        name: `${item.name} (PROMO ⚡)`,
-        basePrice: item.price,
-        price: promoPrice,
-        addons: [],
-        quantity: 1,
-        observation: 'OFERTA RELÂMPAGO ⚡'
-    });
-
-    saveCart();
-    updateCartUI();
-    toggleCart();
-    showToast(`${item.name} em promoção adicionado! ⚡`);
-}
-
-// ===== Router de Promoções =====
-function handlePromoClick(promoId) {
-    if (!isStoreOpen()) return showToast("Ops! A loja está fechada no momento.");
-
-    const configs = {
-        1001: { items: [{ id: 1, qty: 2 }], total: 39.90, suffix: "(Promo Dupla)" },
-        1002: { items: [{ id: 6, qty: 2 }], total: 54.90, suffix: "(Promo Egg Bacon)" },
-        4001: { items: [{ id: 1, qty: 1 }, { id: 2001, qty: 1 }], total: 34.90, suffix: "(Combo Pudim)" },
-        4002: { items: [{ id: 8, qty: 1 }, { id: 2001, qty: 1 }], total: 52.90, suffix: "(Combo Especial)" },
-        4003: { items: [{ id: 6, qty: 2 }, { id: 2001, qty: 2 }], total: 84.90, suffix: "(Pudim em Dobro)" },
-        4004: { items: [{ id: 4, qty: 1 }, { id: 3003, qty: 1 }], total: 42.90, suffix: "(Burger & Bolo)" },
-        4005: { items: [{ id: 7, qty: 1 }, { id: 15, qty: 1 }], total: 49.90, suffix: "(Santa Coca)" },
-        4006: { items: [{ id: 9, qty: 2 }], total: 74.90, suffix: "(Promo Milagre)" }
-    };
-
-    const config = configs[promoId];
-    if (!config) return;
-
-    const totalOriginal = config.items.reduce((sum, ci) => {
-        const item = findItemById(ci.id);
-        return sum + (item ? item.price * ci.qty : 0);
-    }, 0);
-
-    const ratio = config.total / totalOriginal;
-
-    config.items.forEach(ci => {
-        const item = findItemById(ci.id);
-        if (!item) return;
-
-        const promoPrice = item.price * ratio;
-        for (let i = 0; i < ci.qty; i++) {
-            cart.push({
-                id: item.id,
-                cartId: `${item.id}-promo-${Date.now()}-${promoId}-${i}`,
-                name: `${item.name} ${config.suffix}`,
-                basePrice: item.price,
-                price: promoPrice,
-                addons: [],
-                quantity: 1,
-                observation: 'Combo Promocional'
-            });
-        }
-    });
-
-    saveCart();
-    updateCartUI();
-    toggleCart();
-    showToast(`Combo adicionado com sucesso! 🎉`);
 }
 
 function addToCart(itemId) {
@@ -949,40 +778,4 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
     console.warn("ℹ️ Tracker: Chaves do Firebase não configuradas.");
 }
 
-// ===== Flash Sale Countdown =====
-function startFlashSaleCountdown() {
-    const banner = document.getElementById('flashSaleBanner');
-    const timerDisplay = document.getElementById('flashTimer');
-    const duration = 120 * 60 * 1000; // 120 minutos em ms
 
-    let flashSaleStartTime = localStorage.getItem('flashSaleStartTime');
-
-    if (!flashSaleStartTime) {
-        flashSaleStartTime = Date.now();
-        localStorage.setItem('flashSaleStartTime', flashSaleStartTime);
-    }
-
-    function updateTimer() {
-        const now = Date.now();
-        const elapsed = now - flashSaleStartTime;
-        const remaining = duration - elapsed;
-
-        if (remaining <= 0) {
-            banner.style.display = 'none';
-            clearInterval(timerInterval);
-            return;
-        }
-
-        banner.style.display = 'block';
-
-        const hours = Math.floor(remaining / (1000 * 60 * 60));
-        const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-
-        timerDisplay.textContent =
-            `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    }
-
-    updateTimer();
-    const timerInterval = setInterval(updateTimer, 1000);
-}
