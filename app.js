@@ -1,4 +1,4 @@
-const CLOSE_HOUR = 24;
+const CLOSE_HOUR = 23;
 const CLOSE_MINUTE = 0;
 const WHATSAPP_NUMBER = "553799982046";
 
@@ -35,11 +35,34 @@ function updateStoreStatus() {
         closeTime.setHours(CLOSE_HOUR, CLOSE_MINUTE, 0);
 
         const diffMs = closeTime - now;
+        const totalMs = 60 * 60 * 1000; // 1 hora em ms
         const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
 
-        if (diffMinutes <= 60 && diffMinutes > 0) {
-            headerTimer.textContent = `🚨 FECHA EM ${diffMinutes} MINUTOS`;
-            headerTimer.style.display = 'block';
+        if (diffMinutes < 60 && diffMinutes >= 0) {
+            const displayMin = String(diffMinutes).padStart(2, '0');
+            const displaySec = String(seconds).padStart(2, '0');
+
+            // Update UI Elements
+            const timerClock = document.getElementById('timerClock');
+            const progressBar = document.getElementById('timerProgressBar');
+
+            if (timerClock) timerClock.textContent = `${displayMin}:${displaySec}`;
+
+            if (progressBar) {
+                const progress = (diffMs / totalMs) * 100;
+                progressBar.style.width = `${progress}%`;
+            }
+
+            // Urgency States
+            headerTimer.classList.remove('warning', 'critical');
+            if (diffMinutes < 10) {
+                headerTimer.classList.add('critical');
+            } else if (diffMinutes < 30) {
+                headerTimer.classList.add('warning');
+            }
+
+            headerTimer.style.display = 'flex';
             statusBar.classList.add('closing-soon');
         } else {
             headerTimer.style.display = 'none';
@@ -54,8 +77,8 @@ function updateStoreStatus() {
     updateCartUI();
 }
 
-// Atualiza o status a cada minuto
-setInterval(updateStoreStatus, 60000);
+// Atualiza o status a cada segundo para o cronômetro
+setInterval(updateStoreStatus, 1000);
 
 // ===== Menu Data =====
 const menuData = {

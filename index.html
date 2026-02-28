@@ -50,7 +50,15 @@
             </div>
             <p class="tagline">Hamburgueria Artesanal</p>
             <p class="location-tagline">📍 Itaúna-MG</p>
-            <div id="headerClosingTimer" class="header-closing-timer" style="display: none;"></div>
+            <div id="headerClosingTimer" class="interactive-timer" style="display: none;">
+                <div class="timer-badge">
+                    <span class="timer-icon">🕒</span>
+                    <span class="timer-clock" id="timerClock">00:00</span>
+                </div>
+                <div class="timer-progress-container">
+                    <div class="timer-progress-bar" id="timerProgressBar"></div>
+                </div>
+            </div>
         </div>
         <div class="fire-decoration"></div>
     </header>
