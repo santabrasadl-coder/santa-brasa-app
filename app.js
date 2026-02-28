@@ -1,5 +1,5 @@
-const CLOSE_HOUR = 22;
-const CLOSE_MINUTE = 30;
+const CLOSE_HOUR = 24;
+const CLOSE_MINUTE = 0;
 const WHATSAPP_NUMBER = "553799982046";
 
 function isStoreOpen() {
@@ -195,6 +195,29 @@ let cart = [];
 let currentModalItem = null;
 let currentModalQuantity = 1;
 let selectedAddons = [];
+let orderType = 'delivery'; // 'delivery' ou 'pickup'
+
+function setOrderType(type) {
+    orderType = type;
+
+    // Update Buttons
+    document.getElementById('typeDelivery').classList.toggle('active', type === 'delivery');
+    document.getElementById('typePickup').classList.toggle('active', type === 'pickup');
+
+    // Toggle Visibility
+    const addressGroup = document.getElementById('clientAddress').closest('.form-group');
+    const pickupInfo = document.getElementById('pickupAddressInfo');
+
+    if (type === 'pickup') {
+        addressGroup.style.display = 'none';
+        pickupInfo.style.display = 'block';
+    } else {
+        addressGroup.style.display = 'block';
+        pickupInfo.style.display = 'none';
+    }
+
+    updateCartUI();
+}
 
 // ===== WhatsApp Number (configure here) =====
 // O WHATSAPP_NUMBER agora é gerenciado globalmente no topo do arquivo
@@ -500,8 +523,17 @@ function updateCartUI() {
     }
 
     // Update total
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    cartTotal.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const fee = orderType === 'delivery' ? DELIVERY_FEE : 0;
+    const total = subtotal + fee;
+
+    cartTotal.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:flex-end;">
+            ${fee > 0 ? `<span style="font-size:0.8rem; color:var(--text-secondary); font-family:'Poppins';">Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}</span>` : ''}
+            ${fee > 0 ? `<span style="font-size:0.8rem; color:var(--text-secondary); font-family:'Poppins';">Entrega: R$ ${fee.toFixed(2).replace('.', ',')}</span>` : ''}
+            <span>R$ ${total.toFixed(2).replace('.', ',')}</span>
+        </div>
+    `;
 }
 
 // ===== Toggle Cart =====
@@ -648,7 +680,7 @@ function sendToWhatsApp() {
         document.getElementById('clientName').focus();
         return;
     }
-    if (!address) {
+    if (!address && orderType === 'delivery') {
         alert("Por favor, digite seu endereço de entrega.");
         document.getElementById('clientAddress').focus();
         return;
@@ -668,11 +700,13 @@ function sendToWhatsApp() {
     saveUserData(name, address, phone);
 
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const total = subtotal + DELIVERY_FEE;
+    const fee = orderType === 'delivery' ? DELIVERY_FEE : 0;
+    const total = subtotal + fee;
 
     let message = `🍔 *PEDIDO SANTA BRASA* 🔥\n`;
     message += `👤 *Cliente:* ${name}\n`;
     if (phone) message += `📞 *Tel:* ${phone}\n`;
+    message += `🛒 *Tipo:* ${orderType === 'delivery' ? 'Entrega 🛵' : 'Retirada 🛍️'}\n`;
     message += "━━━━━━━━━━━━━━━━━━\n\n";
 
     cart.forEach(item => {
@@ -692,11 +726,16 @@ function sendToWhatsApp() {
 
     message += "\n━━━━━━━━━━━━━━━━━━\n";
     message += `Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
-    message += `Taxa de Entrega: R$ ${DELIVERY_FEE.toFixed(2).replace('.', ',')}\n`;
+    if (fee > 0) message += `Taxa de Entrega: R$ ${fee.toFixed(2).replace('.', ',')}\n`;
     message += `*TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*\n\n`;
 
-    message += "📍 *ENTREGA:*\n";
-    message += `${address}\n\n`;
+    if (orderType === 'delivery') {
+        message += "📍 *ENTREGA:*\n";
+        message += `${address}\n\n`;
+    } else {
+        message += "📍 *RETIRADA EM:* \n";
+        message += `Rua Marechal Deodoro, 398\n\n`;
+    }
 
     message += "💰 *PAGAMENTO:*\n";
     message += `${payment}`;

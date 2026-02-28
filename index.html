@@ -166,7 +166,28 @@
 
             <!-- Checkout Form -->
             <div class="checkout-form" id="checkoutForm">
-                <h3 class="checkout-title">Dados de Entrega</h3>
+                <h3 class="checkout-title">Dados do Pedido</h3>
+
+                <div class="form-group">
+                    <label>Como deseja receber?</label>
+                    <div class="order-type-toggle">
+                        <button type="button" id="typeDelivery" class="type-button active"
+                            onclick="setOrderType('delivery')">
+                            Entrega
+                        </button>
+                        <button type="button" id="typePickup" class="type-button" onclick="setOrderType('pickup')">
+                            Retirada
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group" id="pickupAddressInfo"
+                    style="display: none; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--primary);">
+                    <p style="font-size: 0.85rem; margin-bottom: 5px; color: var(--primary); font-weight: 600;">📍 Local
+                        de Retirada:</p>
+                    <p style="font-size: 0.9rem; color: #fff;">Rua Marechal Deodoro, 398</p>
+                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 5px;">Itaúna-MG</p>
+                </div>
 
                 <div class="form-group">
                     <label>Seu Nome:</label>
@@ -205,7 +226,7 @@
         <div class="cart-footer">
             <div class="cart-total">
                 <span>Total:</span>
-                <span id="cartTotal">R$ 0,00</span>
+                <div id="cartTotal">R$ 0,00</div>
             </div>
             <button class="checkout-button" id="checkoutButton" onclick="sendToWhatsApp()">
                 <span class="whatsapp-icon">📱</span>

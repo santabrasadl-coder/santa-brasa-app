@@ -1004,6 +1004,37 @@ body {
     box-shadow: 0 0 0 2px rgba(255, 49, 49, 0.1);
 }
 
+.order-type-toggle {
+    display: flex;
+    gap: 0.5rem;
+    background: var(--surface-light);
+    padding: 0.3rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+}
+
+.type-button {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.3s ease;
+}
+
+.type-button.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 12px rgba(255, 49, 49, 0.3);
+}
+
+.type-button:not(.active):hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
 /* ===== Cart Footer (Fixed) ===== */
 .cart-footer {
     padding: 1.5rem;
@@ -1023,7 +1054,7 @@ body {
     margin-bottom: 1rem;
 }
 
-.cart-total span:last-child {
+.cart-total div#cartTotal {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1.8rem;
     color: #00FF41;
