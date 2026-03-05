@@ -310,10 +310,23 @@
 <body>
     <header>
         <h1>Santa Brasa • Dashboard Live</h1>
-        <div id="connection-status">
-            <span class="live-dot" style="background-color: #ff4141; box-shadow: 0 0 10px #ff4141;"></span>
-            <span id="status-text" style="color: #ff4141;">Aguardando Firebase...</span>
+        <div id="connection-status" style="display: flex; align-items: center; gap: 15px;">
+            <button id="stopSoundBtn" onclick="stopNotificationSound()"
+                style="display: none; background: #FF3131; border: none; color: #fff; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-family: 'Poppins'; font-weight: bold; animation: pulse 1s infinite;">
+                🛑 PARAR SOM
+            </button>
+            <button onclick="testNotificationSound()"
+                style="background: #333; border: 1px solid #444; color: #fff; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-family: 'Poppins';">
+                🔊 TESTAR SOM
+            </button>
+            <div style="display: flex; align-items: center;">
+                <span class="live-dot" style="background-color: #ff4141; box-shadow: 0 0 10px #ff4141;"></span>
+                <span id="status-text" style="color: #ff4141;">Aguardando Firebase...</span>
+            </div>
         </div>
+        <audio id="notificationSound" preload="auto" loop>
+            <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+        </audio>
     </header>
 
     <div class="setup-alert" id="setup-hint" style="display:none;">
@@ -323,9 +336,81 @@
     <!-- Navigation -->
     <nav class="nav-tabs">
         <button class="nav-btn active" onclick="showTab('tab-live')">Monitoramento Live</button>
+        <button class="nav-btn" onclick="showTab('tab-finance')">Financeiro</button>
         <button class="nav-btn" onclick="showTab('tab-orders')">Pedidos Passados</button>
         <button class="nav-btn" onclick="showTab('tab-customers')">Clientes</button>
     </nav>
+
+    <!-- Tab Finance: Sales Analysis -->
+    <div id="tab-finance" class="tab-content">
+        <div class="stats-grid">
+            <div class="stat-card" style="border-top: 4px solid #00E5FF;">
+                <span class="stat-label">Vendas PIX</span>
+                <span class="stat-value" id="finance-pix">R$ 0,00</span>
+                <span id="count-pix" style="font-size: 0.8rem; color: var(--text-dim)">0 pedidos</span>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #FFD700;">
+                <span class="stat-label">Vendas Cartão</span>
+                <span class="stat-value" id="finance-card">R$ 0,00</span>
+                <span id="count-card" style="font-size: 0.8rem; color: var(--text-dim)">0 pedidos</span>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #FF3131;">
+                <span class="stat-label">Vendas Dinheiro</span>
+                <span class="stat-value" id="finance-cash">R$ 0,00</span>
+                <span id="count-cash" style="font-size: 0.8rem; color: var(--text-dim)">0 pedidos</span>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid var(--neon-green);">
+                <span class="stat-label">Total Bruto</span>
+                <span class="stat-value" id="finance-total">R$ 0,00</span>
+                <span id="count-finance-total" style="font-size: 0.8rem; color: var(--text-dim)">0 pedidos</span>
+            </div>
+        </div>
+
+        <div class="crm-container">
+            <div
+                style="padding: 1rem; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-family: 'Bebas Neue', sans-serif; color: var(--primary);">Vendas por Categoria</h3>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pagamento</th>
+                            <th>Qtd</th>
+                            <th>Total Acumulado</th>
+                            <th>Última Venda</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span style="display: flex; align-items: center; gap: 8px;"><span
+                                        style="width: 12px; height: 12px; border-radius: 50%; background: #00E5FF;"></span>
+                                    Pix</span></td>
+                            <td id="table-pix-qty">0</td>
+                            <td id="table-pix-total" class="price-tag">R$ 0,00</td>
+                            <td id="table-pix-last">-</td>
+                        </tr>
+                        <tr>
+                            <td><span style="display: flex; align-items: center; gap: 8px;"><span
+                                        style="width: 12px; height: 12px; border-radius: 50%; background: #FFD700;"></span>
+                                    Cartão</span></td>
+                            <td id="table-card-qty">0</td>
+                            <td id="table-card-total" class="price-tag">R$ 0,00</td>
+                            <td id="table-card-last">-</td>
+                        </tr>
+                        <tr>
+                            <td><span style="display: flex; align-items: center; gap: 8px;"><span
+                                        style="width: 12px; height: 12px; border-radius: 50%; background: #FF3131;"></span>
+                                    Dinheiro</span></td>
+                            <td id="table-cash-qty">0</td>
+                            <td id="table-cash-total" class="price-tag">R$ 0,00</td>
+                            <td id="table-cash-last">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <!-- Tab 1: Live Monitoring -->
     <div id="tab-live" class="tab-content active">
@@ -372,6 +457,7 @@
                             <th>Endereço</th>
                             <th>Total</th>
                             <th>Pagamento</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="orders-table-body">

@@ -86,12 +86,22 @@ function initDashboard() {
     });
 
     // 5. CRM: Pedidos Passados
+    let isInitialLoad = true;
     db.ref('orders').orderByChild('timestamp').limitToLast(100).on('value', (snapshot) => {
         const orders = [];
         snapshot.forEach(child => {
             orders.unshift(child.val()); // Mais recentes primeiro
         });
+
+        // Se não for o carregamento inicial e a quantidade de pedidos aumentou, toca o som
+        if (!isInitialLoad && window.currentOrders && orders.length > window.currentOrders.length) {
+            playNotificationSound();
+        }
+
         renderOrdersTable(orders);
+        renderFinanceTab(orders);
+        window.currentOrders = orders; // Store for delete operations and count comparison
+        isInitialLoad = false;
     });
 
     // 6. CRM: Clientes
@@ -144,9 +154,94 @@ function renderOrdersTable(orders) {
                 <td style="font-size: 0.8rem;">${order.customer.address || '-'}</td>
                 <td><span class="price-tag">R$ ${order.total.toFixed(2).replace('.', ',')}</span></td>
                 <td>${order.payment}</td>
+                <td>
+                    <button onclick="confirmDeleteOrder('${order.id}')" 
+                            style="background: #FF3131; border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-weight: bold;">
+                        EXCLUIR
+                    </button>
+                </td>
             </tr>
         `;
     }).join('');
+}
+
+function confirmDeleteOrder(orderId) {
+    if (confirm("Tem certeza que deseja excluir esta venda? Esta ação não pode ser desfeita.")) {
+        deleteOrder(orderId);
+    }
+}
+
+function deleteOrder(orderId) {
+    console.log("Excluindo pedido:", orderId);
+    const db = firebase.database();
+
+    db.ref('orders/' + orderId).remove()
+        .then(() => {
+            console.log("✅ Pedido excluído com sucesso.");
+            // Order list will be updated automatically by the 'on' listener in initDashboard
+        })
+        .catch((error) => {
+            console.error("❌ Erro ao excluir pedido:", error);
+            alert("Erro ao excluir pedido. Verifique o console.");
+        });
+}
+
+function renderFinanceTab(orders) {
+    const totals = {
+        Pix: { total: 0, count: 0, last: null },
+        Cartao: { total: 0, count: 0, last: null },
+        Dinheiro: { total: 0, count: 0, last: null }
+    };
+
+    let grandTotal = 0;
+    let totalCount = 0;
+
+    orders.forEach(order => {
+        const payment = order.payment;
+        let category = '';
+
+        if (payment === 'Pix') category = 'Pix';
+        else if (payment === 'Cartão' || payment === 'Cartao') category = 'Cartao';
+        else if (payment === 'Dinheiro') category = 'Dinheiro';
+
+        if (category && totals[category]) {
+            totals[category].total += order.total;
+            totals[category].count += 1;
+            const orderDate = new Date(order.timestamp);
+            if (!totals[category].last || orderDate > totals[category].last) {
+                totals[category].last = orderDate;
+            }
+            grandTotal += order.total;
+            totalCount += 1;
+        }
+    });
+
+    // Update Cards
+    const formatCurrency = (val) => `R$ ${val.toFixed(2).replace('.', ',')}`;
+    const formatDate = (date) => date ? date.toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '-';
+
+    const elPix = document.getElementById('finance-pix');
+    if (elPix) {
+        elPix.textContent = formatCurrency(totals.Pix.total);
+        document.getElementById('count-pix').textContent = `${totals.Pix.count} pedidos`;
+        document.getElementById('finance-card').textContent = formatCurrency(totals.Cartao.total);
+        document.getElementById('count-card').textContent = `${totals.Cartao.count} pedidos`;
+        document.getElementById('finance-cash').textContent = formatCurrency(totals.Dinheiro.total);
+        document.getElementById('count-cash').textContent = `${totals.Dinheiro.count} pedidos`;
+        document.getElementById('finance-total').textContent = formatCurrency(grandTotal);
+        document.getElementById('count-finance-total').textContent = `${totalCount} pedidos`;
+
+        // Update Table
+        document.getElementById('table-pix-qty').textContent = totals.Pix.count;
+        document.getElementById('table-pix-total').textContent = formatCurrency(totals.Pix.total);
+        document.getElementById('table-pix-last').textContent = formatDate(totals.Pix.last);
+        document.getElementById('table-card-qty').textContent = totals.Cartao.count;
+        document.getElementById('table-card-total').textContent = formatCurrency(totals.Cartao.total);
+        document.getElementById('table-card-last').textContent = formatDate(totals.Cartao.last);
+        document.getElementById('table-cash-qty').textContent = totals.Dinheiro.count;
+        document.getElementById('table-cash-total').textContent = formatCurrency(totals.Dinheiro.total);
+        document.getElementById('table-cash-last').textContent = formatDate(totals.Dinheiro.last);
+    }
 }
 
 function renderCustomersTable(customers) {
@@ -188,6 +283,41 @@ function filterCustomers() {
 }
 
 // ===== Funções Auxiliares =====
+function playNotificationSound() {
+    const sound = document.getElementById('notificationSound');
+    const stopBtn = document.getElementById('stopSoundBtn');
+
+    if (sound) {
+        sound.currentTime = 0;
+        sound.play().then(() => {
+            if (stopBtn) stopBtn.style.display = 'block';
+            console.log("🔔 Tocando som de notificação de pedido (LOOP)!");
+        }).catch(e => {
+            console.warn("Erro ao tocar som: O usuário pode precisar interagir com a página primeiro.", e);
+        });
+    }
+}
+
+function stopNotificationSound() {
+    const sound = document.getElementById('notificationSound');
+    const stopBtn = document.getElementById('stopSoundBtn');
+
+    if (sound) {
+        sound.pause();
+        sound.currentTime = 0;
+    }
+
+    if (stopBtn) {
+        stopBtn.style.display = 'none';
+    }
+    console.log("🔈 Som de notificação parado pelo usuário.");
+}
+
+function testNotificationSound() {
+    playNotificationSound();
+    // No alert here as it blocks the loop feeling and we have the stop button now
+}
+
 function addLogRow(time, msg) {
     const list = document.getElementById('activity-log');
     if (!list) return;
