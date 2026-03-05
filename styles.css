@@ -355,16 +355,6 @@ body {
     }
 }
 
-@keyframes flash-timer {
-    from {
-        opacity: 0.5;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
 .fire-decoration {
     position: absolute;
     bottom: 0;
@@ -702,6 +692,29 @@ body {
     display: flex;
     align-items: center;
     gap: 1rem;
+}
+
+.price-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.1rem;
+}
+
+.old-price {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.promo-item {
+    border: 1px solid rgba(0, 255, 65, 0.3) !important;
+    background: linear-gradient(135deg, var(--surface) 0%, rgba(0, 255, 65, 0.05) 100%) !important;
+}
+
+.promo-item .item-name {
+    color: #00FF41 !important;
 }
 
 /* ===== Promocoes Section ===== */

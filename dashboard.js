@@ -84,6 +84,107 @@ function initDashboard() {
         const log = snapshot.val();
         addLogRow(log.time, log.msg);
     });
+
+    // 5. CRM: Pedidos Passados
+    db.ref('orders').orderByChild('timestamp').limitToLast(100).on('value', (snapshot) => {
+        const orders = [];
+        snapshot.forEach(child => {
+            orders.unshift(child.val()); // Mais recentes primeiro
+        });
+        renderOrdersTable(orders);
+    });
+
+    // 6. CRM: Clientes
+    db.ref('customers').on('value', (snapshot) => {
+        const customers = [];
+        snapshot.forEach(child => {
+            customers.push(child.val());
+        });
+        window.allCustomers = customers; // Cache para busca local
+        renderCustomersTable(customers);
+    });
+}
+
+// ===== CRM UI Functions =====
+
+function showTab(tabId) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
+    // Show selected tab
+    document.getElementById(tabId).classList.add('active');
+    document.querySelector(`button[onclick="showTab('${tabId}')"]`).classList.add('active');
+}
+
+function renderOrdersTable(orders) {
+    const tbody = document.getElementById('orders-table-body');
+    if (!tbody) return;
+
+    if (orders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum pedido encontrado.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = orders.map(order => {
+        const date = new Date(order.timestamp).toLocaleString('pt-BR');
+        const itemsStr = order.items.map(i => `${i.quantity}x ${i.name}`).join('<br>');
+        const typeBadge = order.orderType === 'delivery' ? 'badge-delivery' : 'badge-pickup';
+        const typeLabel = order.orderType === 'delivery' ? 'Entrega' : 'Retirada';
+
+        return `
+            <tr>
+                <td>${date}</td>
+                <td>
+                    <strong>${order.customer.name}</strong><br>
+                    <small>${order.customer.phone || ''}</small>
+                </td>
+                <td><span class="badge-type ${typeBadge}">${typeLabel}</span></td>
+                <td style="font-size: 0.8rem; color: #ccc;">${itemsStr}</td>
+                <td style="font-size: 0.8rem;">${order.customer.address || '-'}</td>
+                <td><span class="price-tag">R$ ${order.total.toFixed(2).replace('.', ',')}</span></td>
+                <td>${order.payment}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function renderCustomersTable(customers) {
+    const tbody = document.getElementById('customers-table-body');
+    if (!tbody) return;
+
+    if (customers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum cliente cadastrado.</td></tr>';
+        return;
+    }
+
+    // Ordenar por data do último pedido (mais recente primeiro)
+    customers.sort((a, b) => new Date(b.lastOrder) - new Date(a.lastOrder));
+
+    tbody.innerHTML = customers.map(c => {
+        const lastDate = new Date(c.lastOrder).toLocaleDateString('pt-BR');
+        return `
+            <tr>
+                <td><strong>${c.name}</strong></td>
+                <td>${c.phone || '-'}</td>
+                <td>${lastDate}</td>
+                <td style="font-size: 0.8rem;">${c.address || '-'}</td>
+                <td>${c.orderCount}</td>
+                <td><span class="price-tag">R$ ${(c.totalSpent || 0).toFixed(2).replace('.', ',')}</span></td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function filterCustomers() {
+    const query = document.getElementById('customer-search').value.toLowerCase();
+    if (!window.allCustomers) return;
+
+    const filtered = window.allCustomers.filter(c =>
+        c.name.toLowerCase().includes(query) ||
+        (c.phone && c.phone.includes(query))
+    );
+    renderCustomersTable(filtered);
 }
 
 // ===== Funções Auxiliares =====

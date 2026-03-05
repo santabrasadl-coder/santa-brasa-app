@@ -117,8 +117,10 @@ const menuData = {
             id: 6,
             name: "X-Egg Bacon",
             description: "Pão, Hambúrguer Artesanal, Bacon, Ovo, Mussarela, Alface, Tomate e Molho Especial.",
-            price: 32.00,
-            badge: "MAIS VENDIDO 🏆"
+            oldPrice: 32.00,
+            price: 27.90,
+            badge: "PROMOÇÃO 🔥",
+            promo: true
         }
     ],
     especiais: [
@@ -126,8 +128,10 @@ const menuData = {
             id: 7,
             name: "Santa Fúria",
             description: "Quando a fome perde a paciência: Dois Hambúrgueres Artesanais, Ovo, Tomate, Frango Desfiado, Bacon, Triplo de Queijo, Milho, Alface e Maionese Especial.",
-            price: 46.00,
-            badge: "MAIS VENDIDO 🏆"
+            oldPrice: 46.00,
+            price: 39.90,
+            badge: "PROMOÇÃO 🔥",
+            promo: true
         },
         {
             id: 8,
@@ -163,37 +167,37 @@ const menuData = {
             id: 3001,
             name: "Bolo de Maracujá com Chocolate",
             description: "Fatia generosa. Massa fofinha de chocolate recheada com mousse de maracujá.",
-            price: 18.00,
-            badge: "NOVIDADE ✨"
+            oldPrice: 18.00,
+            price: 14.90,
+            badge: "PROMOÇÃO 🔥",
+            promo: true
         },
         {
             id: 3002,
             name: "Bolo de Chocolate",
             description: "Fatia generosa. Massa de chocolate fofinha com recheio de chocolate ao leite e cobertura de chocolate meio amargo.",
-            price: 18.00,
-            badge: "NOVIDADE ✨"
+            oldPrice: 18.00,
+            price: 14.90,
+            badge: "PROMOÇÃO 🔥",
+            promo: true
         },
         {
             id: 3003,
             name: "Bolo de Cenoura com Chocolate",
             description: "Fatia generosa. Massa de cenoura fresquinha com aquela cobertura de chocolate que crackela.",
-            price: 18.00,
-            badge: "NOVIDADE ✨"
+            oldPrice: 18.00,
+            price: 14.90,
+            badge: "PROMOÇÃO 🔥",
+            promo: true
         }
     ],
     bebidas: [
-
-
-
-
         {
             id: 13,
             name: "Coca-Cola Zero",
             description: "Unidade Lata 350ml",
             price: 7.00
         },
-
-
         {
             id: 15,
             name: "Coca-Cola",
@@ -314,14 +318,21 @@ function renderMenu() {
                 clickAction = `openAddonModal(${item.id})`;
             }
 
+            const priceHTML = item.oldPrice
+                ? `<div class="price-container">
+                    <span class="old-price">R$ ${item.oldPrice.toFixed(2).replace('.', ',')}</span>
+                    <span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
+                   </div>`
+                : `<span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>`;
+
             return `
-            <div class="menu-item" data-id="${item.id}">
+            <div class="menu-item ${item.promo ? 'promo-item' : ''}" data-id="${item.id}">
                 <div class="item-info">
                     <h3 class="item-name">${item.name} ${item.badge ? `<span class="item-badge ${item.badgeClass || ''}">${item.badge}</span>` : ''}</h3>
                     <p class="item-description">${item.description}</p>
                 </div>
                 <div class="menu-item-actions">
-                    <span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
+                    ${priceHTML}
                     <button class="add-button" onclick="${clickAction}" aria-label="Adicionar ${item.name}">
                         +
                     </button>
@@ -330,6 +341,54 @@ function renderMenu() {
             `;
         }).join('');
     });
+
+    // Render Promo Section
+    const promoContainer = document.getElementById('promocoes');
+    if (promoContainer) {
+        const promoItems = [];
+        Object.values(menuData).forEach(cat => {
+            cat.forEach(item => {
+                if (item.promo) promoItems.push(item);
+            });
+        });
+
+        if (promoItems.length > 0) {
+            promoContainer.innerHTML = promoItems.map(item => {
+                // Determine click action for promo items
+                let clickAction = '';
+                const isDirect = Object.keys(menuData).some(cat =>
+                    (cat === 'bebidas' || cat === 'sobremesas' || cat === 'bolos') &&
+                    menuData[cat].some(i => i.id === item.id)
+                );
+
+                if (isDirect) {
+                    clickAction = `addDirectToCart(${item.id})`;
+                } else {
+                    clickAction = `openAddonModal(${item.id})`;
+                }
+
+                return `
+                <div class="menu-item promo-item" data-id="${item.id}">
+                    <div class="item-info">
+                        <h3 class="item-name">${item.name} <span class="item-badge">PROMOÇÃO 🔥</span></h3>
+                        <p class="item-description">${item.description}</p>
+                    </div>
+                    <div class="menu-item-actions">
+                        <div class="price-container">
+                            <span class="old-price">R$ ${item.oldPrice.toFixed(2).replace('.', ',')}</span>
+                            <span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
+                        </div>
+                        <button class="add-button" onclick="${clickAction}" aria-label="Adicionar ${item.name}">
+                            +
+                        </button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        } else {
+            document.querySelector('.promocoes-section').style.display = 'none';
+        }
+    }
 }
 
 // ===== Find Item by ID =====
@@ -770,9 +829,65 @@ function sendToWhatsApp() {
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
 
+    // --- SALVAR PEDIDO NO CRM (FIREBASE) ---
+    try {
+        if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+            const db = firebase.database();
+            const orderId = Date.now();
+            const orderData = {
+                id: orderId,
+                timestamp: new Date().toISOString(),
+                customer: {
+                    name,
+                    phone,
+                    address: orderType === 'delivery' ? address : 'RETIRADA'
+                },
+                items: cart.map(item => ({
+                    name: item.name,
+                    quantity: item.quantity,
+                    price: item.price,
+                    addons: item.addons ? item.addons.map(a => a.name) : [],
+                    observation: item.observation || ''
+                })),
+                total: total,
+                orderType: orderType,
+                payment: payment
+            };
+
+            // Salva na lista de pedidos
+            db.ref('orders/' + orderId).set(orderData);
+
+            // Atualiza/Cria registro do cliente
+            const customerKey = name.toLowerCase().replace(/\s+/g, '_');
+            db.ref('customers/' + customerKey).transaction((current) => {
+                if (!current) {
+                    return {
+                        name: name,
+                        phone: phone || '',
+                        address: orderType === 'delivery' ? address : '',
+                        totalSpent: total,
+                        orderCount: 1,
+                        lastOrder: orderData.timestamp
+                    };
+                } else {
+                    current.totalSpent = (current.totalSpent || 0) + total;
+                    current.orderCount = (current.orderCount || 0) + 1;
+                    current.lastOrder = orderData.timestamp;
+                    if (phone) current.phone = phone;
+                    if (orderType === 'delivery' && address) current.address = address;
+                    return current;
+                }
+            });
+
+            logEvent(`Pedido registrado no CRM: R$ ${total.toFixed(2)}`);
+        }
+    } catch (e) {
+        console.error("Erro ao salvar no CRM:", e);
+    }
+
     window.open(whatsappUrl, '_blank');
 
-    // Log do Pedido para o Dashboard
+    // Log do Pedido para o Dashboard (Métricas legadas)
     logEvent("Iniciou pedido via WhatsApp");
     dbIncrement("total_orders_clicked");
 }
