@@ -708,44 +708,6 @@ body {
     opacity: 0.7;
 }
 
-.promo-item {
-    border: 1px solid rgba(0, 255, 65, 0.3) !important;
-    background: linear-gradient(135deg, var(--surface) 0%, rgba(0, 255, 65, 0.05) 100%) !important;
-}
-
-.promo-item .item-name {
-    color: #00FF41 !important;
-}
-
-/* ===== Promocoes Section ===== */
-.menu-section.promocoes-section .menu-item {
-    background: linear-gradient(135deg, #0a1a0a 0%, #111 100%);
-    border: 1px solid #00FF41;
-    box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
-}
-
-.menu-section.promocoes-section .item-name {
-    color: #00FF41;
-    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
-}
-
-.menu-section.promocoes-section .item-price {
-    color: #00FF41;
-    text-shadow: 0 0 8px rgba(0, 255, 65, 0.4);
-}
-
-.menu-section.promocoes-section .add-button {
-    background: linear-gradient(135deg, #00FF41 0%, #00cc33 100%);
-    box-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
-    color: #000;
-}
-
-.menu-section.promocoes-section .item-badge {
-    background: rgba(0, 255, 65, 0.2);
-    color: #00FF41;
-    border: 1px solid #00FF41;
-    box-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
-}
 
 /* ===== Flash Item (Destaque Especial) ===== */
 .flash-item {

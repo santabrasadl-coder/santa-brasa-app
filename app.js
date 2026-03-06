@@ -117,10 +117,7 @@ const menuData = {
             id: 6,
             name: "X-Egg Bacon",
             description: "Pão, Hambúrguer Artesanal, Bacon, Ovo, Mussarela, Alface, Tomate e Molho Especial.",
-            oldPrice: 32.00,
-            price: 27.90,
-            badge: "PROMOÇÃO 🔥",
-            promo: true
+            price: 32.00
         }
     ],
     especiais: [
@@ -128,10 +125,7 @@ const menuData = {
             id: 7,
             name: "Santa Fúria",
             description: "Quando a fome perde a paciência: Dois Hambúrgueres Artesanais, Ovo, Tomate, Frango Desfiado, Bacon, Triplo de Queijo, Milho, Alface e Maionese Especial.",
-            oldPrice: 46.00,
-            price: 39.90,
-            badge: "PROMOÇÃO 🔥",
-            promo: true
+            price: 46.00
         },
         {
             id: 8,
@@ -318,15 +312,10 @@ function renderMenu() {
                 clickAction = `openAddonModal(${item.id})`;
             }
 
-            const priceHTML = item.oldPrice
-                ? `<div class="price-container">
-                    <span class="old-price">R$ ${item.oldPrice.toFixed(2).replace('.', ',')}</span>
-                    <span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
-                   </div>`
-                : `<span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>`;
+            const priceHTML = `<span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>`;
 
             return `
-            <div class="menu-item ${item.promo ? 'promo-item' : ''}" data-id="${item.id}">
+            <div class="menu-item" data-id="${item.id}">
                 <div class="item-info">
                     <h3 class="item-name">${item.name} ${item.badge ? `<span class="item-badge ${item.badgeClass || ''}">${item.badge}</span>` : ''}</h3>
                     <p class="item-description">${item.description}</p>
@@ -342,53 +331,7 @@ function renderMenu() {
         }).join('');
     });
 
-    // Render Promo Section
-    const promoContainer = document.getElementById('promocoes');
-    if (promoContainer) {
-        const promoItems = [];
-        Object.values(menuData).forEach(cat => {
-            cat.forEach(item => {
-                if (item.promo) promoItems.push(item);
-            });
-        });
 
-        if (promoItems.length > 0) {
-            promoContainer.innerHTML = promoItems.map(item => {
-                // Determine click action for promo items
-                let clickAction = '';
-                const isDirect = Object.keys(menuData).some(cat =>
-                    (cat === 'bebidas' || cat === 'sobremesas' || cat === 'bolos') &&
-                    menuData[cat].some(i => i.id === item.id)
-                );
-
-                if (isDirect) {
-                    clickAction = `addDirectToCart(${item.id})`;
-                } else {
-                    clickAction = `openAddonModal(${item.id})`;
-                }
-
-                return `
-                <div class="menu-item promo-item" data-id="${item.id}">
-                    <div class="item-info">
-                        <h3 class="item-name">${item.name} <span class="item-badge">PROMOÇÃO 🔥</span></h3>
-                        <p class="item-description">${item.description}</p>
-                    </div>
-                    <div class="menu-item-actions">
-                        <div class="price-container">
-                            <span class="old-price">R$ ${item.oldPrice.toFixed(2).replace('.', ',')}</span>
-                            <span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
-                        </div>
-                        <button class="add-button" onclick="${clickAction}" aria-label="Adicionar ${item.name}">
-                            +
-                        </button>
-                    </div>
-                </div>
-                `;
-            }).join('');
-        } else {
-            document.querySelector('.promocoes-section').style.display = 'none';
-        }
-    }
 }
 
 // ===== Find Item by ID =====

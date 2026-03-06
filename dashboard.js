@@ -288,12 +288,22 @@ function playNotificationSound() {
     const stopBtn = document.getElementById('stopSoundBtn');
 
     if (sound) {
+        sound.loop = true; // Força loop
         sound.currentTime = 0;
+
+        // Fallback robusto para loop
+        sound.onended = () => {
+            if (stopBtn && stopBtn.style.display !== 'none') {
+                sound.currentTime = 0;
+                sound.play();
+            }
+        };
+
         sound.play().then(() => {
             if (stopBtn) stopBtn.style.display = 'block';
-            console.log("🔔 Tocando som de notificação de pedido (LOOP)!");
+            console.log("🔔 Tocando som de notificação (LOOP REFORÇADO)!");
         }).catch(e => {
-            console.warn("Erro ao tocar som: O usuário pode precisar interagir com a página primeiro.", e);
+            console.warn("Erro ao tocar som:", e);
         });
     }
 }
