@@ -259,6 +259,68 @@
             }
         }
 
+        /* Store Status Toggle */
+        .store-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #444;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.toggle-slider {
+            background-color: var(--neon-green);
+        }
+
+        input:checked+.toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .status-label-text {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+
         /* Scrollbar */
         ::-webkit-scrollbar {
             width: 5px;
@@ -304,6 +366,222 @@
             outline: none;
             border-color: var(--primary);
         }
+
+        /* Dashboard Chat Styles */
+        .chat-board {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 1.5rem;
+            height: calc(100vh - 250px);
+            background: var(--surface);
+            border: 1px solid #333;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .chat-sessions-pane {
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .pane-header {
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            color: var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sessions-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .session-item {
+            padding: 1rem;
+            border-bottom: 1px solid #2a2a2a;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .session-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .session-item.active {
+            background: rgba(255, 49, 49, 0.1);
+            border-left: 4px solid var(--primary);
+        }
+
+        .session-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .session-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .session-last-msg {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .session-time {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+        }
+
+        .unread-badge {
+            background: var(--primary);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .chat-main-pane {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+        }
+
+        .chat-messages-container {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .chat-bubble {
+            max-width: 70%;
+            padding: 0.8rem 1.2rem;
+            border-radius: 15px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            position: relative;
+        }
+
+        .chat-bubble.admin {
+            align-self: flex-end;
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .chat-bubble.customer {
+            align-self: flex-start;
+            background: var(--surface);
+            color: white;
+            border-bottom-left-radius: 2px;
+            border: 1px solid #333;
+        }
+
+        .bubble-time {
+            font-size: 0.65rem;
+            opacity: 0.7;
+            display: block;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .chat-reply-area {
+            padding: 1.5rem;
+            background: var(--surface);
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .chat-reply-area input {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid #444;
+            color: white;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .chat-reply-area input:focus {
+            border-color: var(--primary);
+        }
+
+        .send-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 49, 49, 0.4);
+        }
+
+        .no-chat-selected {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dim);
+            gap: 1rem;
+        }
+
+        .no-chat-icon {
+            font-size: 4rem;
+            opacity: 0.2;
+        }
+
+        /* Reset Button Style */
+        .reset-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #444;
+            color: var(--text-dim);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .reset-btn:hover {
+            background: rgba(255, 49, 49, 0.1);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .active-customer-details {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            display: block;
+            margin-top: 2px;
+            font-weight: normal;
+        }
     </style>
 </head>
 
@@ -319,6 +597,14 @@
                 style="background: #333; border: 1px solid #444; color: #fff; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-family: 'Poppins';">
                 🔊 TESTAR SOM
             </button>
+            <div class="store-toggle-container">
+                <span class="status-label-text">LOJA:</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="storeStatusToggle" onchange="toggleStoreStatus(this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+                <span id="storeStatusLabel" style="font-weight: bold; min-width: 60px;">---</span>
+            </div>
             <div style="display: flex; align-items: center;">
                 <span class="live-dot" style="background-color: #ff4141; box-shadow: 0 0 10px #ff4141;"></span>
                 <span id="status-text" style="color: #ff4141;">Aguardando Firebase...</span>
@@ -339,6 +625,9 @@
         <button class="nav-btn" onclick="showTab('tab-finance')">Financeiro</button>
         <button class="nav-btn" onclick="showTab('tab-orders')">Pedidos Passados</button>
         <button class="nav-btn" onclick="showTab('tab-customers')">Clientes</button>
+        <button class="nav-btn" onclick="showTab('tab-chat')">Chat Live <span id="total-unread" class="unread-badge"
+                style="display:none;">0</span></button>
+        <button class="nav-btn" onclick="showTab('tab-reports')">Relatórios</button>
     </nav>
 
     <!-- Tab Finance: Sales Analysis -->
@@ -431,8 +720,10 @@
         </div>
 
         <div class="crm-container">
-            <div style="padding: 1rem; border-bottom: 1px solid #333;">
+            <div
+                style="padding: 1rem; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="font-family: 'Bebas Neue', sans-serif; color: var(--primary);">Atividade Recente</h3>
+                <button class="reset-btn" onclick="confirmResetDailyMetrics()">Zerar Hoje</button>
             </div>
             <ul class="log-list" id="activity-log">
                 <li class="log-item">
@@ -497,6 +788,71 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 5: Reports History -->
+    <div id="tab-reports" class="tab-content"
+        style="background: var(--surface); border: 1px solid #333; border-radius: 12px; padding: 2rem; min-height: calc(100vh - 250px);">
+        <div class="stats-grid" style="margin-bottom: 2rem;">
+            <div class="stat-card" style="border-top: 4px solid var(--neon-green);">
+                <span class="stat-label">Total Visitas (Mês)</span>
+                <span class="stat-value" id="monthly-visits">0</span>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid var(--primary);">
+                <span class="stat-label">Total Cliques (Mês)</span>
+                <span class="stat-value" id="monthly-clicks">0</span>
+            </div>
+        </div>
+
+        <div class="crm-container">
+            <div
+                style="padding: 1rem; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-family: 'Bebas Neue', sans-serif; color: var(--primary);">Histórico Diário</h3>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Visitas</th>
+                            <th>Cliques Pedidos</th>
+                            <th>Conversão (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reports-table-body">
+                        <tr>
+                            <td colspan="4" style="text-align:center;">Carregando histórico...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 4: Chat Live -->
+    <div id="tab-chat" class="tab-content">
+        <div class="chat-board">
+            <!-- Sessions Pane -->
+            <div class="chat-sessions-pane">
+                <div class="pane-header">
+                    Conversas Ativas
+                </div>
+                <div class="sessions-list" id="chat-sessions-list">
+                    <!-- Session items will be loaded here -->
+                    <div style="padding: 2rem; text-align: center; color: var(--text-dim);">
+                        Carregando chats...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Chat Pane -->
+            <div class="chat-main-pane" id="active-chat-pane">
+                <div class="no-chat-selected">
+                    <div class="no-chat-icon">💬</div>
+                    <p>Selecione uma conversa para começar</p>
+                </div>
             </div>
         </div>
     </div>

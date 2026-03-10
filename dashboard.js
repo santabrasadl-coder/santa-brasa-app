@@ -55,6 +55,9 @@ function initDashboard() {
             document.querySelector('.live-dot').style.backgroundColor = "#00FF41";
             document.querySelector('.live-dot').style.boxShadow = "0 0 10px #00FF41";
             setupHint.style.display = 'none';
+
+            // Carregar métricas de hoje logo ao conectar
+            loadDailyMetrics(db);
         } else {
             console.warn("🔴 Desconectado. Tentando reconectar...");
             statusText.textContent = "Reconectando...";
@@ -108,11 +111,229 @@ function initDashboard() {
     db.ref('customers').on('value', (snapshot) => {
         const customers = [];
         snapshot.forEach(child => {
-            customers.push(child.val());
+            customers.push({ key: child.key, ...child.val() });
         });
         window.allCustomers = customers; // Cache para busca local
         renderCustomersTable(customers);
     });
+
+    // 7. Chat Real-time
+    initChatDashboard(db);
+
+    // 8. Store Status Management
+    initStoreStatus(db);
+}
+
+// ===== Store Status Management =====
+function initStoreStatus(db) {
+    const toggle = document.getElementById('storeStatusToggle');
+    const label = document.getElementById('storeStatusLabel');
+
+    db.ref('settings/storeStatus').on('value', (snapshot) => {
+        const isOpen = snapshot.val() !== 'closed'; // Default to open if null
+
+        if (toggle) toggle.checked = isOpen;
+        if (label) {
+            label.textContent = isOpen ? 'ABERTO' : 'FECHADO';
+            label.style.color = isOpen ? 'var(--neon-green)' : 'var(--primary)';
+        }
+
+        console.log("Store status updated from Firebase:", isOpen ? "OPEN" : "CLOSED");
+    });
+}
+
+function toggleStoreStatus(isOpen) {
+    const status = isOpen ? 'open' : 'closed';
+    const db = firebase.database();
+
+    db.ref('settings/storeStatus').set(status)
+        .then(() => {
+            console.log("✅ Status da loja atualizado para:", status);
+            addLogRow(new Date().toLocaleTimeString('pt-BR'), `Loja ${isOpen ? 'ABERTA' : 'FECHADA'} manualmente.`);
+        })
+        .catch((error) => {
+            console.error("❌ Erro ao atualizar status da loja:", error);
+            alert("Erro ao atualizar status da loja!");
+        });
+}
+
+// ===== Chat Dashboard Functions =====
+window.activeChatSession = null;
+
+function initChatDashboard(db) {
+    const chatSessionsList = document.getElementById('chat-sessions-list');
+    if (!chatSessionsList) return;
+
+    db.ref('chats').on('value', (snapshot) => {
+        const chats = [];
+        snapshot.forEach(child => {
+            chats.push({ id: child.key, ...child.val() });
+        });
+
+        // Som de notificação se houver novos não lidos (pelo admin)
+        const hasUnread = chats.some(c => c.unreadByAdmin);
+        if (hasUnread && !isInitialLoad) {
+            playNotificationSound();
+        }
+
+        // Ordenar por timestamp (mais recentes primeiro)
+        chats.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        renderChatSessions(chats);
+        updateTotalUnread(chats);
+    });
+}
+
+function renderChatSessions(chats) {
+    const list = document.getElementById('chat-sessions-list');
+    if (!list) return;
+
+    if (chats.length === 0) {
+        list.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-dim);">Nenhuma conversa iniciada.</div>';
+        return;
+    }
+
+    list.innerHTML = chats.map(chat => {
+        const time = new Date(chat.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const isActive = window.activeChatSession === chat.id ? 'active' : '';
+        const unread = chat.unreadByAdmin ? '<span class="unread-badge">!</span>' : '';
+
+        return `
+            <div class="session-item ${isActive}" onclick="openChatSession('${chat.id}')">
+                <div class="session-info">
+                    <div class="session-name">
+                        ${chat.customerName || 'Cliente Anônimo'}
+                        ${unread}
+                    </div>
+                <div class="session-last-msg">${chat.lastMessage || '...'}</div>
+                <div class="session-time">${time}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function openChatSession(sessionId) {
+    const db = firebase.database();
+
+    // Remover listener anterior se existir
+    if (window.activeChatSession) {
+        db.ref('chats/' + window.activeChatSession).off();
+    }
+
+    window.activeChatSession = sessionId;
+
+    // Marcar como lido
+    db.ref('chats/' + sessionId).update({ unreadByAdmin: false });
+
+    const pane = document.getElementById('active-chat-pane');
+    pane.innerHTML = `
+        <div class="pane-header">
+            <span>Conversando com: <strong id="active-customer-name">Carregando...</strong></span>
+            <button onclick="closeActiveChat()" style="background:none; border:none; color:var(--primary); cursor:pointer;">✕ Fechar</button>
+        </div>
+        <div class="chat-messages-container" id="admin-messages-container">
+            <!-- Mensagens aqui -->
+        </div>
+        <div class="chat-reply-area">
+            <input type="text" id="adminReplyInput" placeholder="Digite sua resposta..." onkeypress="handleAdminReplyKey(event)">
+            <button class="send-btn" onclick="sendAdminReply()">ENVIAR</button>
+        </div>
+    `;
+
+    // Carregar mensagens
+    db.ref('chats/' + sessionId).on('value', (snapshot) => {
+        if (window.activeChatSession !== sessionId) return;
+
+        const chat = snapshot.val();
+        const headerTitle = document.getElementById('active-customer-name');
+        headerTitle.innerHTML = `
+            ${chat.customerName || 'Cliente'}
+            <span class="active-customer-details">
+                ${chat.customerPhone ? '📞 ' + chat.customerPhone : 'Sem telefone cadastrado'}
+            </span>
+        `;
+
+        const messagesContainer = document.getElementById('admin-messages-container');
+        if (chat.messages) {
+            const msgs = Object.values(chat.messages);
+            messagesContainer.innerHTML = msgs.map(m => `
+                <div class="chat-bubble ${m.sender === 'admin' ? 'admin' : 'customer'}">
+                    ${m.text}
+                    <span class="bubble-time">${new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+            `).join('');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    });
+
+    // Refresh Session List to update UI (Active class)
+    db.ref('chats').once('value', snap => {
+        const chats = [];
+        snap.forEach(c => chats.push({ id: c.key, ...c.val() }));
+        chats.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        renderChatSessions(chats);
+    });
+}
+
+function sendAdminReply() {
+    const input = document.getElementById('adminReplyInput');
+    const text = input.value.trim();
+    if (!text || !window.activeChatSession) return;
+
+    const db = firebase.database();
+    const sessionId = window.activeChatSession;
+
+    // Push admin message
+    db.ref('chats/' + sessionId + '/messages').push({
+        text: text,
+        sender: 'admin',
+        timestamp: new Date().toISOString()
+    });
+
+    // Update session meta
+    db.ref('chats/' + sessionId).update({
+        lastMessage: text,
+        timestamp: new Date().toISOString(),
+        unreadByCustomer: true
+    });
+
+    input.value = '';
+    input.focus();
+}
+
+function handleAdminReplyKey(event) {
+    if (event.key === 'Enter') {
+        sendAdminReply();
+    }
+}
+
+function closeActiveChat() {
+    if (window.activeChatSession) {
+        firebase.database().ref('chats/' + window.activeChatSession).off();
+    }
+    window.activeChatSession = null;
+    document.getElementById('active-chat-pane').innerHTML = `
+        <div class="no-chat-selected">
+            <div class="no-chat-icon">💬</div>
+            <p>Selecione uma conversa para começar</p>
+        </div>
+    `;
+    // Refresh list
+    firebase.database().ref('chats').once('value', snap => {
+        const chats = [];
+        snap.forEach(c => chats.push({ id: c.key, ...c.val() }));
+        chats.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        renderChatSessions(chats);
+    });
+}
+
+function updateTotalUnread(chats) {
+    const total = chats.reduce((sum, chat) => sum + (chat.unreadByAdmin ? 1 : 0), 0);
+    const badge = document.getElementById('total-unread');
+    if (badge) {
+        badge.textContent = total;
+        badge.style.display = total > 0 ? 'inline-block' : 'none';
+    }
 }
 
 // ===== CRM UI Functions =====
@@ -125,6 +346,10 @@ function showTab(tabId) {
     // Show selected tab
     document.getElementById(tabId).classList.add('active');
     document.querySelector(`button[onclick="showTab('${tabId}')"]`).classList.add('active');
+
+    if (tabId === 'tab-reports') {
+        loadMetricsHistory();
+    }
 }
 
 function renderOrdersTable(orders) {
@@ -217,9 +442,6 @@ function renderFinanceTab(orders) {
     });
 
     // Update Cards
-    const formatCurrency = (val) => `R$ ${val.toFixed(2).replace('.', ',')}`;
-    const formatDate = (date) => date ? date.toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '-';
-
     const elPix = document.getElementById('finance-pix');
     if (elPix) {
         elPix.textContent = formatCurrency(totals.Pix.total);
@@ -241,6 +463,44 @@ function renderFinanceTab(orders) {
         document.getElementById('table-cash-qty').textContent = totals.Dinheiro.count;
         document.getElementById('table-cash-total').textContent = formatCurrency(totals.Dinheiro.total);
         document.getElementById('table-cash-last').textContent = formatDate(totals.Dinheiro.last);
+    }
+}
+
+// ===== Novas Funções: Daily Refresh & Deletes =====
+
+function loadDailyMetrics(db) {
+    const today = new Date().toISOString().split('T')[0];
+
+    // Visitas de Hoje
+    db.ref(`metrics/${today}/total_visits`).on('value', snap => {
+        animateValue('count-total', snap.val() || 0);
+    });
+
+    // Cliques de Hoje
+    db.ref(`metrics/${today}/total_orders_clicked`).on('value', snap => {
+        animateValue('count-orders', snap.val() || 0);
+    });
+}
+
+function confirmResetDailyMetrics() {
+    if (confirm("Deseja zerar as métricas de HOJE? Isso não afetará as vendas registradas, apenas os contadores de visitas e cliques de hoje.")) {
+        const today = new Date().toISOString().split('T')[0];
+        const db = firebase.database();
+        db.ref(`metrics/${today}`).remove()
+            .then(() => {
+                alert("Métricas de hoje zeradas!");
+                // Os listeners automáticos atualizarão o UI para 0
+            });
+    }
+}
+
+function confirmDeleteCustomer(customerKey, customerName) {
+    if (confirm(`Tem certeza que deseja excluir o cliente ${customerName}?`)) {
+        firebase.database().ref('customers/' + customerKey).remove()
+            .then(() => {
+                console.log("Cliente excluído:", customerKey);
+            })
+            .catch(err => alert("Erro ao excluir: " + err));
     }
 }
 
@@ -266,6 +526,12 @@ function renderCustomersTable(customers) {
                 <td style="font-size: 0.8rem;">${c.address || '-'}</td>
                 <td>${c.orderCount}</td>
                 <td><span class="price-tag">R$ ${(c.totalSpent || 0).toFixed(2).replace('.', ',')}</span></td>
+                <td>
+                    <button onclick="confirmDeleteCustomer('${c.key}', '${c.name.replace(/'/g, "\\'")}')" 
+                             style="background: #333; border: 1px solid #444; color: #ff5c5c; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-weight: bold;">
+                        EXCLUIR
+                    </button>
+                </td>
             </tr>
         `;
     }).join('');
@@ -280,6 +546,74 @@ function filterCustomers() {
         (c.phone && c.phone.includes(query))
     );
     renderCustomersTable(filtered);
+}
+
+// ===== Funções de Relatórios & Histórico =====
+
+function loadMetricsHistory() {
+    console.log("Carregando histórico de métricas...");
+    const db = firebase.database();
+    db.ref('metrics').once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        const history = [];
+        let monthVisits = 0;
+        let monthClicks = 0;
+
+        // Iterar sobre as datas (YYYY-MM-DD)
+        Object.keys(data).forEach(dateKey => {
+            if (dateKey === 'totals') return; // Pular compatibilidade
+
+            const dayData = data[dateKey];
+            const visits = dayData.total_visits || 0;
+            const clicks = dayData.total_orders_clicked || 0;
+            const conversion = visits > 0 ? ((clicks / visits) * 100).toFixed(1) : 0;
+
+            history.push({
+                date: dateKey,
+                visits: visits,
+                clicks: clicks,
+                conversion: conversion
+            });
+
+            monthVisits += visits;
+            monthClicks += clicks;
+        });
+
+        // Ordenar por data recente
+        history.sort((a, b) => b.date.localeCompare(a.date));
+
+        // Atualizar Totais no UI
+        animateValue('monthly-visits', monthVisits);
+        animateValue('monthly-clicks', monthClicks);
+
+        // Renderizar Tabela
+        renderReportsTable(history);
+    });
+}
+
+function renderReportsTable(history) {
+    const tbody = document.getElementById('reports-table-body');
+    if (!tbody) return;
+
+    if (history.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum dado histórico encontrado.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = history.map(h => {
+        const dateParts = h.date.split('-');
+        const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : h.date;
+        return `
+            <tr>
+                <td><strong>${formattedDate}</strong></td>
+                <td>${h.visits}</td>
+                <td>${h.clicks}</td>
+                <td><span class="badge-type badge-delivery" style="background: rgba(0, 255, 65, 0.1); color: #00FF41; border: 1px solid rgba(0, 255, 65, 0.2);">${h.conversion}%</span></td>
+            </tr>
+        `;
+    }).join('');
 }
 
 // ===== Funções Auxiliares =====

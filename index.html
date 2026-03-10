@@ -140,21 +140,30 @@
                 </div>
                 <button class="chat-close" onclick="toggleChat()">✕</button>
             </div>
-            <div class="chat-messages">
-                <div class="chat-bubble received">
-                    Olá! Como podemos te ajudar hoje? 🔥
-                </div>
+            <div class="chat-name-prompt" id="chatNamePrompt" style="display: none;">
+                <p>Olá! Para começarmos, como podemos te chamar? 🔥</p>
+                <input type="text" id="chatUserName" placeholder="Seu nome aqui..." onkeypress="handleNameKey(event)">
+                <button onclick="saveChatName()">Começar Conversa</button>
             </div>
-            <div class="chat-input-area">
-                <input type="text" id="chatInput" placeholder="Digite sua mensagem..."
-                    onkeypress="handleChatKey(event)">
-                <button class="chat-send" onclick="sendChatToWhatsApp()">
-                    <span>➤</span>
-                </button>
+            <div id="chatMainArea" style="display: none; flex-direction: column; flex: 1;">
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will be loaded here -->
+                    <div class="chat-bubble received">
+                        Olá! Como podemos te ajudar hoje? 🔥
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Digite sua mensagem..."
+                        onkeypress="handleChatKey(event)">
+                    <button class="chat-send" onclick="sendChatMessage()">
+                        <span>➤</span>
+                    </button>
+                </div>
             </div>
         </div>
         <button class="chat-toggle" onclick="toggleChat()" aria-label="Abrir Chat">
             <span class="chat-toggle-icon">💬</span>
+            <span class="chat-unread-dot" id="chatUnreadDot"></span>
         </button>
     </div>
 

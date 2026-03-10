@@ -458,15 +458,15 @@ body {
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    background: var(--gradient-fire);
     border: none;
-    box-shadow: 0 0 15px rgba(37, 211, 102, 0.4), var(--shadow-card);
+    box-shadow: 0 0 15px rgba(255, 49, 49, 0.4), var(--shadow-card);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    animation: whatsapp-glow 2s infinite alternate;
+    animation: chat-glow 2s infinite alternate;
 }
 
 .chat-toggle:hover {
@@ -475,6 +475,21 @@ body {
 
 .chat-toggle-icon {
     font-size: 1.8rem;
+}
+
+.chat-unread-dot {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 14px;
+    height: 14px;
+    background: #00FF41;
+    border: 2px solid white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #00FF41;
+    display: none;
+    /* Hidden by default */
+    animation: pop 0.3s ease;
 }
 
 .chat-container {
@@ -521,7 +536,7 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    border: 2px solid #25D366;
+    border: 2px solid var(--primary);
 }
 
 .chat-status-info {
@@ -537,7 +552,7 @@ body {
 
 .chat-status {
     font-size: 0.75rem;
-    color: #25D366;
+    color: var(--primary);
     display: flex;
     align-items: center;
     gap: 4px;
@@ -547,9 +562,9 @@ body {
     content: '';
     width: 8px;
     height: 8px;
-    background: #25D366;
+    background: var(--primary);
     border-radius: 50%;
-    box-shadow: 0 0 8px #25D366;
+    box-shadow: 0 0 8px var(--primary);
     animation: status-pulse 1.5s infinite;
 }
 
@@ -591,7 +606,16 @@ body {
     height: 300px;
     padding: 1.25rem;
     overflow-y: auto;
-    background: radial-gradient(circle at center, rgba(37, 211, 102, 0.05) 0%, transparent 70%);
+    background: radial-gradient(circle at center, rgba(255, 49, 49, 0.05) 0%, transparent 70%);
+}
+
+.chat-messages::-webkit-scrollbar {
+    width: 4px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: var(--surface-light);
+    border-radius: 10px;
 }
 
 .chat-bubble {
@@ -607,6 +631,71 @@ body {
     background: var(--surface-light);
     color: var(--text-primary);
     border-bottom-left-radius: 2px;
+    align-self: flex-start;
+}
+
+.chat-bubble.sent {
+    background: var(--primary);
+    color: white;
+    border-bottom-right-radius: 2px;
+    align-self: flex-end;
+    box-shadow: 0 4px 12px rgba(255, 49, 49, 0.2);
+}
+
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.chat-name-prompt {
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 1.2rem;
+    flex: 1;
+}
+
+.chat-name-prompt p {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.chat-name-prompt input {
+    width: 100%;
+    background: var(--surface-light);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    color: var(--text-primary);
+    font-family: inherit;
+    outline: none;
+    text-align: center;
+}
+
+.chat-name-prompt input:focus {
+    border-color: var(--primary);
+}
+
+.chat-name-prompt button {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.8rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.chat-name-prompt button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 49, 49, 0.4);
 }
 
 .chat-input-area {
@@ -630,14 +719,14 @@ body {
 }
 
 .chat-input-area input:focus {
-    border-color: #25D366;
+    border-color: var(--primary);
 }
 
 .chat-send {
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    background: #25D366;
+    background: var(--primary);
     border: none;
     color: white;
     cursor: pointer;
@@ -649,16 +738,16 @@ body {
 
 .chat-send:hover {
     transform: scale(1.1);
-    background: #128C7E;
+    background: var(--primary-dark);
 }
 
-@keyframes whatsapp-glow {
+@keyframes chat-glow {
     0% {
-        box-shadow: 0 0 10px rgba(37, 211, 102, 0.3), var(--shadow-card);
+        box-shadow: 0 0 10px rgba(255, 49, 49, 0.3), var(--shadow-card);
     }
 
     100% {
-        box-shadow: 0 0 25px rgba(37, 211, 102, 0.7), var(--shadow-card);
+        box-shadow: 0 0 25px rgba(255, 49, 49, 0.7), var(--shadow-card);
     }
 }
 

@@ -2,7 +2,11 @@ const CLOSE_HOUR = 23;
 const CLOSE_MINUTE = 0;
 const WHATSAPP_NUMBER = "553799982046";
 
+let manualStoreStatus = "open"; // "open" ou "closed"
+
 function isStoreOpen() {
+    if (manualStoreStatus === "closed") return false;
+
     const now = new Date();
     const hours = now.getHours();
     const minutes = now.getMinutes();
@@ -161,28 +165,19 @@ const menuData = {
             id: 3001,
             name: "Bolo de Maracujá com Chocolate",
             description: "Fatia generosa. Massa fofinha de chocolate recheada com mousse de maracujá.",
-            oldPrice: 18.00,
-            price: 14.90,
-            badge: "PROMOÇÃO 🔥",
-            promo: true
+            price: 18.00
         },
         {
             id: 3002,
             name: "Bolo de Chocolate",
             description: "Fatia generosa. Massa de chocolate fofinha com recheio de chocolate ao leite e cobertura de chocolate meio amargo.",
-            oldPrice: 18.00,
-            price: 14.90,
-            badge: "PROMOÇÃO 🔥",
-            promo: true
+            price: 18.00
         },
         {
             id: 3003,
             name: "Bolo de Cenoura com Chocolate",
             description: "Fatia generosa. Massa de cenoura fresquinha com aquela cobertura de chocolate que crackela.",
-            oldPrice: 18.00,
-            price: 14.90,
-            badge: "PROMOÇÃO 🔥",
-            promo: true
+            price: 18.00
         }
     ],
     bebidas: [
@@ -261,6 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCart();
     loadUserData(); // Carrega dados salvos do cliente
     updateCartUI();
+    // initChat() será chamado pelo tracker quando o Firebase conectar
 });
 
 // ===== Direct Add to Cart (for Drinks) =====
@@ -568,7 +564,13 @@ function toggleCart() {
     document.body.style.overflow = cartSidebar.classList.contains('active') ? 'hidden' : '';
 }
 
-// ===== Chat Widget Logic =====
+// ===== Real-time Chat Logic =====
+let chatSessionId = localStorage.getItem('santaBrasaChatSessionId');
+if (!chatSessionId) {
+    chatSessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('santaBrasaChatSessionId', chatSessionId);
+}
+
 function toggleChat() {
     const chatWidget = document.getElementById('chatWidget');
     const chatInput = document.getElementById('chatInput');
@@ -576,54 +578,222 @@ function toggleChat() {
     chatWidget.classList.toggle('active');
 
     if (chatWidget.classList.contains('active')) {
-        setTimeout(() => chatInput.focus(), 300);
+        checkChatIdentity();
+        markMessagesAsRead();
     }
 }
 
-// Close chat on Escape or click outside
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        const chatWidget = document.getElementById('chatWidget');
-        if (chatWidget && chatWidget.classList.contains('active')) {
-            toggleChat();
-        }
-    }
-});
+function checkChatIdentity() {
+    const saved = localStorage.getItem('santaBrasaUserData');
+    const prompt = document.getElementById('chatNamePrompt');
+    const mainArea = document.getElementById('chatMainArea');
+    const nameInput = document.getElementById('chatUserName');
 
-document.addEventListener('click', (e) => {
-    const chatWidget = document.getElementById('chatWidget');
-    if (chatWidget && chatWidget.classList.contains('active')) {
-        // If click is outside chat-widget AND not on the toggle button
-        if (!chatWidget.contains(e.target)) {
-            toggleChat();
-        }
+    if (saved) {
+        try {
+            const { name } = JSON.parse(saved);
+            if (name) {
+                prompt.style.display = 'none';
+                mainArea.style.display = 'flex';
+                setTimeout(() => document.getElementById('chatInput').focus(), 300);
+                return;
+            }
+        } catch (e) { }
     }
-});
 
-function sendChatToWhatsApp() {
+    // Se não tiver nome, mostra o prompt
+    prompt.style.display = 'flex';
+    mainArea.style.display = 'none';
+    setTimeout(() => nameInput.focus(), 300);
+}
+
+function saveChatName() {
+    const nameInput = document.getElementById('chatUserName');
+    const name = nameInput.value.trim();
+
+    if (!name) return;
+
+    // Salvar no formato do resto do app
+    const saved = localStorage.getItem('santaBrasaUserData');
+    let userData = {};
+    if (saved) {
+        try { userData = JSON.parse(saved); } catch (e) { }
+    }
+    userData.name = name;
+    localStorage.setItem('santaBrasaUserData', JSON.stringify(userData));
+
+    // Refletir no campo do checkout se estiver aberto
+    const clientNameInput = document.getElementById('clientName');
+    if (clientNameInput) clientNameInput.value = name;
+
+    // Trocar UI
+    checkChatIdentity();
+
+    // Sincronizar com Firebase
+    updateChatSessionInfo();
+}
+
+function handleNameKey(event) {
+    if (event.key === 'Enter') {
+        saveChatName();
+    }
+}
+
+let isChatInitialized = false;
+
+function initChat() {
+    if (isChatInitialized) return;
+    if (typeof firebase === 'undefined' || !firebase.apps.length) return;
+
+    const db = firebase.database();
+    const chatRef = db.ref('chats/' + chatSessionId + '/messages');
+
+    // Listener para novas mensagens
+    chatRef.on('child_added', (snapshot) => {
+        const msg = snapshot.val();
+        renderChatMessage(msg);
+    });
+
+    // Listener para status de lido/não lido para o cliente
+    db.ref('chats/' + chatSessionId + '/unreadByCustomer').on('value', (snapshot) => {
+        const unread = snapshot.val();
+        const dot = document.getElementById('chatUnreadDot');
+        const widget = document.getElementById('chatWidget');
+        if (dot) {
+            dot.style.display = (unread && !widget.classList.contains('active')) ? 'block' : 'none';
+        }
+    });
+
+    // Atualizar info da sessão (nome do cliente se disponível)
+    updateChatSessionInfo();
+    isChatInitialized = true;
+}
+
+function updateChatSessionInfo() {
+    const saved = localStorage.getItem('santaBrasaUserData');
+    if (saved && typeof firebase !== 'undefined' && firebase.apps.length) {
+        try {
+            const { name, phone } = JSON.parse(saved);
+            const db = firebase.database();
+            db.ref('chats/' + chatSessionId).update({
+                customerName: name || 'Cliente Anônimo',
+                customerPhone: phone || '',
+                lastUpdate: new Date().toISOString()
+            });
+
+            // Enviar mensagem de boas-vindas se for a primeira vez
+            const welcomeSent = localStorage.getItem('santaBrasaWelcomeSent');
+            if (!welcomeSent && name) {
+                setTimeout(() => {
+                    db.ref('chats/' + chatSessionId + '/messages').push({
+                        text: `Olá ${name}! 🔥 Que bom ter você por aqui. Como podemos te ajudar hoje?`,
+                        sender: 'admin',
+                        timestamp: new Date().toISOString()
+                    });
+                    localStorage.setItem('santaBrasaWelcomeSent', 'true');
+                }, 2000);
+            }
+        } catch (e) { }
+    }
+}
+
+function renderChatMessage(msg) {
+    const container = document.getElementById('chatMessages');
+    if (!container) return;
+
+    const div = document.createElement('div');
+    div.className = `chat-bubble ${msg.sender === 'customer' ? 'sent' : 'received'}`;
+    div.textContent = msg.text;
+
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function sendChatMessage() {
     const chatInput = document.getElementById('chatInput');
-    const message = chatInput.value.trim();
+    const text = chatInput.value.trim();
 
-    if (!message) return;
+    if (!text || typeof firebase === 'undefined' || !firebase.apps.length) return;
 
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
+    const db = firebase.database();
+    const chatRef = db.ref('chats/' + chatSessionId);
 
-    window.open(whatsappUrl, '_blank');
+    // Push message
+    chatRef.child('messages').push({
+        text: text,
+        sender: 'customer',
+        timestamp: new Date().toISOString()
+    });
 
-    // Clear and close
+    // Update session meta
+    chatRef.update({
+        lastMessage: text,
+        timestamp: new Date().toISOString(),
+        unreadByAdmin: true
+    });
+
     chatInput.value = '';
-    toggleChat();
+    updateChatSessionInfo();
+    triggerAutoResponse(text);
+}
 
-    logEvent("Enviou mensagem via Chat Widget");
-    dbIncrement("chat_messages_sent");
+const AUTO_RESPONSES = {
+    "horário": "Nosso horário de atendimento é até as 23:00! 🔥",
+    "entrega": "Fazemos entregas em toda a cidade! A taxa é fixa de R$ 10,00. 🛵",
+    "cardápio": "Nosso cardápio completo está logo acima! Temos burgers artesanais, sobremesas e bebidas. 🍔",
+    "pagamento": "Aceitamos Pix, Cartões de Crédito/Débito e Dinheiro (levamos troco). 💳",
+    "endereço": "Estamos na Rua Marechal Deodoro, 398, Centro, Itaúna-MG. 📍",
+    "pix": "Nossa chave Pix é o nosso telefone: 3799982046. Favor enviar o comprovante! 📲",
+    "olá": "Olá! 🔥 Como podemos te ajudar com seu pedido hoje?",
+    "oi": "Oi! 🔥 Tudo bem? O que vai pedir de gostoso hoje?"
+};
+
+function triggerAutoResponse(text) {
+    const lowerText = text.toLowerCase();
+    let response = null;
+
+    for (const key in AUTO_RESPONSES) {
+        if (lowerText.includes(key)) {
+            response = AUTO_RESPONSES[key];
+            break;
+        }
+    }
+
+    if (response) {
+        setTimeout(() => {
+            const db = firebase.database();
+            db.ref('chats/' + chatSessionId + '/messages').push({
+                text: response,
+                sender: 'admin',
+                timestamp: new Date().toISOString()
+            });
+            db.ref('chats/' + chatSessionId).update({
+                lastMessage: response,
+                timestamp: new Date().toISOString(),
+                unreadByCustomer: true
+            });
+        }, 1500);
+    }
 }
 
 function handleChatKey(event) {
     if (event.key === 'Enter') {
-        sendChatToWhatsApp();
+        sendChatMessage();
     }
 }
+
+function markMessagesAsRead() {
+    if (typeof firebase !== 'undefined' && firebase.apps.length) {
+        firebase.database().ref('chats/' + chatSessionId).update({
+            unreadByCustomer: false
+        });
+    }
+}
+
+// Chamar initChat após o carregamento do Firebase
+document.addEventListener('DOMContentLoaded', () => {
+    // ... rest of init logic is already there, I'll add initChat to the bottom observer
+});
 
 // ===== Save/Load Cart =====
 function saveCart() {
@@ -859,10 +1029,14 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
         const app = !firebase.apps.length ? firebase.initializeApp(firebaseConfig) : firebase.app();
         const db = app.database();
 
-        // 1. Função para Incrementar Métricas
+        // 1. Função para Incrementar Métricas (Baseado em DATA)
         window.dbIncrement = function (metricPath) {
-            db.ref('metrics/' + metricPath).transaction(current => (current || 0) + 1)
+            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            db.ref(`metrics/${today}/${metricPath}`).transaction(current => (current || 0) + 1)
                 .catch(err => console.error("Erro ao incrementar métrica:", metricPath, err));
+
+            // Incrementar também o total histórico para compatibilidade
+            db.ref(`metrics/totals/${metricPath}`).transaction(current => (current || 0) + 1);
         }
 
         // 2. Função para Logar Atividade
@@ -877,6 +1051,18 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
         connectedRef.on('value', (snap) => {
             if (snap.val() === true) {
                 console.log("✅ Tracker Conectado ao Firebase.");
+
+                initChat(); // Inicializa o Chat em Tempo Real
+
+                // Listener para o Status da Loja (Manual Override)
+                db.ref('settings/storeStatus').on('value', (snapshot) => {
+                    const status = snapshot.val();
+                    if (status) {
+                        manualStoreStatus = status;
+                        updateStoreStatus();
+                        console.log("🔄 Status da loja atualizado (Real-time):", status);
+                    }
+                });
 
                 // Registro de Presença
                 const myPresenceRef = db.ref('presence').push();
