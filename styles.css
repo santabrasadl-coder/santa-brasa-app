@@ -797,6 +797,32 @@ body {
     opacity: 0.7;
 }
 
+.promo-card {
+    border: 1px dashed var(--primary);
+    background: linear-gradient(135deg, var(--surface) 0%, #1a1010 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.promo-card::after {
+    content: 'OFERTA';
+    position: absolute;
+    top: 10px;
+    right: -25px;
+    background: var(--primary);
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 30px;
+    transform: rotate(45deg);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.promo-card:hover {
+    border-style: solid;
+    box-shadow: 0 0 20px rgba(255, 49, 49, 0.2);
+}
+
 
 /* ===== Flash Item (Destaque Especial) ===== */
 .flash-item {
