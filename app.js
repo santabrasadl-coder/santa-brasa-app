@@ -1,11 +1,11 @@
 const CLOSE_HOUR = 23;
-const CLOSE_MINUTE = 0;
+const CLOSE_MINUTE = 59;
 const WHATSAPP_NUMBER = "553799982046";
 
 let manualStoreStatus = "open"; // "open" ou "closed"
 
 function isStoreOpen() {
-    if (manualStoreStatus === "closed") return true;
+    if (manualStoreStatus === "closed") return false;
 
     const now = new Date();
     const hours = now.getHours();
@@ -1139,6 +1139,5 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
 } else {
     console.warn("ℹ️ Tracker: Chaves do Firebase não configuradas.");
 }
-
 
 
