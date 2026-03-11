@@ -1114,9 +1114,9 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
                 db.ref('settings/storeStatus').on('value', (snapshot) => {
                     const status = snapshot.val();
                     if (status) {
-                        manualStoreStatus = status;
+                        // manualStoreStatus = status; // Overridden to stay open as requested
                         updateStoreStatus();
-                        console.log("🔄 Status da loja atualizado (Real-time):", status);
+                        console.log("🔄 Status da loja atualizado (Real-time - IGNORED locally):", status);
                     }
                 });
 
