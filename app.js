@@ -1,20 +1,26 @@
-const CLOSE_HOUR = 23;
-const CLOSE_MINUTE = 59;
+const CLOSE_HOUR = 3;
+const CLOSE_MINUTE = 0;
 const WHATSAPP_NUMBER = "553799982046";
 
 let manualStoreStatus = "open"; // "open" ou "closed"
 
 function isStoreOpen() {
     if (manualStoreStatus === "closed") return false;
+    if (manualStoreStatus === "open") return true;
 
     const now = new Date();
     const hours = now.getHours();
     const minutes = now.getMinutes();
 
-    // Converte tudo para minutos do dia para facilitar comparação
+    // Para horário após meia-noite (ex: 3h), considera aberto se ainda não passou das CLOSE_HOUR
     const currentMinutes = (hours * 60) + minutes;
-    const closeMinutes = (CLOSE_HOUR * 60) + CLOSE_MINUTE;
+    // Se o close hour é <= 6, assumimos que é horário da madrugada (próximo dia)
+    if (CLOSE_HOUR <= 6) {
+        // Aberto se for depois de meio-dia OU antes da hora de fechar na madrugada
+        return hours >= 12 || currentMinutes < (CLOSE_HOUR * 60 + CLOSE_MINUTE);
+    }
 
+    const closeMinutes = (CLOSE_HOUR * 60) + CLOSE_MINUTE;
     return currentMinutes < closeMinutes;
 }
 
@@ -36,7 +42,12 @@ function updateStoreStatus() {
         // Cálculo do tempo para fechar
         const now = new Date();
         const closeTime = new Date();
-        closeTime.setHours(CLOSE_HOUR, CLOSE_MINUTE, 0);
+        closeTime.setHours(CLOSE_HOUR, CLOSE_MINUTE, 0, 0);
+
+        // Se o horário de fechar é na madrugada e já passou (ex: são 22h e fecha às 3h)
+        if (closeTime <= now) {
+            closeTime.setDate(closeTime.getDate() + 1);
+        }
 
         const diffMs = closeTime - now;
         const totalMs = 60 * 60 * 1000; // 1 hora em ms
@@ -87,6 +98,15 @@ setInterval(updateStoreStatus, 1000);
 // ===== Menu Data =====
 const menuData = {
     promocoes: [
+        {
+            id: 106,
+            name: "Super Combo Santa Fúria",
+            description: "1 Santa Fúria (Dois Hambúrgueres Artesanais, Ovo, Tomate, Frango Desfiado, Bacon, Triplo de Queijo, Milho, Alface e Maionese Especial) + 1 Coca-Cola Lata 350ml.",
+            price: 49.90,
+            oldPrice: 53.00,
+            badge: "SUPER PROMO 🔥",
+            badgeClass: "badge-super"
+        },
         {
             id: 101,
             name: "Combo Duplo Brasa",
@@ -344,7 +364,7 @@ function renderMenu() {
         container.innerHTML = menuData[category].map(item => {
             let clickAction = '';
             // Determine which function to call based on category
-            if (category === 'bebidas' || category === 'sobremesas' || category === 'bolos' || (category === 'promocoes' && item.id > 100)) {
+            if (category === 'bebidas' || category === 'sobremesas' || category === 'bolos' || (category === 'promocoes' && item.id >= 100)) {
                 // If it's a promotion of a single direct item or a combo without customization choice in this simple version
                 // For now, let's treat promotions as direct additions for simplicity unless they are single burgers
                 if (item.name.includes("Dupla de Pudim")) {
