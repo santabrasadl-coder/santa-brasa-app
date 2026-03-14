@@ -97,57 +97,6 @@ setInterval(updateStoreStatus, 1000);
 
 // ===== Menu Data =====
 const menuData = {
-    promocoes: [
-        {
-            id: 106,
-            name: "Super Combo Santa Fúria",
-            description: "1 Santa Fúria (Dois Hambúrgueres Artesanais, Ovo, Tomate, Frango Desfiado, Bacon, Triplo de Queijo, Milho, Alface e Maionese Especial) + 1 Coca-Cola Lata 350ml.",
-            price: 49.90,
-            oldPrice: 53.00,
-            badge: "SUPER PROMO 🔥",
-            badgeClass: "badge-super"
-        },
-        {
-            id: 101,
-            name: "Combo Duplo Brasa",
-            description: "2 X-Saladas (Pão, Hambúrguer Artesanal, Queijo, Alface, Tomate e Maionese Especial).",
-            price: 42.90,
-            oldPrice: 48.00,
-            badge: "OFERTA 🔥"
-        },
-        {
-            id: 102,
-            name: "Dupla Santo Juízo",
-            description: "2 Santo Juízo (Hambúrguer Suculento, Frango Desfiado, Bacon Suculento, Ovo, Triplo de Queijo, Milho, Alface, Tomate e Maionese Especial).",
-            price: 79.90,
-            oldPrice: 88.00,
-            badge: "CAMPEÃO DE VENDAS 🏆"
-        },
-        {
-            id: 103,
-            name: "Casal X-Bacon",
-            description: "2 X-Bacon (Pão, Hambúrguer Artesanal, Bacon, Queijo, Alface, Tomate e Maionese Especial).",
-            price: 54.90,
-            oldPrice: 60.00,
-            badge: "MAIS BACON 🥓"
-        },
-        {
-            id: 104,
-            name: "Trinca de X-Salada",
-            description: "3 X-Saladas (Pão, Hambúrguer Artesanal, Queijo, Alface, Tomate e Maionese Especial).",
-            price: 62.90,
-            oldPrice: 72.00,
-            badge: "ECONOMIA ⚡"
-        },
-        {
-            id: 105,
-            name: "Dupla de Pudim",
-            description: "2 Mini Pudins Tradicionais 150g. Cremoso e sem furinhos.",
-            price: 26.00,
-            oldPrice: 30.00,
-            badge: "SOBREMESA ✨"
-        }
-    ],
     tradicionais: [
         {
             id: 1,
@@ -196,7 +145,7 @@ const menuData = {
         {
             id: 8,
             name: "Santo Juízo",
-            description: "Um verdadeiro tribunal de sabores: Hambúrguer Suculento, Frango Desfiado, Bacon Suculento, Ovo, Triplo de Queijo, Milho, Alface, Tomate e Maionese Especial.",
+            description: "Um verdadeiro tribunal de sabores: Hambúrguer Suculento, Frango Grelhado, Bacon Suculento, Ovo, Triplo de Queijo, Milho, Alface, Tomate e Maionese Especial.",
             price: 44.00,
             badge: "MAIS VENDIDO 🏆"
         },
@@ -364,16 +313,8 @@ function renderMenu() {
         container.innerHTML = menuData[category].map(item => {
             let clickAction = '';
             // Determine which function to call based on category
-            if (category === 'bebidas' || category === 'sobremesas' || category === 'bolos' || (category === 'promocoes' && item.id >= 100)) {
-                // If it's a promotion of a single direct item or a combo without customization choice in this simple version
-                // For now, let's treat promotions as direct additions for simplicity unless they are single burgers
-                if (item.name.includes("Dupla de Pudim")) {
-                    clickAction = `addDirectToCart(${item.id})`;
-                } else {
-                    // For burger combos, we might want to open modal or just add direct. 
-                    // Let's use direct for combos to simplify this request.
-                    clickAction = `addDirectToCart(${item.id})`;
-                }
+            if (category === 'bebidas' || category === 'sobremesas' || category === 'bolos') {
+                clickAction = `addDirectToCart(${item.id})`;
             } else {
                 clickAction = `openAddonModal(${item.id})`;
             }
@@ -387,7 +328,7 @@ function renderMenu() {
             `;
 
             return `
-            <div class="menu-item ${category === 'promocoes' ? 'promo-card' : ''}" data-id="${item.id}">
+            <div class="menu-item" data-id="${item.id}">
                 <div class="item-info">
                     <h3 class="item-name">${item.name} ${item.badge ? `<span class="item-badge ${item.badgeClass || ''}">${item.badge}</span>` : ''}</h3>
                     <p class="item-description">${item.description}</p>
