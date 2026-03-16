@@ -328,7 +328,7 @@ const PROMO_COMBOS = {
         promoPrice: 44.90,
         items: [
             { name: 'X-Bacon', qty: 1 },
-            { name: 'Bolo de Chocolate', qty: 1 },
+            { name: 'Mini Pudim Tradicional 150g', qty: 1 },
             { name: 'Coca-Cola', qty: 1 }
         ]
     }
