@@ -513,6 +513,43 @@ body {
     transform: scale(0.97);
 }
 
+/* ===== Promos Section ===== */
+.promos-section .promo-banner {
+    margin-bottom: 1.2rem;
+    animation: promo-slide-in 0.6s ease-out both;
+}
+
+.promos-section .promo-banner:nth-child(2) { animation-delay: 0s; }
+.promos-section .promo-banner:nth-child(3) { animation-delay: 0.15s; }
+.promos-section .promo-banner:nth-child(4) { animation-delay: 0.3s; }
+
+@keyframes promo-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(25px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.promo-pulse-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: var(--primary);
+    border-radius: 50%;
+    margin-left: 8px;
+    box-shadow: 0 0 8px var(--primary), 0 0 20px var(--primary);
+    animation: dot-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+}
+
 /* ===== Menu Sections ===== */
 .menu-section {
     margin-bottom: 2.5rem;

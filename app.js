@@ -304,6 +304,65 @@ function addDirectToCart(itemId) {
     showToast(`1x ${item.name} adicionado!`);
 }
 
+// ===== Promo Combos =====
+const PROMO_COMBOS = {
+    inferno: {
+        name: 'COMBO INFERNO 🔥',
+        promoPrice: 89.90,
+        items: [
+            { name: 'Santa Fúria', qty: 2 },
+            { name: 'Coca-Cola', qty: 2 }
+        ]
+    },
+    redencao: {
+        name: 'COMBO REDENÇÃO ✨',
+        promoPrice: 99.90,
+        items: [
+            { name: 'Santo Juízo', qty: 2 },
+            { name: 'Mini Pudim Tradicional 150g', qty: 2 },
+            { name: 'Coca-Cola', qty: 2 }
+        ]
+    },
+    pecado: {
+        name: 'COMBO PECADO 😈',
+        promoPrice: 44.90,
+        items: [
+            { name: 'X-Bacon', qty: 1 },
+            { name: 'Bolo de Chocolate', qty: 1 },
+            { name: 'Coca-Cola', qty: 1 }
+        ]
+    }
+};
+
+function addPromoToCart(promoKey) {
+    if (!isStoreOpen()) {
+        showToast("Ops! A loja está fechada no momento.");
+        return;
+    }
+    const promo = PROMO_COMBOS[promoKey];
+    if (!promo) return;
+
+    const uniqueCartId = `promo-${promoKey}-${Date.now()}`;
+
+    // Monta descrição dos itens
+    const desc = promo.items.map(i => `${i.qty}x ${i.name}`).join(' + ');
+
+    cart.push({
+        id: `promo-${promoKey}`,
+        cartId: uniqueCartId,
+        name: promo.name,
+        basePrice: promo.promoPrice,
+        price: promo.promoPrice,
+        addons: [],
+        quantity: 1,
+        observation: desc
+    });
+
+    saveCart();
+    updateCartUI();
+    showToast(`${promo.name} adicionado! 🔥`);
+}
+
 // ===== Render Menu =====
 function renderMenu() {
     Object.keys(menuData).forEach(category => {
