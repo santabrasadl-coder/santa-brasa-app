@@ -306,8 +306,8 @@ function addDirectToCart(itemId) {
 
 // ===== Promo Combos =====
 const PROMO_COMBOS = {
-    inferno: {
-        name: 'COMBO INFERNO 🔥',
+    apocalipse: {
+        name: 'COMBO APOCALIPSE 🔥',
         promoPrice: 89.90,
         items: [
             { name: 'Santa Fúria', qty: 2 },

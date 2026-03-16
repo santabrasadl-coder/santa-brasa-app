@@ -12,8 +12,9 @@
     --success: #00C853;
     --gradient-fire: linear-gradient(135deg, #FF3131 0%, #FF5C5C 50%, #FF7A7A 100%);
     --gradient-dark: linear-gradient(180deg, #1A1A1A 0%, #0D0D0D 100%);
-    --shadow-glow: 0 0 30px rgba(255, 49, 49, 0.3);
+    --shadow-glow: 0 0 30px rgba(0, 255, 65, 0.3);
     --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --gradient-green: linear-gradient(135deg, #00C853 0%, #00E676 50%, #69F0AE 100%);
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 20px;
@@ -378,10 +379,10 @@ body {
     overflow: hidden;
     margin-bottom: 2rem;
     position: relative;
-    background: linear-gradient(135deg, #1a0a0a 0%, #0d0d0d 40%, #1a0505 100%);
-    border: 1px solid rgba(255, 49, 49, 0.35);
-    box-shadow: 0 0 25px rgba(255, 49, 49, 0.15);
-    animation: banner-glow 3s ease-in-out infinite alternate;
+    background: linear-gradient(135deg, #0a1a0a 0%, #0d0d0d 40%, #051a05 100%);
+    border: 1px solid rgba(0, 255, 65, 0.35);
+    box-shadow: 0 0 25px rgba(0, 255, 65, 0.15);
+    animation: banner-glow-green 3s ease-in-out infinite alternate;
     text-align: center;
     padding: 1.5rem;
 }
@@ -397,9 +398,9 @@ body {
     pointer-events: none;
 }
 
-@keyframes banner-glow {
-    0% { box-shadow: 0 0 15px rgba(255, 49, 49, 0.1); }
-    100% { box-shadow: 0 0 35px rgba(255, 49, 49, 0.3); }
+@keyframes banner-glow-green {
+    0% { box-shadow: 0 0 15px rgba(0, 255, 65, 0.1); }
+    100% { box-shadow: 0 0 35px rgba(0, 255, 65, 0.3); }
 }
 
 .promo-banner-emoji {
@@ -417,21 +418,21 @@ body {
 
 .promo-badge-label {
     display: inline-block;
-    background: var(--gradient-fire);
-    color: white;
+    background: var(--gradient-green);
+    color: #000;
     font-family: 'Bebas Neue', sans-serif;
     font-size: 0.85rem;
     letter-spacing: 3px;
     padding: 0.3rem 1.2rem;
     border-radius: 50px;
     margin-bottom: 0.5rem;
-    box-shadow: 0 0 15px rgba(255, 49, 49, 0.4);
-    animation: badge-pulse 2s ease-in-out infinite alternate;
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
+    animation: badge-pulse-green 2s ease-in-out infinite alternate;
 }
 
-@keyframes badge-pulse {
-    0% { box-shadow: 0 0 10px rgba(255, 49, 49, 0.3); }
-    100% { box-shadow: 0 0 25px rgba(255, 49, 49, 0.6); }
+@keyframes badge-pulse-green {
+    0% { box-shadow: 0 0 10px rgba(0, 255, 65, 0.3); }
+    100% { box-shadow: 0 0 25px rgba(0, 255, 65, 0.6); }
 }
 
 .promo-banner.no-image .promo-banner-content {
@@ -490,8 +491,8 @@ body {
 }
 
 .promo-banner-footer .add-to-order-btn {
-    background: var(--gradient-fire);
-    color: white;
+    background: var(--gradient-green);
+    color: #000;
     border: none;
     padding: 0.8rem 1.8rem;
     border-radius: var(--radius-xl);
@@ -500,13 +501,13 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     white-space: nowrap;
-    box-shadow: 0 4px 20px rgba(255, 49, 49, 0.35);
+    box-shadow: 0 4px 20px rgba(0, 255, 65, 0.35);
     letter-spacing: 0.5px;
 }
 
 .promo-banner-footer .add-to-order-btn:hover {
     transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 8px 30px rgba(255, 49, 49, 0.5);
+    box-shadow: 0 8px 30px rgba(0, 255, 65, 0.5);
 }
 
 .promo-banner-footer .add-to-order-btn:active {
