@@ -1,0 +1,50 @@
+{
+  "rules": {
+    "orders": {
+      ".indexOn": ["timestamp"],
+      "$order_id": {
+        ".read": false,
+        ".write": "!data.exists() && request.resource.hasChildren(['items', 'total', 'customer'])",
+        ".validate": "request.resource.child('total').isNumber() && request.resource.child('total').val() > 0"
+      }
+    },
+    "metrics": {
+      "totals": {
+        ".read": true,
+        "$metric": {
+          ".write": "newData.val() == data.val() + 1"
+        }
+      },
+      "$date": {
+        ".read": true,
+        "$metric": {
+          ".write": "newData.val() == data.val() + 1"
+        }
+      }
+    },
+    "chats": {
+      "$session_id": {
+        ".read": "true",
+        ".write": "true",
+        "messages": {
+          "$msg_id": {
+             ".validate": "newData.hasChildren(['text', 'sender', 'timestamp']) && newData.child('text').val().length < 500"
+          }
+        }
+      }
+    },
+    "presence": {
+      "$presence_id": {
+        ".read": false,
+        ".write": "true",
+        ".validate": "newData.val() == true"
+      }
+    },
+    "settings": {
+      "storeStatus": {
+        ".read": true,
+        ".write": false
+      }
+    }
+  }
+}

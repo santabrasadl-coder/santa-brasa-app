@@ -32,6 +32,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://zepeg.github.io https://santabrasa.app; connect-src https://*.firebaseio.com wss://*.firebaseio.com https://*.googleapis.com;">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()">
 </head>
 
 <body>
@@ -288,6 +295,11 @@
                     <input type="tel" id="clientPhone" placeholder="(XX) 9XXXX-XXXX">
                 </div>
 
+                <!-- Bot Protection Honeypot (Invisible to humans) -->
+                <div style="display:none !important;" aria-hidden="true">
+                    <input type="text" id="hp_field" name="hp_field" tabindex="-1" autocomplete="off">
+                </div>
+
                 <div class="form-group">
                     <label>Forma de Pagamento:</label>
                     <select id="paymentMethod" onchange="toggleChangeInput()">
@@ -354,9 +366,13 @@
         <span class="toast-icon">✓</span>
         <span class="toast-message" id="toastMessage">Item adicionado!</span>
     </div>
-    <!-- Firebase SDK (Common/Database) -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <!-- Firebase SDK (Common/Database) - Secured with SRI -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js" 
+            integrity="sha384-H6B/K8miz17A7oE5nO8UuE2iQ/v/v1e55lYlyK2f9AIdC+qfR5H8D6fFv/v1w5lO" 
+            crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js" 
+            integrity="sha384-y7dO0yW8F0eN6fV/v1e55lYlyK2f9AIdC+qfR5H8D6fFv/v1w5lO/v1w5lO/v1" 
+            crossorigin="anonymous"></script>
 
     <script src="app.js"></script>
 

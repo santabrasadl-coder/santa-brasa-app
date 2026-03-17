@@ -248,6 +248,34 @@ function trackABEvent(eventName) {
     }
 }
 
+// ===== Security Hardening Helpers =====
+function validateAndSanitize(text, maxLength = 255) {
+    if (typeof text !== 'string') return '';
+    // Strip HTML Tags
+    let sanitized = text.replace(/<[^>]*>?/gm, '');
+    // Trim and limit length
+    return sanitized.trim().substring(0, maxLength);
+}
+
+const rateLimit = {
+    attempts: [],
+    MAX_ATTEMPTS: 3,
+    WINDOW_MS: 60000 // 1 minute
+};
+
+function isRateLimited() {
+    const now = Date.now();
+    rateLimit.attempts = rateLimit.attempts.filter(timestamp => now - timestamp < rateLimit.WINDOW_MS);
+    if (rateLimit.attempts.length >= rateLimit.MAX_ATTEMPTS) return true;
+    rateLimit.attempts.push(now);
+    return false;
+}
+
+let checkoutOpenTime = 0;
+function logCheckoutOpen() {
+    checkoutOpenTime = Date.now();
+}
+
 function setOrderType(type) {
     orderType = type;
 
@@ -484,6 +512,7 @@ function openAddonModal(itemId) {
     const overlay = document.getElementById('addonModalOverlay');
     overlay.classList.add('active');
     document.body.style.overflow = 'hidden';
+    logCheckoutOpen(); // Start tracking for bot detection
 }
 
 function closeAddonModal() {
@@ -669,13 +698,33 @@ function updateCartUI() {
     const fee = orderType === 'delivery' ? DELIVERY_FEE : 0;
     const total = subtotal + fee;
 
-    cartTotal.innerHTML = `
-        <div style="display:flex; flex-direction:column; align-items:flex-end;">
-            ${fee > 0 ? `<span style="font-size:0.8rem; color:var(--text-secondary); font-family:'Poppins';">Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}</span>` : ''}
-            ${fee > 0 ? `<span style="font-size:0.8rem; color:var(--text-secondary); font-family:'Poppins';">Entrega: R$ ${fee.toFixed(2).replace('.', ',')}</span>` : ''}
-            <span>R$ ${total.toFixed(2).replace('.', ',')}</span>
-        </div>
-    `;
+    cartTotal.innerHTML = ''; // Clear safely
+    const totalDiv = document.createElement('div');
+    totalDiv.style.display = 'flex';
+    totalDiv.style.flexDirection = 'column';
+    totalDiv.style.alignItems = 'flex-end';
+    
+    if (fee > 0) {
+        const sub = document.createElement('span');
+        sub.style.fontSize = '0.8rem';
+        sub.style.color = 'var(--text-secondary)';
+        sub.style.fontFamily = "'Poppins'";
+        sub.textContent = `Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}`;
+        totalDiv.appendChild(sub);
+        
+        const deliver = document.createElement('span');
+        deliver.style.fontSize = '0.8rem';
+        deliver.style.color = 'var(--text-secondary)';
+        deliver.style.fontFamily = "'Poppins'";
+        deliver.textContent = `Entrega: R$ ${fee.toFixed(2).replace('.', ',')}`;
+        totalDiv.appendChild(deliver);
+    }
+    
+    const final = document.createElement('span');
+    final.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    totalDiv.appendChild(final);
+    
+    cartTotal.appendChild(totalDiv);
 }
 
 // ===== Toggle Cart =====
@@ -683,6 +732,7 @@ function toggleCart() {
     cartSidebar.classList.toggle('active');
     cartOverlay.classList.toggle('active');
     document.body.style.overflow = cartSidebar.classList.contains('active') ? 'hidden' : '';
+    if (cartSidebar.classList.contains('active')) logCheckoutOpen();
 }
 
 // ===== Real-time Chat Logic =====
@@ -984,11 +1034,28 @@ function sendToWhatsApp() {
     }
 
     // Capture form data
-    const name = document.getElementById('clientName').value.trim();
-    const address = document.getElementById('clientAddress').value.trim();
-    const phone = document.getElementById('clientPhone').value.trim();
-    const payment = document.getElementById('paymentMethod').value;
-    const change = document.getElementById('changeAmount').value.trim();
+    const hp = document.getElementById('hp_field').value;
+    const name = validateAndSanitize(document.getElementById('clientName').value, 50);
+    const address = validateAndSanitize(document.getElementById('clientAddress').value, 200);
+    const phone = validateAndSanitize(document.getElementById('clientPhone').value, 20);
+    const payment = validateAndSanitize(document.getElementById('paymentMethod').value, 30);
+    const change = validateAndSanitize(document.getElementById('changeAmount').value, 20);
+
+    // Security Checks
+    if (hp) {
+        console.warn("Bot detected via honeypot.");
+        return;
+    }
+
+    if (isRateLimited()) {
+        alert("Muitas tentativas. Por favor, aguarde um minuto.");
+        return;
+    }
+
+    const submissionTime = Date.now() - checkoutOpenTime;
+    if (submissionTime < 2000) { // Humans rarely fill and click in < 2s
+        console.warn("Action too fast, potential bot.");
+    }
 
     // Validation
     if (!name) {
