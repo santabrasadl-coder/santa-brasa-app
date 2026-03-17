@@ -224,6 +224,30 @@ let currentModalQuantity = 1;
 let selectedAddons = [];
 let orderType = 'delivery'; // 'delivery' ou 'pickup'
 
+// ===== A/B Testing Logic =====
+const AB_TEST_KEY = 'sb_ab_group';
+function getABTestGroup() {
+    let group = localStorage.getItem(AB_TEST_KEY);
+    if (!group) {
+        group = Math.random() < 0.5 ? 'control' : 'variant';
+        localStorage.setItem(AB_TEST_KEY, group);
+    }
+    return group;
+}
+
+function trackABEvent(eventName) {
+    const group = getABTestGroup();
+    const fullEventName = `ab_${eventName}_${group}`;
+    
+    // Log to console for debugging
+    console.log(`[AB TEST] Tracking: ${fullEventName}`);
+    
+    // Increment in Firebase if available
+    if (typeof window.dbIncrement === 'function') {
+        window.dbIncrement(fullEventName);
+    }
+}
+
 function setOrderType(type) {
     orderType = type;
 
@@ -268,6 +292,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadUserData(); // Carrega dados salvos do cliente
     updateCartUI();
     // initChat() será chamado pelo tracker quando o Firebase conectar
+    
+    // Log initial group
+    const group = getABTestGroup();
+    console.log(`[AB TEST] User assigned to group: ${group}`);
+    trackABEvent('visit');
 });
 
 // ===== Direct Add to Cart (for Drinks) =====
@@ -302,6 +331,11 @@ function addDirectToCart(itemId) {
     saveCart();
     updateCartUI();
     showToast(`1x ${item.name} adicionado!`);
+    
+    // Only track direct_add if it wasn't triggered by a Skip Modal event (which handles its own better tracking)
+    if (!arguments[1]) {
+        trackABEvent('direct_add');
+    }
 }
 
 // ===== Promo Combos =====
@@ -361,6 +395,7 @@ function addPromoToCart(promoKey) {
     saveCart();
     updateCartUI();
     showToast(`${promo.name} adicionado! 🔥`);
+    trackABEvent('promo_add');
 }
 
 // ===== Render Menu =====
@@ -375,7 +410,7 @@ function renderMenu() {
             if (category === 'bebidas' || category === 'sobremesas' || category === 'bolos') {
                 clickAction = `addDirectToCart(${item.id})`;
             } else {
-                clickAction = `openAddonModal(${item.id})`;
+                clickAction = `addToCart(${item.id})`;
             }
 
             const oldPriceHTML = item.oldPrice ? `<span class="old-price">R$ ${item.oldPrice.toFixed(2).replace('.', ',')}</span>` : '';
@@ -494,6 +529,7 @@ function updateModalTotal() {
 function confirmAddonOrder() {
     addToCartWithAddons();
     closeAddonModal();
+    trackABEvent('confirm_addon');
 }
 
 // ===== Add to Cart (Modified) =====
@@ -504,7 +540,7 @@ function addToCartWithAddons() {
 
     // Create Unique ID based on addons to separate items
     const addonsKey = selectedAddons.sort().join('|');
-    const uniqueCartId = `${currentModalItem.id}-${addonsKey}`;
+    const uniqueCartId = `${currentModalItem.id}-${addonsKey || 'default'}`;
 
     const existingItem = cart.find(item => item.cartId === uniqueCartId);
 
@@ -529,7 +565,16 @@ function addToCartWithAddons() {
 }
 
 function addToCart(itemId) {
-    openAddonModal(itemId);
+    const group = getABTestGroup();
+    if (group === 'variant') {
+        // Variant B: Jump directly to cart, bypass modal
+        addDirectToCart(itemId, true); // Pass true to avoid double tracking
+        trackABEvent('skip_modal');
+    } else {
+        // Control A: Show modal as usual
+        openAddonModal(itemId);
+        trackABEvent('open_modal');
+    }
 }
 
 // ===== Remove from Cart =====
@@ -1079,6 +1124,7 @@ function sendToWhatsApp() {
     // Log do Pedido para o Dashboard (Métricas legadas)
     logEvent("Iniciou pedido via WhatsApp");
     dbIncrement("total_orders_clicked");
+    trackABEvent('checkout_whatsapp');
 }
 
 // ╔════════════════════════════════════════════════════════════════╗
