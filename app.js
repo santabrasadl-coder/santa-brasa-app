@@ -925,7 +925,7 @@ function sendChatMessage() {
 }
 
 const AUTO_RESPONSES = {
-    "horário": "Nosso horário de atendimento é até as 23:00! 🔥",
+    "horário": "Nosso horário de atendimento é de 15:00 as 03:00! 🔥",
     "entrega": "Fazemos entregas em toda a cidade! A taxa é fixa de R$ 10,00. 🛵",
     "cardápio": "Nosso cardápio completo está logo acima! Temos burgers artesanais, sobremesas e bebidas. 🍔",
     "pagamento": "Aceitamos Pix, Cartões de Crédito/Débito e Dinheiro (levamos troco). 💳",
@@ -1233,10 +1233,10 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
         // Inicializar Firebase
         const app = !firebase.apps.length ? firebase.initializeApp(firebaseConfig) : firebase.app();
         const db = app.database();
+        const today = new Date().toISOString().split('T')[0]; // Define hoje globalmente para o tracker
 
         // 1. Função para Incrementar Métricas (Baseado em DATA)
         window.dbIncrement = function (metricPath) {
-            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
             db.ref(`metrics/${today}/${metricPath}`).transaction(current => (current || 0) + 1)
                 .catch(err => console.error("Erro ao incrementar métrica:", metricPath, err));
 
@@ -1259,26 +1259,32 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
 
                 initChat(); // Inicializa o Chat em Tempo Real
 
-                // Listener para o Status da Loja (Manual/Auto Override)
-                db.ref('settings/storeStatus').on('value', (snapshot) => {
-                    const status = snapshot.val();
-                    if (status) {
-                        manualStoreStatus = status;
-                        updateStoreStatus();
-                        console.log("🔄 Status da loja atualizado (Real-time):", status);
-                    }
-                });
-
-                // Registro de Presença
-                const myPresenceRef = db.ref('presence').push();
+                // Registro de Presença (Contar como cliente)
+                const myPresenceRef = db.ref('presence/users').push();
                 myPresenceRef.onDisconnect().remove();
                 myPresenceRef.set(true);
 
-                // Eventos de Entrada
-                logEvent("Novo visitante entrou");
-                dbIncrement("total_visits");
+                // Evitar contar múltiplas vezes no refresh (opcional)
+                const sessionKey = 'sb_visit_' + today;
+                if (!sessionStorage.getItem(sessionKey)) {
+                    logEvent("Visitante conectou: Tracker OK");
+                    dbIncrement("total_visits");
+                    sessionStorage.setItem(sessionKey, 'true');
+                } else {
+                    console.log("ℹ️ Conexão de tracker mantida.");
+                }
             } else {
                 console.warn("⚠️ Tracker Desconectado do Firebase.");
+            }
+        });
+
+        // Listener para o Status da Loja (Manual/Auto Override) - Fora do loop para evitar duplicatas
+        db.ref('settings/storeStatus').on('value', (snapshot) => {
+            const status = snapshot.val();
+            if (status) {
+                manualStoreStatus = status;
+                updateStoreStatus();
+                console.log("🔄 Status da loja atualizado (Real-time):", status);
             }
         });
 

@@ -18,12 +18,28 @@ const firebaseConfig = {
 console.log("Iniciando Firebase no Dashboard...");
 const statusText = document.getElementById('status-text');
 const setupHint = document.getElementById('setup-hint');
+let isInitialLoad = true;
+
+// Relatório de erros para o usuário
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+    console.error("❌ ERRO NO DASHBOARD:", msg, "em", lineNo, ":", columnNo);
+    // Só mostrar alert se for um erro crítico de execução
+    if (msg.toLowerCase().includes('firebase') || msg.toLowerCase().includes('ref') || msg.toLowerCase().includes('null')) {
+        alert("Erro no Painel: " + msg + "\nLinha: " + lineNo);
+    }
+    return false;
+};
 
 if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
     try {
         firebase.initializeApp(firebaseConfig);
         console.log("✅ Firebase inicializado com sucesso.");
-        initDashboard();
+        
+        // --- ADICIONADO: Guard de Segurança ---
+        if (checkAccess()) {
+            statusText.textContent = "Acesso Autorizado. Conectando...";
+            initDashboard();
+        }
     } catch (error) {
         console.error("❌ Erro ao inicializar Firebase:", error);
         statusText.textContent = "Erro na Inicialização";
@@ -44,17 +60,26 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
 
 function initDashboard() {
     console.log("Conectando ao banco de dados...");
+    statusText.textContent = "Conectando ao Banco...";
     const db = firebase.database();
 
     // Verificador de Conexão Real-time
     db.ref('.info/connected').on('value', (snap) => {
         if (snap.val() === true) {
             console.log("🟢 Conectado ao Database com sucesso!");
-            statusText.textContent = "Conectado ao Live Stream";
+            statusText.textContent = "Monitoramento Ativo";
             statusText.style.color = "#00FF41";
             document.querySelector('.live-dot').style.backgroundColor = "#00FF41";
             document.querySelector('.live-dot').style.boxShadow = "0 0 10px #00FF41";
             setupHint.style.display = 'none';
+
+            // Registro de Presença do próprio Painel (Separado para não contar como cliente)
+            const myPresenceRef = db.ref('presence/admins').push();
+            myPresenceRef.onDisconnect().remove();
+            myPresenceRef.set(true);
+
+            // Log de pronto
+            addLogRow(new Date().toLocaleTimeString('pt-BR'), "Painel administrativo pronto e monitorando.");
 
             // Carregar métricas de hoje logo ao conectar
             loadDailyMetrics(db);
@@ -66,20 +91,29 @@ function initDashboard() {
         }
     });
 
-    // 1. Visitantes Online (Presence)
-    db.ref('presence').on('value', (snapshot) => {
+    // 1. Visitantes Online (Apenas Clientes)
+    db.ref('presence/users').on('value', (snapshot) => {
         const count = snapshot.numChildren() || 0;
         animateValue('count-live', count);
+    }, (error) => {
+        console.error("❌ Erro de Permissão (Presence):", error);
+        addLogRow(new Date().toLocaleTimeString('pt-BR'), "⚠️ Erro ao ler visitantes online (Permissão).");
     });
 
     // 2. Total de Visitas Históricas
-    db.ref('metrics/total_visits').on('value', (snapshot) => {
+    db.ref('metrics/totals/total_visits').on('value', (snapshot) => {
         animateValue('count-total', snapshot.val() || 0);
     });
 
-    // 3. Cliques em Pedidos
-    db.ref('metrics/total_orders_clicked').on('value', (snapshot) => {
+    // 3. Cliques em Pedidos Históricos
+    db.ref('metrics/totals/total_orders_clicked').on('value', (snapshot) => {
         animateValue('count-orders', snapshot.val() || 0);
+    });
+
+    // 2b. Métricas de Hoje (Opcional: manter no console ou adicionar se tiver label)
+    const today = new Date().toISOString().split('T')[0];
+    db.ref(`metrics/${today}/total_visits`).on('value', (snapshot) => {
+        console.log("Visitas hoje:", snapshot.val() || 0);
     });
 
     // 4. Logs de Atividade
@@ -89,22 +123,49 @@ function initDashboard() {
     });
 
     // 5. CRM: Pedidos Passados
-    let isInitialLoad = true;
     db.ref('orders').orderByChild('timestamp').limitToLast(100).on('value', (snapshot) => {
         const orders = [];
         snapshot.forEach(child => {
             orders.unshift(child.val()); // Mais recentes primeiro
         });
 
+        if (orders.length === 0) {
+            console.warn("⚠️ Nenhum pedido encontrado no banco de dados.");
+        } else {
+            console.log(`✅ ${orders.length} pedidos carregados.`);
+        }
+
         // Se não for o carregamento inicial e a quantidade de pedidos aumentou, toca o som
         if (!isInitialLoad && window.currentOrders && orders.length > window.currentOrders.length) {
             playNotificationSound();
         }
 
-        renderOrdersTable(orders);
-        renderFinanceTab(orders);
-        window.currentOrders = orders; // Store for delete operations and count comparison
+        try {
+            renderOrdersTable(orders);
+            renderFinanceTab(orders);
+        } catch (e) {
+            console.error("❌ Erro ao renderizar tabelas:", e);
+        }
+        
+        window.currentOrders = orders;
         isInitialLoad = false;
+        
+        if (statusText.textContent === "Sincronizando Dados..." || statusText.textContent === "Conectando ao Banco..." || statusText.textContent.includes("Acesso Autorizado")) {
+            statusText.textContent = "Monitoramento Ativo";
+        }
+    }, (error) => {
+        console.error("❌ Erro de Permissão (Orders):", error);
+        addLogRow(new Date().toLocaleTimeString('pt-BR'), "⚠️ Bloqueio de leitura de pedidos (Permissão).");
+    });
+
+    // Teste de Diagnóstico: Gravar um log
+    console.log("Executando teste de escrita...");
+    db.ref('logs').push({
+        time: new Date().toLocaleTimeString('pt-BR'),
+        msg: "📊 Admin acessou o painel (Verificação de Permissão)"
+    }).catch(err => {
+        console.error("❌ FALHA NO TESTE DE GRAVAÇÃO:", err);
+        addLogRow(new Date().toLocaleTimeString('pt-BR'), "🛑 Erro crítico: Sem permissão de escrita de Atividade!");
     });
 
     // 6. CRM: Clientes
@@ -380,8 +441,14 @@ function renderOrdersTable(orders) {
     }
 
     tbody.innerHTML = orders.map(order => {
-        const date = new Date(order.timestamp).toLocaleString('pt-BR');
-        const itemsStr = order.items.map(i => `${i.quantity}x ${i.name}`).join('<br>');
+        if (!order || !order.customer) return '';
+        
+        const date = order.timestamp ? new Date(order.timestamp).toLocaleString('pt-BR') : '-';
+        
+        // Proteção contra conversão objeto/array do Firebase
+        const items = Array.isArray(order.items) ? order.items : Object.values(order.items || {});
+        const itemsStr = items.map(i => `${i.quantity || 1}x ${i.name || 'Item'}`).join('<br>');
+        
         const typeBadge = order.orderType === 'delivery' ? 'badge-delivery' : 'badge-pickup';
         const typeLabel = order.orderType === 'delivery' ? 'Entrega' : 'Retirada';
 
@@ -389,14 +456,14 @@ function renderOrdersTable(orders) {
             <tr>
                 <td>${date}</td>
                 <td>
-                    <strong>${order.customer.name}</strong><br>
+                    <strong>${order.customer.name || 'Cliente'}</strong><br>
                     <small>${order.customer.phone || ''}</small>
                 </td>
                 <td><span class="badge-type ${typeBadge}">${typeLabel}</span></td>
-                <td style="font-size: 0.8rem; color: #ccc;">${itemsStr}</td>
+                <td style="font-size: 0.8rem; color: #ccc;">${itemsStr || 'Sem itens'}</td>
                 <td style="font-size: 0.8rem;">${order.customer.address || '-'}</td>
-                <td><span class="price-tag">R$ ${order.total.toFixed(2).replace('.', ',')}</span></td>
-                <td>${order.payment}</td>
+                <td><span class="price-tag">R$ ${(order.total || 0).toFixed(2).replace('.', ',')}</span></td>
+                <td>${order.payment || '-'}</td>
                 <td>
                     <button onclick="confirmDeleteOrder('${order.id}')" 
                             style="background: #FF3131; border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-weight: bold;">
@@ -440,21 +507,22 @@ function renderFinanceTab(orders) {
     let totalCount = 0;
 
     orders.forEach(order => {
-        const payment = order.payment;
+        if (!order) return;
+        const payment = order.payment || '';
         let category = '';
 
         if (payment === 'Pix') category = 'Pix';
-        else if (payment === 'Cartão' || payment === 'Cartao') category = 'Cartao';
+        else if (payment && (payment.toLowerCase().includes('cart') || payment.includes('Cartao'))) category = 'Cartao';
         else if (payment === 'Dinheiro') category = 'Dinheiro';
 
         if (category && totals[category]) {
-            totals[category].total += order.total;
+            totals[category].total += (order.total || 0);
             totals[category].count += 1;
-            const orderDate = new Date(order.timestamp);
-            if (!totals[category].last || orderDate > totals[category].last) {
+            const orderDate = order.timestamp ? new Date(order.timestamp) : null;
+            if (orderDate && (!totals[category].last || orderDate > totals[category].last)) {
                 totals[category].last = orderDate;
             }
-            grandTotal += order.total;
+            grandTotal += (order.total || 0);
             totalCount += 1;
         }
     });
@@ -487,17 +555,8 @@ function renderFinanceTab(orders) {
 // ===== Novas Funções: Daily Refresh & Deletes =====
 
 function loadDailyMetrics(db) {
-    const today = new Date().toISOString().split('T')[0];
-
-    // Visitas de Hoje
-    db.ref(`metrics/${today}/total_visits`).on('value', snap => {
-        animateValue('count-total', snap.val() || 0);
-    });
-
-    // Cliques de Hoje
-    db.ref(`metrics/${today}/total_orders_clicked`).on('value', snap => {
-        animateValue('count-orders', snap.val() || 0);
-    });
+    // Agora unificado na inicialização principal para evitar duplicidade de escrita no UI
+    console.log("Métricas diárias sincronizadas.");
 }
 
 function confirmResetDailyMetrics() {
@@ -717,18 +776,45 @@ function animateValue(id, endValue) {
     window.requestAnimationFrame(step);
 }
 
+function formatCurrency(value) {
+    if (typeof value !== 'number') return 'R$ 0,00';
+    return `R$ ${value.toFixed(2).replace('.', ',')}`;
+}
+
+function formatDate(date) {
+    if (!date) return '-';
+    // Se for hoje, mostrar apenas a hora. Se for outro dia, mostrar data e hora
+    const now = new Date();
+    const isToday = date.getDate() === now.getDate() &&
+                    date.getMonth() === now.getMonth() &&
+                    date.getFullYear() === now.getFullYear();
+    
+    if (isToday) {
+        return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+    return date.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
 // ===== Segurança Simples: Senha de Acesso =====
-(function checkAccess() {
-    const MASTER_PASSWORD = "brasa-admin"; // 👈 Defina sua senha aqui
+function checkAccess() {
+    const MASTER_PASSWORD = "brasa-admin"; 
     const authorized = sessionStorage.getItem('dashboard_auth');
 
-    if (authorized !== 'true') {
-        const pass = prompt("Digite a senha de administrador para acessar o Painel:");
-        if (pass === MASTER_PASSWORD) {
-            sessionStorage.setItem('dashboard_auth', 'true');
-        } else {
-            alert("Senha incorreta. Acesso negado.");
-            document.body.innerHTML = "<h2 style='color:red; text-align:center; margin-top:50px;'>Acesso Não Autorizado</h2>";
-        }
+    if (authorized === 'true') return true;
+
+    const pass = prompt("Digite a senha de administrador para acessar o Painel SANTA BRASA:");
+    if (pass === MASTER_PASSWORD) {
+        sessionStorage.setItem('dashboard_auth', 'true');
+        return true;
+    } else {
+        alert("Senha incorreta. Acesso negado.");
+        document.body.innerHTML = `
+            <div style="background:#000; color:#fff; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
+                <h1 style="color:#FF3131;">🔥 ACESSO NEGADO</h1>
+                <p>Você não tem permissão para visualizar este painel.</p>
+                <button onclick="location.reload()" style="background:#FF3131; color:#fff; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; margin-top:20px;">Tentar Novamente</button>
+            </div>
+        `;
+        return false;
     }
-})();
+}
