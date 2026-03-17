@@ -4,8 +4,8 @@
       ".indexOn": ["timestamp"],
       "$order_id": {
         ".read": false,
-        ".write": "!data.exists() && request.resource.hasChildren(['items', 'total', 'customer'])",
-        ".validate": "request.resource.child('total').isNumber() && request.resource.child('total').val() > 0"
+        ".write": "!data.exists() && newData.hasChildren(['items', 'total', 'customer'])",
+        ".validate": "newData.child('total').isNumber() && newData.child('total').val() > 0"
       }
     },
     "metrics": {

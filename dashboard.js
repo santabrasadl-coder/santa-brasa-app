@@ -126,30 +126,48 @@ function initDashboard() {
 
 // ===== Store Status Management =====
 function initStoreStatus(db) {
-    const toggle = document.getElementById('storeStatusToggle');
-    const label = document.getElementById('storeStatusLabel');
-
     db.ref('settings/storeStatus').on('value', (snapshot) => {
-        const isOpen = snapshot.val() !== 'closed'; // Default to open if null
+        const status = snapshot.val() || 'auto';
+        
+        // Reset buttons
+        ['open', 'closed', 'auto'].forEach(s => {
+            const btn = document.getElementById(`btn-status-${s}`);
+            if (btn) {
+                btn.style.background = 'none';
+                btn.style.color = 'var(--text-dim)';
+                btn.style.boxShadow = 'none';
+            }
+        });
 
-        if (toggle) toggle.checked = isOpen;
-        if (label) {
-            label.textContent = isOpen ? 'ABERTO' : 'FECHADO';
-            label.style.color = isOpen ? 'var(--neon-green)' : 'var(--primary)';
+        // Highlight active button
+        const activeBtn = document.getElementById(`btn-status-${status}`);
+        if (activeBtn) {
+            if (status === 'open') {
+                activeBtn.style.background = 'var(--neon-green)';
+                activeBtn.style.color = '#000';
+                activeBtn.style.boxShadow = '0 0 10px var(--neon-green)';
+            } else if (status === 'closed') {
+                activeBtn.style.background = 'var(--primary)';
+                activeBtn.style.color = '#fff';
+                activeBtn.style.boxShadow = '0 0 10px var(--primary)';
+            } else {
+                activeBtn.style.background = '#444';
+                activeBtn.style.color = '#fff';
+            }
         }
 
-        console.log("Store status updated from Firebase:", isOpen ? "OPEN" : "CLOSED");
+        console.log("Store status updated from Firebase:", status);
     });
 }
 
-function toggleStoreStatus(isOpen) {
-    const status = isOpen ? 'open' : 'closed';
+function setStoreStatus(status) {
     const db = firebase.database();
-
     db.ref('settings/storeStatus').set(status)
         .then(() => {
             console.log("✅ Status da loja atualizado para:", status);
-            addLogRow(new Date().toLocaleTimeString('pt-BR'), `Loja ${isOpen ? 'ABERTA' : 'FECHADA'} manualmente.`);
+            let msg = `Loja configurada para: ${status.toUpperCase()}`;
+            if (status === 'auto') msg = "Loja em modo CRONÔMETRO AUTOMÁTICO.";
+            addLogRow(new Date().toLocaleTimeString('pt-BR'), msg);
         })
         .catch((error) => {
             console.error("❌ Erro ao atualizar status da loja:", error);

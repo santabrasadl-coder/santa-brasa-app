@@ -1,27 +1,32 @@
+const OPEN_HOUR = 15;
+const OPEN_MINUTE = 0;
 const CLOSE_HOUR = 3;
 const CLOSE_MINUTE = 0;
 const WHATSAPP_NUMBER = "553799982046";
 
-let manualStoreStatus = "open"; // "open" ou "closed"
+let manualStoreStatus = "auto"; // "open", "closed" ou "auto"
 
 function isStoreOpen() {
     if (manualStoreStatus === "closed") return false;
     if (manualStoreStatus === "open") return true;
 
+    // manualStoreStatus === "auto" logic:
     const now = new Date();
     const hours = now.getHours();
     const minutes = now.getMinutes();
+    const currentTotalMinutes = (hours * 60) + minutes;
 
-    // Para horário após meia-noite (ex: 3h), considera aberto se ainda não passou das CLOSE_HOUR
-    const currentMinutes = (hours * 60) + minutes;
-    // Se o close hour é <= 6, assumimos que é horário da madrugada (próximo dia)
-    if (CLOSE_HOUR <= 6) {
-        // Aberto se for depois de meio-dia OU antes da hora de fechar na madrugada
-        return hours >= 12 || currentMinutes < (CLOSE_HOUR * 60 + CLOSE_MINUTE);
+    const openTotalMinutes = (OPEN_HOUR * 60) + OPEN_MINUTE;
+    const closeTotalMinutes = (CLOSE_HOUR * 60) + CLOSE_MINUTE;
+
+    // Se o horário de fechar é no dia seguinte (ex: abre 15h, fecha 3h)
+    if (closeTotalMinutes < openTotalMinutes) {
+        // Aberto se (agora >= abre) OU (agora < fecha)
+        return currentTotalMinutes >= openTotalMinutes || currentTotalMinutes < closeTotalMinutes;
+    } else {
+        // Horário padrão no mesmo dia
+        return currentTotalMinutes >= openTotalMinutes && currentTotalMinutes < closeTotalMinutes;
     }
-
-    const closeMinutes = (CLOSE_HOUR * 60) + CLOSE_MINUTE;
-    return currentMinutes < closeMinutes;
 }
 
 // ===== Função para Atualizar Status Visual =====
@@ -176,7 +181,10 @@ const menuData = {
             id: 3001,
             name: "Bolo de Maracujá com Chocolate",
             description: "Fatia generosa. Massa fofinha de chocolate recheada com mousse de maracujá.",
-            price: 18.00
+            price: 14.00,
+            oldPrice: 18.00,
+            badge: "PROMOÇÃO 🔥",
+            isPromo: true
         },
         {
             id: 3002,
@@ -393,6 +401,14 @@ const PROMO_COMBOS = {
             { name: 'Mini Pudim Tradicional 150g', qty: 1 },
             { name: 'Coca-Cola', qty: 1 }
         ]
+    },
+    intensidade: {
+        name: 'COMBO INTENSIDADE ⚡',
+        promoPrice: 40.00,
+        items: [
+            { name: 'X-Bacon', qty: 1 },
+            { name: 'Bolo de Maracujá com Chocolate', qty: 1 }
+        ]
     }
 };
 
@@ -450,7 +466,7 @@ function renderMenu() {
             `;
 
             return `
-            <div class="menu-item" data-id="${item.id}">
+            <div class="menu-item ${item.isPromo ? 'promo-card' : ''}" data-id="${item.id}">
                 <div class="item-info">
                     <h3 class="item-name">${item.name} ${item.badge ? `<span class="item-badge ${item.badgeClass || ''}">${item.badge}</span>` : ''}</h3>
                     <p class="item-description">${item.description}</p>
@@ -1243,13 +1259,13 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
 
                 initChat(); // Inicializa o Chat em Tempo Real
 
-                // Listener para o Status da Loja (Manual Override)
+                // Listener para o Status da Loja (Manual/Auto Override)
                 db.ref('settings/storeStatus').on('value', (snapshot) => {
                     const status = snapshot.val();
                     if (status) {
-                        // manualStoreStatus = status; // Overridden to stay open as requested
+                        manualStoreStatus = status;
                         updateStoreStatus();
-                        console.log("🔄 Status da loja atualizado (Real-time - IGNORED locally):", status);
+                        console.log("🔄 Status da loja atualizado (Real-time):", status);
                     }
                 });
 

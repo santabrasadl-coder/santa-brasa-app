@@ -597,13 +597,10 @@
                 style="background: #333; border: 1px solid #444; color: #fff; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-family: 'Poppins';">
                 🔊 TESTAR SOM
             </button>
-            <div class="store-toggle-container">
-                <span class="status-label-text">LOJA:</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="storeStatusToggle" onchange="toggleStoreStatus(this.checked)">
-                    <span class="toggle-slider"></span>
-                </label>
-                <span id="storeStatusLabel" style="font-weight: bold; min-width: 60px;">---</span>
+            <div class="store-status-selector" style="display: flex; gap: 5px; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 8px; border: 1px solid #333;">
+                <button onclick="setStoreStatus('open')" id="btn-status-open" style="background: none; border: none; color: var(--text-dim); padding: 5px 10px; border-radius: 5px; cursor: pointer; font-family: 'Bebas Neue'; font-size: 1rem; transition: all 0.2s;">ABERTO</button>
+                <button onclick="setStoreStatus('closed')" id="btn-status-closed" style="background: none; border: none; color: var(--text-dim); padding: 5px 10px; border-radius: 5px; cursor: pointer; font-family: 'Bebas Neue'; font-size: 1rem; transition: all 0.2s;">FECHADO</button>
+                <button onclick="setStoreStatus('auto')" id="btn-status-auto" style="background: none; border: none; color: var(--text-dim); padding: 5px 10px; border-radius: 5px; cursor: pointer; font-family: 'Bebas Neue'; font-size: 1rem; transition: all 0.2s;">AUTOMÁTICO</button>
             </div>
             <div style="display: flex; align-items: center;">
                 <span class="live-dot" style="background-color: #ff4141; box-shadow: 0 0 10px #ff4141;"></span>
