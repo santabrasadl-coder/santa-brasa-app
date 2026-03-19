@@ -26,24 +26,24 @@
     "presence": {
       "users": {
         ".read": true,
-        "$id": { ".write": "true" }
+        "$id": { ".write": true }
       },
       "admins": {
         ".read": true,
-        "$id": { ".write": "true" }
+        "$id": { ".write": true }
       }
     },
     "logs": {
       ".read": true,
-      ".write": "true"
+      ".write": true
     },
     "customers": {
       ".read": true,
-      ".write": "true"
+      ".write": true
     },
     "settings": {
       ".read": true,
-      ".write": "true"
+      ".write": true
     },
     "chats": {
       "$session_id": {

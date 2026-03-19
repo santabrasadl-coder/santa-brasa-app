@@ -57,15 +57,6 @@
             </div>
             <p class="tagline">Hamburgueria Artesanal</p>
             <p class="location-tagline">📍 Itaúna-MG</p>
-            <div id="headerClosingTimer" class="interactive-timer" style="display: none;">
-                <div class="timer-badge">
-                    <span class="timer-icon">🕒</span>
-                    <span class="timer-clock" id="timerClock">00:00</span>
-                </div>
-                <div class="timer-progress-container">
-                    <div class="timer-progress-bar" id="timerProgressBar"></div>
-                </div>
-            </div>
         </div>
         <div class="fire-decoration"></div>
     </header>
@@ -80,19 +71,25 @@
                 Promoções Insanas
                 <span class="promo-pulse-dot"></span>
             </h2>
+            <div class="promo-header-info">
+                <span class="limited-offer-badge">OFERTA LIMITADA</span>
+                <div class="countdown-container">
+                    <span class="countdown-label">Acaba em:</span>
+                    <div id="promoCountdown" class="countdown-timer">03:00:00</div>
+                </div>
+            </div>
 
             <!-- PROMO 1: Combo Apocalipse -->
             <div class="promo-banner no-image" id="promoApocalipse">
-                <div class="promo-banner-emoji">🔥🔥🔥</div>
                 <span class="promo-badge-label">OFERTA LIMITADA</span>
                 <div class="promo-banner-content">
                     <h3>COMBO APOCALIPSE</h3>
-                    <p>2x Santa Fúria + 2x Coca-Cola Lata — O combo que incendeia a fome!</p>
+                    <p>2x Santa Fúria + 2x Coca-Cola Lata</p>
                 </div>
                 <div class="promo-banner-footer">
                     <div class="promo-banner-price">
-                        <span class="old">De R$ 106,00</span>
-                        <span class="new">R$ 89,90</span>
+                        <span class="old">De R$ 132,00</span>
+                        <span class="new">R$ 112,00</span>
                     </div>
                     <button class="add-to-order-btn" onclick="addPromoToCart('apocalipse')">
                         🛒 Quero esse!
@@ -102,16 +99,15 @@
 
             <!-- PROMO 2: Combo Redenção -->
             <div class="promo-banner no-image" id="promoRedencao">
-                <div class="promo-banner-emoji">😇✨🍔</div>
                 <span class="promo-badge-label">MAIS PEDIDO</span>
                 <div class="promo-banner-content">
                     <h3>COMBO REDENÇÃO</h3>
-                    <p>2x Santo Juízo + 2x Mini Pudim + 2x Coca-Cola — Refeição completa pra dois!</p>
+                    <p>2x Santo Juízo + 2x Mini Pudim + 2x Coca-Cola</p>
                 </div>
                 <div class="promo-banner-footer">
                     <div class="promo-banner-price">
-                        <span class="old">De R$ 132,00</span>
-                        <span class="new">R$ 99,90</span>
+                        <span class="old">De R$ 52,00</span>
+                        <span class="new">R$ 47,00</span>
                     </div>
                     <button class="add-to-order-btn" onclick="addPromoToCart('redencao')">
                         🛒 Quero esse!
@@ -121,16 +117,15 @@
 
             <!-- PROMO 3: Combo Pecado -->
             <div class="promo-banner no-image" id="promoPecado">
-                <div class="promo-banner-emoji">😈🍔🍰</div>
                 <span class="promo-badge-label">ECONÔMICO</span>
                 <div class="promo-banner-content">
                     <h3>COMBO PECADO</h3>
-                    <p>1x X-Bacon + 1x Mini Pudim + 1x Coca-Cola — Lanche + Sobremesa por um preço insano!</p>
+                    <p>1x X-Bacon + 1x Mini Pudim + 1x Coca-Cola</p>
                 </div>
                 <div class="promo-banner-footer">
                     <div class="promo-banner-price">
                         <span class="old">De R$ 52,00</span>
-                        <span class="new">R$ 44,90</span>
+                        <span class="new">R$ 42,00</span>
                     </div>
                     <button class="add-to-order-btn" onclick="addPromoToCart('pecado')">
                         🛒 Quero esse!
@@ -140,16 +135,15 @@
 
             <!-- PROMO 4: Combo Intensidade -->
             <div class="promo-banner no-image" id="promoIntensidade">
-                <div class="promo-banner-emoji">⚡🍔🍰</div>
                 <span class="promo-badge-label">OFERTA ESPECIAL</span>
                 <div class="promo-banner-content">
                     <h3>COMBO INTENSIDADE</h3>
-                    <p>1x X-Bacon + 1x Fatia de Bolo de Maracujá — O equilíbrio perfeito entre o salgado e o doce!</p>
+                    <p>1x X-Bacon + 1x Fatia de Bolo de Maracujá</p>
                 </div>
                 <div class="promo-banner-footer">
                     <div class="promo-banner-price">
                         <span class="old">De R$ 48,00</span>
-                        <span class="new">R$ 40,00</span>
+                        <span class="new">R$ 44,00</span>
                     </div>
                     <button class="add-to-order-btn" onclick="addPromoToCart('intensidade')">
                         🛒 Quero esse!
@@ -393,7 +387,7 @@
 
     <!-- SEO Local Content -->
     <footer
-        style="margin-top: 50px; padding: 20px; text-align: center; color: var(--text-secondary); font-size: 0.8rem; border-top: 1px solid #333;">
+        style="margin-top: 50px; padding: 20px; text-align: center; color: var(--text-secondary); font-size: 0.8rem; border-top: 1px solid #333; max-width: 800px; margin-left: auto; margin-right: auto;">
         <p>A <strong>Santa Brasa Itaúna</strong> é o lugar de quem busca o melhor <strong>hambúrguer artesanal de
                 Itaúna-MG</strong>.
             Ingredientes selecionados e sabor que incendeia seu paladar.

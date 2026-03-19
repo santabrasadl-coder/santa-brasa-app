@@ -33,9 +33,8 @@ function isStoreOpen() {
 function updateStoreStatus() {
     const statusText = document.querySelector('.status-text');
     const statusBar = document.querySelector('.status-bar');
-    const headerTimer = document.getElementById('headerClosingTimer');
 
-    if (!statusText || !statusBar || !headerTimer) return;
+    if (!statusText || !statusBar) return;
 
     const open = isStoreOpen();
 
@@ -43,62 +42,17 @@ function updateStoreStatus() {
         statusText.textContent = 'ABERTO';
         statusBar.classList.remove('closed');
         statusBar.classList.add('open');
-
-        // Cálculo do tempo para fechar
-        const now = new Date();
-        const closeTime = new Date();
-        closeTime.setHours(CLOSE_HOUR, CLOSE_MINUTE, 0, 0);
-
-        // Se o horário de fechar é na madrugada e já passou (ex: são 22h e fecha às 3h)
-        if (closeTime <= now) {
-            closeTime.setDate(closeTime.getDate() + 1);
-        }
-
-        const diffMs = closeTime - now;
-        const totalMs = 60 * 60 * 1000; // 1 hora em ms
-        const diffMinutes = Math.floor(diffMs / (1000 * 60));
-        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-
-        if (diffMinutes < 60 && diffMinutes >= 0) {
-            const displayMin = String(diffMinutes).padStart(2, '0');
-            const displaySec = String(seconds).padStart(2, '0');
-
-            // Update UI Elements
-            const timerClock = document.getElementById('timerClock');
-            const progressBar = document.getElementById('timerProgressBar');
-
-            if (timerClock) timerClock.textContent = `${displayMin}:${displaySec}`;
-
-            if (progressBar) {
-                const progress = (diffMs / totalMs) * 100;
-                progressBar.style.width = `${progress}%`;
-            }
-
-            // Urgency States
-            headerTimer.classList.remove('warning', 'critical');
-            if (diffMinutes < 10) {
-                headerTimer.classList.add('critical');
-            } else if (diffMinutes < 30) {
-                headerTimer.classList.add('warning');
-            }
-
-            headerTimer.style.display = 'flex';
-            statusBar.classList.add('closing-soon');
-        } else {
-            headerTimer.style.display = 'none';
-            statusBar.classList.remove('closing-soon');
-        }
+        statusBar.classList.remove('closing-soon');
     } else {
         statusText.textContent = 'FECHADO';
         statusBar.classList.remove('open', 'closing-soon');
         statusBar.classList.add('closed');
-        headerTimer.style.display = 'none';
     }
     updateCartUI();
 }
 
-// Atualiza o status a cada segundo para o cronômetro
-setInterval(updateStoreStatus, 1000);
+// Atualiza o status periodicamente
+setInterval(updateStoreStatus, 30000);
 
 // ===== Menu Data =====
 const menuData = {
@@ -333,7 +287,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const group = getABTestGroup();
     console.log(`[AB TEST] User assigned to group: ${group}`);
     trackABEvent('visit');
+    initCountdown(); // Inicia o cronômetro de 3h
 });
+
+// ===== Countdown Timer Logic =====
+function initCountdown() {
+    const COUNTDOWN_KEY = 'sb_promo_end_time';
+    const THREE_HOURS = 3 * 60 * 60 * 1000;
+    
+    let endTime = localStorage.getItem(COUNTDOWN_KEY);
+    
+    if (!endTime) {
+        endTime = Date.now() + THREE_HOURS;
+        localStorage.setItem(COUNTDOWN_KEY, endTime);
+    } else {
+        endTime = parseInt(endTime);
+        // Se o tempo já passou, reinicia para demonstração (ou mantém expirado)
+        // Neste caso, se o usuário pediu "para acabar em 3h", vamos garantir que ele veja algo.
+        if (Date.now() > endTime) {
+            endTime = Date.now() + THREE_HOURS;
+            localStorage.setItem(COUNTDOWN_KEY, endTime);
+        }
+    }
+
+    const timerDisplay = document.getElementById('promoCountdown');
+    if (!timerDisplay) return;
+
+    function updateTimer() {
+        const now = Date.now();
+        const distance = endTime - now;
+
+        if (distance < 0) {
+            timerDisplay.textContent = "EXPIRADO";
+            clearInterval(timerInterval);
+            return;
+        }
+
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        timerDisplay.textContent = 
+            `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    updateTimer();
+    const timerInterval = setInterval(updateTimer, 1000);
+}
 
 // ===== Direct Add to Cart (for Drinks) =====
 function addDirectToCart(itemId) {
@@ -378,7 +378,7 @@ function addDirectToCart(itemId) {
 const PROMO_COMBOS = {
     apocalipse: {
         name: 'COMBO APOCALIPSE 🔥',
-        promoPrice: 89.90,
+        promoPrice: 112.00,
         items: [
             { name: 'Santa Fúria', qty: 2 },
             { name: 'Coca-Cola', qty: 2 }
@@ -386,7 +386,7 @@ const PROMO_COMBOS = {
     },
     redencao: {
         name: 'COMBO REDENÇÃO ✨',
-        promoPrice: 99.90,
+        promoPrice: 47.00,
         items: [
             { name: 'Santo Juízo', qty: 2 },
             { name: 'Mini Pudim Tradicional 150g', qty: 2 },
@@ -395,7 +395,7 @@ const PROMO_COMBOS = {
     },
     pecado: {
         name: 'COMBO PECADO 😈',
-        promoPrice: 44.90,
+        promoPrice: 42.00,
         items: [
             { name: 'X-Bacon', qty: 1 },
             { name: 'Mini Pudim Tradicional 150g', qty: 1 },
@@ -404,7 +404,7 @@ const PROMO_COMBOS = {
     },
     intensidade: {
         name: 'COMBO INTENSIDADE ⚡',
-        promoPrice: 40.00,
+        promoPrice: 44.00,
         items: [
             { name: 'X-Bacon', qty: 1 },
             { name: 'Bolo de Maracujá com Chocolate', qty: 1 }
@@ -1264,15 +1264,10 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
                 myPresenceRef.onDisconnect().remove();
                 myPresenceRef.set(true);
 
-                // Evitar contar múltiplas vezes no refresh (opcional)
-                const sessionKey = 'sb_visit_' + today;
-                if (!sessionStorage.getItem(sessionKey)) {
-                    logEvent("Visitante conectou: Tracker OK");
-                    dbIncrement("total_visits");
-                    sessionStorage.setItem(sessionKey, 'true');
-                } else {
-                    console.log("ℹ️ Conexão de tracker mantida.");
-                }
+                // Log de conexão (Removido guard de sessão para teste)
+                logEvent("Visitante conectou ao site");
+                dbIncrement("total_visits");
+                console.log("📊 Incremento de visita e log de presença enviados.");
             } else {
                 console.warn("⚠️ Tracker Desconectado do Firebase.");
             }
