@@ -133,12 +133,10 @@ const menuData = {
     bolos: [
         {
             id: 3001,
-            name: "Bolo de Maracujá com Chocolate",
-            description: "Fatia generosa. Massa fofinha de chocolate recheada com mousse de maracujá.",
-            price: 14.00,
-            oldPrice: 18.00,
-            badge: "PROMOÇÃO 🔥",
-            isPromo: true
+            name: "Bolo de Maracujá",
+            description: "Fatia generosa e super molhadinha",
+            price: 18.00,
+            category: "bolos"
         },
         {
             id: 3002,
@@ -276,7 +274,7 @@ const toastMessage = document.getElementById('toastMessage');
 
 // ===== Initialize App =====
 document.addEventListener('DOMContentLoaded', () => {
-    updateStoreStatus();  // Atualiza status OPEN/CLOSED
+    updateStoreStatus();  // Atualiza status    // Initial render
     renderMenu();
     loadCart();
     loadUserData(); // Carrega dados salvos do cliente
@@ -287,53 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const group = getABTestGroup();
     console.log(`[AB TEST] User assigned to group: ${group}`);
     trackABEvent('visit');
-    initCountdown(); // Inicia o cronômetro de 3h
 });
-
-// ===== Countdown Timer Logic =====
-function initCountdown() {
-    const COUNTDOWN_KEY = 'sb_promo_end_time';
-    const THREE_HOURS = 3 * 60 * 60 * 1000;
-    
-    let endTime = localStorage.getItem(COUNTDOWN_KEY);
-    
-    if (!endTime) {
-        endTime = Date.now() + THREE_HOURS;
-        localStorage.setItem(COUNTDOWN_KEY, endTime);
-    } else {
-        endTime = parseInt(endTime);
-        // Se o tempo já passou, reinicia para demonstração (ou mantém expirado)
-        // Neste caso, se o usuário pediu "para acabar em 3h", vamos garantir que ele veja algo.
-        if (Date.now() > endTime) {
-            endTime = Date.now() + THREE_HOURS;
-            localStorage.setItem(COUNTDOWN_KEY, endTime);
-        }
-    }
-
-    const timerDisplay = document.getElementById('promoCountdown');
-    if (!timerDisplay) return;
-
-    function updateTimer() {
-        const now = Date.now();
-        const distance = endTime - now;
-
-        if (distance < 0) {
-            timerDisplay.textContent = "EXPIRADO";
-            clearInterval(timerInterval);
-            return;
-        }
-
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-        timerDisplay.textContent = 
-            `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    }
-
-    updateTimer();
-    const timerInterval = setInterval(updateTimer, 1000);
-}
 
 // ===== Direct Add to Cart (for Drinks) =====
 function addDirectToCart(itemId) {
@@ -374,74 +326,6 @@ function addDirectToCart(itemId) {
     }
 }
 
-// ===== Promo Combos =====
-const PROMO_COMBOS = {
-    apocalipse: {
-        name: 'COMBO APOCALIPSE 🔥',
-        promoPrice: 112.00,
-        items: [
-            { name: 'Santa Fúria', qty: 2 },
-            { name: 'Coca-Cola', qty: 2 }
-        ]
-    },
-    redencao: {
-        name: 'COMBO REDENÇÃO ✨',
-        promoPrice: 47.00,
-        items: [
-            { name: 'Santo Juízo', qty: 2 },
-            { name: 'Mini Pudim Tradicional 150g', qty: 2 },
-            { name: 'Coca-Cola', qty: 2 }
-        ]
-    },
-    pecado: {
-        name: 'COMBO PECADO 😈',
-        promoPrice: 42.00,
-        items: [
-            { name: 'X-Bacon', qty: 1 },
-            { name: 'Mini Pudim Tradicional 150g', qty: 1 },
-            { name: 'Coca-Cola', qty: 1 }
-        ]
-    },
-    intensidade: {
-        name: 'COMBO INTENSIDADE ⚡',
-        promoPrice: 44.00,
-        items: [
-            { name: 'X-Bacon', qty: 1 },
-            { name: 'Bolo de Maracujá com Chocolate', qty: 1 }
-        ]
-    }
-};
-
-function addPromoToCart(promoKey) {
-    if (!isStoreOpen()) {
-        showToast("Ops! A loja está fechada no momento.");
-        return;
-    }
-    const promo = PROMO_COMBOS[promoKey];
-    if (!promo) return;
-
-    const uniqueCartId = `promo-${promoKey}-${Date.now()}`;
-
-    // Monta descrição dos itens
-    const desc = promo.items.map(i => `${i.qty}x ${i.name}`).join(' + ');
-
-    cart.push({
-        id: `promo-${promoKey}`,
-        cartId: uniqueCartId,
-        name: promo.name,
-        basePrice: promo.promoPrice,
-        price: promo.promoPrice,
-        addons: [],
-        quantity: 1,
-        observation: desc
-    });
-
-    saveCart();
-    updateCartUI();
-    showToast(`${promo.name} adicionado! 🔥`);
-    trackABEvent('promo_add');
-}
-
 // ===== Render Menu =====
 function renderMenu() {
     Object.keys(menuData).forEach(category => {
@@ -457,18 +341,16 @@ function renderMenu() {
                 clickAction = `addToCart(${item.id})`;
             }
 
-            const oldPriceHTML = item.oldPrice ? `<span class="old-price">R$ ${item.oldPrice.toFixed(2).replace('.', ',')}</span>` : '';
             const priceHTML = `
                 <div class="price-container">
-                    ${oldPriceHTML}
                     <span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
                 </div>
             `;
 
             return `
-            <div class="menu-item ${item.isPromo ? 'promo-card' : ''}" data-id="${item.id}">
+            <div class="menu-item" data-id="${item.id}">
                 <div class="item-info">
-                    <h3 class="item-name">${item.name} ${item.badge ? `<span class="item-badge ${item.badgeClass || ''}">${item.badge}</span>` : ''}</h3>
+                    <h3 class="item-name">${item.name}</h3>
                     <p class="item-description">${item.description}</p>
                 </div>
                 <div class="menu-item-actions">

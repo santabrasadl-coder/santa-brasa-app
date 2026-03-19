@@ -1,9 +1,9 @@
 /* ===== CSS Variables ===== */
 :root {
     /* Base Colors */
-    --primary: #FF3B3B;
-    --primary-hover: #FF5252;
-    --primary-glow: rgba(255, 59, 59, 0.4);
+    --primary: #00FF41;
+    --primary-hover: #33ff67;
+    --primary-glow: rgba(0, 255, 65, 0.4);
     --secondary: #121212;
     --background: #000000;
     --surface: #111111;
@@ -57,28 +57,30 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
-    border-bottom: 2px solid #00FF41;
+    border-bottom: 3px solid #00FF41;
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 255, 65, 0.4);
 }
 
 .status-indicator {
-    width: 8px;
-    height: 8px;
-    background: var(--success);
+    width: 10px;
+    height: 10px;
+    background: #00FF41;
     border-radius: 50%;
-    box-shadow: 0 0 12px var(--success-glow);
-    animation: simple-pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 15px #00FF41, 0 0 30px rgba(0, 255, 65, 0.6);
+    animation: simple-pulse 1.5s ease-in-out infinite;
 }
 
 .status-text {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     letter-spacing: 4px;
-    color: var(--success);
+    color: #00FF41;
     text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
+    animation: neon-glow 1.5s ease-in-out infinite alternate;
 }
 
 @keyframes simple-pulse {
@@ -227,13 +229,15 @@ body {
     max-width: 140px;
     height: auto;
     border-radius: 50%;
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 25px #FF0000, 0 0 50px rgba(255, 0, 0, 0.3);
+    border: 2px solid #FF3131;
     transition: all 0.3s ease;
 }
 
 .logo-image:hover {
     transform: scale(1.05) rotate(2deg);
-    box-shadow: 0 0 60px rgba(255, 59, 59, 0.25);
+    box-shadow: 0 0 45px #FF0000, 0 0 90px rgba(255, 0, 0, 0.5);
+    border-color: #ff5252;
 }
 
 .tagline {
@@ -1822,6 +1826,42 @@ body {
 
     .menu-item {
         padding: 1.25rem 1.5rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .main-content {
+        padding: 1rem 0.75rem;
+    }
+
+    .menu-item {
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        border-radius: 10px;
+        gap: 0.75rem;
+    }
+
+    .item-name {
+        font-size: 0.95rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .item-description {
+        font-size: 0.75rem;
+        line-height: 1.25;
+        margin-top: 0.15rem;
+        max-width: 100%;
+    }
+
+    .item-price {
+        font-size: 1.1rem;
+    }
+
+    .add-button {
+        width: 34px;
+        height: 34px;
+        font-size: 1.1rem;
+        padding-bottom: 3px;
     }
 }
 
