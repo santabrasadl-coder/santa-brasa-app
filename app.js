@@ -127,7 +127,8 @@ const menuData = {
             name: "Mini Pudim Tradicional 150g",
             description: "150g. O melhor pudim da cidade! Cremoso, sem furinhos e com calda de caramelo especial.",
             price: 15.00,
-            badge: "NOVIDADE ✨"
+            badge: "NOVIDADE ✨",
+            soldOut: true
         }
     ],
     bolos: [
@@ -136,19 +137,22 @@ const menuData = {
             name: "Bolo de Maracujá",
             description: "Fatia generosa e super molhadinha",
             price: 18.00,
-            category: "bolos"
+            category: "bolos",
+            soldOut: true
         },
         {
             id: 3002,
             name: "Bolo de Chocolate",
             description: "Fatia generosa. Massa de chocolate fofinha com recheio de chocolate ao leite e cobertura de chocolate meio amargo.",
-            price: 18.00
+            price: 18.00,
+            soldOut: true
         },
         {
             id: 3003,
             name: "Bolo de Cenoura com Chocolate",
             description: "Fatia generosa. Massa de cenoura fresquinha com aquela cobertura de chocolate que crackela.",
-            price: 18.00
+            price: 18.00,
+            soldOut: true
         }
     ],
     bebidas: [
@@ -341,23 +345,21 @@ function renderMenu() {
                 clickAction = `addToCart(${item.id})`;
             }
 
-            const priceHTML = `
-                <div class="price-container">
-                    <span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
-                </div>
-            `;
-
             return `
-            <div class="menu-item" data-id="${item.id}">
+            <div class="menu-item ${item.soldOut ? 'sold-out' : ''}" data-id="${item.id}">
                 <div class="item-info">
                     <h3 class="item-name">${item.name}</h3>
                     <p class="item-description">${item.description}</p>
                 </div>
                 <div class="menu-item-actions">
-                    ${priceHTML}
+                    <div class="price-container">
+                        ${item.soldOut ? '<span class="sold-out-status">ESGOTADO</span>' : `<span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>`}
+                    </div>
+                    ${!item.soldOut ? `
                     <button class="add-button" onclick="${clickAction}" aria-label="Adicionar ${item.name}">
                         +
                     </button>
+                    ` : ''}
                 </div>
             </div>
             `;
