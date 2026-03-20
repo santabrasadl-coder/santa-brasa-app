@@ -1899,3 +1899,38 @@ body {
     box-shadow: 0 2px 5px rgba(255, 215, 0, 0.3);
     border: 1px solid #FFF;
 }
+
+/* ===== Itens Esgotados ===== */
+.menu-item.sold-out {
+    opacity: 0.8 !important;
+    filter: grayscale(0.4) !important;
+    pointer-events: none;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    overflow: hidden;
+}
+
+.menu-item.sold-out .add-button {
+    display: none;
+}
+
+.sold-out-ribbon {
+    position: absolute;
+    top: 12px;
+    right: -32px;
+    background: #ff3131;
+    color: #fff;
+    padding: 4px 40px;
+    font-size: 0.6rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    transform: rotate(45deg);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    z-index: 10;
+    letter-spacing: 1px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.sold-out-status {
+    display: none;
+}

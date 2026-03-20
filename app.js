@@ -4,6 +4,14 @@ const CLOSE_HOUR = 3;
 const CLOSE_MINUTE = 0;
 const WHATSAPP_NUMBER = "553799982046";
 
+// ===== Meta Pixel Helper =====
+function trackPixelEvent(eventName, params = {}) {
+    if (typeof fbq === 'function') {
+        fbq('track', eventName, params);
+        console.log(`[PIXEL] Event tracked: ${eventName}`, params);
+    }
+}
+
 let manualStoreStatus = "auto"; // "open", "closed" ou "auto"
 
 function isStoreOpen() {
@@ -323,6 +331,15 @@ function addDirectToCart(itemId) {
     saveCart();
     updateCartUI();
     showToast(`1x ${item.name} adicionado!`);
+
+    // Meta Pixel: AddToCart
+    trackPixelEvent('AddToCart', {
+        content_name: item.name,
+        content_ids: [item.id],
+        content_type: 'product',
+        value: item.price,
+        currency: 'BRL'
+    });
     
     // Only track direct_add if it wasn't triggered by a Skip Modal event (which handles its own better tracking)
     if (!arguments[1]) {
@@ -347,6 +364,7 @@ function renderMenu() {
 
             return `
             <div class="menu-item ${item.soldOut ? 'sold-out' : ''}" data-id="${item.id}">
+                ${item.soldOut ? '<div class="sold-out-ribbon">ESGOTADO</div>' : ''}
                 <div class="item-info">
                     <h3 class="item-name">${item.name}</h3>
                     <p class="item-description">${item.description}</p>
@@ -459,6 +477,17 @@ function confirmAddonOrder() {
     addToCartWithAddons();
     closeAddonModal();
     trackABEvent('confirm_addon');
+
+    // Meta Pixel: AddToCart
+    if (currentModalItem) {
+        trackPixelEvent('AddToCart', {
+            content_name: currentModalItem.name,
+            content_ids: [currentModalItem.id],
+            content_type: 'product',
+            value: (currentModalItem.price + (selectedAddons.length * 5)), // Estimativa simplificada ou cálculo real se preferir
+            currency: 'BRL'
+        });
+    }
 }
 
 // ===== Add to Cart (Modified) =====
@@ -632,7 +661,17 @@ function toggleCart() {
     cartSidebar.classList.toggle('active');
     cartOverlay.classList.toggle('active');
     document.body.style.overflow = cartSidebar.classList.contains('active') ? 'hidden' : '';
-    if (cartSidebar.classList.contains('active')) logCheckoutOpen();
+    
+    if (cartSidebar.classList.contains('active')) {
+        logCheckoutOpen();
+        
+        // Meta Pixel: InitiateCheckout
+        trackPixelEvent('InitiateCheckout', {
+            num_items: cart.length,
+            value: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+            currency: 'BRL'
+        });
+    }
 }
 
 // ===== Real-time Chat Logic =====
@@ -1087,6 +1126,15 @@ function sendToWhatsApp() {
     }
 
     window.open(whatsappUrl, '_blank');
+
+    // Meta Pixel: Purchase/Lead (WhatsApp Click)
+    trackPixelEvent('Purchase', {
+        value: total,
+        currency: 'BRL',
+        content_type: 'product',
+        content_ids: cart.map(item => item.id),
+        num_items: cart.length
+    });
 
     // Log do Pedido para o Dashboard (Métricas legadas)
     logEvent("Iniciou pedido via WhatsApp");
