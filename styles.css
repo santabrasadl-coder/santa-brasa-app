@@ -1737,14 +1737,16 @@ body {
 }
 
 .addon-check {
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-    border: 2px solid var(--text-secondary);
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid var(--primary); /* More visible border */
+    background: rgba(255, 255, 255, 0.05); /* Added background for visibility */
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 10px;
+    margin-right: 12px;
+    transition: all 0.2s ease;
 }
 
 .addon-option.selected .addon-check {
@@ -1802,12 +1804,12 @@ body {
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 0 10px var(--primary-glow);
+    box-shadow: 0 0 5px var(--primary-glow); /* Reduced glow from 10px */
 }
 
 .add-to-order-btn:hover {
     transform: scale(1.02);
-    box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
+    box-shadow: 0 0 12px rgba(0, 255, 65, 0.4); /* Reduced glow from 20px/0.6 */
 }
 
 /* ===== Toast Notification ===== */

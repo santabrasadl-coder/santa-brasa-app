@@ -203,6 +203,7 @@ const menuData = {
 
 // ===== Add-ons Data =====
 const ADDONS = [
+    { id: 'hamburguer', name: 'Hambúrguer Extra', price: 12.00 },
     { id: 'bacon', name: 'Bacon Extra', price: 8.00 },
     { id: 'queijo', name: 'Queijo Extra', price: 5.00 },
     { id: 'ovo', name: 'Ovo Extra', price: 4.00 },
