@@ -1,5 +1,5 @@
-const OPEN_HOUR = 15;
-const OPEN_MINUTE = 0;
+const OPEN_HOUR = 19;
+const OPEN_MINUTE = 20;
 const CLOSE_HOUR = 3;
 const CLOSE_MINUTE = 0;
 const WHATSAPP_NUMBER = "553799982046";
@@ -41,6 +41,7 @@ function isStoreOpen() {
 function updateStoreStatus() {
     const statusText = document.querySelector('.status-text');
     const statusBar = document.querySelector('.status-bar');
+    const openingInfoNeon = document.getElementById('openingInfoNeon');
 
     if (!statusText || !statusBar) return;
 
@@ -51,16 +52,37 @@ function updateStoreStatus() {
         statusBar.classList.remove('closed');
         statusBar.classList.add('open');
         statusBar.classList.remove('closing-soon');
+        if (openingInfoNeon) openingInfoNeon.textContent = '';
     } else {
-        statusText.textContent = 'FECHADO';
+        const now = new Date();
+        const openTime = new Date();
+        openTime.setHours(OPEN_HOUR, OPEN_MINUTE, 0, 0);
+
+        // Se o horário de abertura for menor que o atual, assume que é amanhã
+        if (openTime < now) {
+            openTime.setDate(openTime.getDate() + 1);
+        }
+
+        const diff = openTime - now;
+        const hoursLeft = Math.floor(diff / (1000 * 60 * 60));
+        const minutesLeft = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secondsLeft = Math.floor((diff % (1000 * 60)) / 1000);
+
+        const timeLeftStr = `${String(hoursLeft).padStart(2, '0')}:${String(minutesLeft).padStart(2, '0')}:${String(secondsLeft).padStart(2, '0')}`;
+
+        statusText.textContent = `FECHADO`;
         statusBar.classList.remove('open', 'closing-soon');
         statusBar.classList.add('closed');
+
+        if (openingInfoNeon) {
+            openingInfoNeon.textContent = `ABRE ÀS ${OPEN_HOUR}h${OPEN_MINUTE} - ${timeLeftStr}`;
+        }
     }
     updateCartUI();
 }
 
-// Atualiza o status periodicamente
-setInterval(updateStoreStatus, 30000);
+// Atualiza o status frequentemente para o cronômetro
+setInterval(updateStoreStatus, 1000);
 
 // ===== Menu Data =====
 const menuData = {
@@ -301,10 +323,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== Direct Add to Cart (for Drinks) =====
 function addDirectToCart(itemId) {
-    if (!isStoreOpen()) {
-        showToast("Ops! A loja está fechada no momento.");
-        return;
-    }
     const item = findItemById(itemId);
     if (!item) return;
 
@@ -398,10 +416,6 @@ function findItemById(id) {
 
 // ===== Add-ons Modal Logic =====
 function openAddonModal(itemId) {
-    if (!isStoreOpen()) {
-        showToast("Ops! A loja está fechada no momento.");
-        return;
-    }
     const item = findItemById(itemId);
     if (!item) return;
 
@@ -614,8 +628,8 @@ function updateCartUI() {
         `).join('');
         // Update checkout button state
         if (!isStoreOpen()) {
-            checkoutButton.disabled = true;
-            checkoutButton.innerHTML = 'LOJA FECHADA';
+            checkoutButton.disabled = false;
+            checkoutButton.innerHTML = `<span class="whatsapp-icon">📱</span> Agendar p/ às ${OPEN_HOUR}h${OPEN_MINUTE}`;
         } else {
             checkoutButton.disabled = false;
             checkoutButton.innerHTML = '<span class="whatsapp-icon">📱</span> Pedir agora';
@@ -1026,6 +1040,9 @@ function sendToWhatsApp() {
     const total = subtotal + fee;
 
     let message = `🍔 *PEDIDO SANTA BRASA* 🔥\n`;
+    if (!isStoreOpen()) {
+        message += `⚠️ *AGENDAMENTO (Abre às ${OPEN_HOUR}:${OPEN_MINUTE})*\n`;
+    }
     message += `👤 *Cliente:* ${name}\n`;
     if (phone) message += `📞 *Tel:* ${phone}\n`;
     message += `🛒 *Tipo:* ${orderType === 'delivery' ? 'Entrega 🛵' : 'Retirada 🛍️'}\n`;

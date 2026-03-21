@@ -126,7 +126,11 @@ function initDashboard() {
     db.ref('orders').orderByChild('timestamp').limitToLast(100).on('value', (snapshot) => {
         const orders = [];
         snapshot.forEach(child => {
-            orders.unshift(child.val()); // Mais recentes primeiro
+            const order = child.val();
+            if (order) {
+                order.firebaseKey = child.key; // Chave real no banco
+                orders.unshift(order); 
+            }
         });
 
         if (orders.length === 0) {
@@ -436,13 +440,15 @@ function renderOrdersTable(orders) {
     if (!tbody) return;
 
     if (orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum pedido encontrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Nenhum pedido encontrado.</td></tr>';
         return;
     }
 
     tbody.innerHTML = orders.map(order => {
         if (!order || !order.customer) return '';
         
+        // LOG DE DEPURAÇÃO PARA IDENTIFICAR O ID QUE ESTÁ CHEGANDO
+        console.log("Renderizando Pedido:", order.firebaseKey, order.customer.name);
         const date = order.timestamp ? new Date(order.timestamp).toLocaleString('pt-BR') : '-';
         
         // Proteção contra conversão objeto/array do Firebase
@@ -465,7 +471,7 @@ function renderOrdersTable(orders) {
                 <td><span class="price-tag">R$ ${(order.total || 0).toFixed(2).replace('.', ',')}</span></td>
                 <td>${order.payment || '-'}</td>
                 <td>
-                    <button onclick="confirmDeleteOrder('${order.id}')" 
+                    <button data-id="${order.firebaseKey || order.id}" onclick="confirmDeleteOrder(this.dataset.id)" 
                             style="background: #FF3131; border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-weight: bold;">
                         EXCLUIR
                     </button>
@@ -482,18 +488,34 @@ function confirmDeleteOrder(orderId) {
 }
 
 function deleteOrder(orderId) {
+    if (!orderId || orderId === 'undefined') {
+        alert("Erro: ID do pedido não encontrado. Tente atualizar a página.");
+        return;
+    }
+
     console.log("Excluindo pedido:", orderId);
     const db = firebase.database();
 
     db.ref('orders/' + orderId).remove()
         .then(() => {
             console.log("✅ Pedido excluído com sucesso.");
-            // Order list will be updated automatically by the 'on' listener in initDashboard
+            addLogRow(new Date().toLocaleTimeString('pt-BR'), `Venda excluída pelo admin: ${orderId}`);
+            alert("Pedido excluído com sucesso!");
         })
         .catch((error) => {
             console.error("❌ Erro ao excluir pedido:", error);
-            alert("Erro ao excluir pedido. Verifique o console.");
+            alert("Erro ao excluir pedido: " + error.message);
         });
+}
+
+// FERRAMENTA DE DEPURAÇÃO: EXCLUSÃO FORÇADA
+function forceDeleteOrder() {
+    const id = prompt("PAINEL DE SEGURANÇA: Digite o ID do pedido para excluir forçadamente (veja o ID no console se necessário):");
+    if (id && id.trim() !== "") {
+        if (confirm(`DESEJA EXCLUIR O REGISTRO: ${id}?\nEsta ação é irreversível e apaga direto no banco.`)) {
+            deleteOrder(id.trim());
+        }
+    }
 }
 
 function renderFinanceTab(orders) {

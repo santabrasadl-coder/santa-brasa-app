@@ -6,8 +6,8 @@
       ".read": true,
       ".indexOn": ["timestamp"],
       "$order_id": {
-        ".write": "!data.exists()",
-        ".validate": "newData.hasChildren(['items', 'total', 'customer'])"
+        ".write": "true",
+        ".validate": "!newData.exists() || newData.hasChildren(['items', 'total', 'customer'])"
       }
     },
     "metrics": {

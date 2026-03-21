@@ -75,8 +75,8 @@ body {
 
 .status-text {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.2rem;
-    letter-spacing: 4px;
+    font-size: 1rem; /* Reduced to fit countdown */
+    letter-spacing: 2px; /* Reduced to fit countdown */
     color: #00FF41;
     text-transform: uppercase;
     text-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
@@ -266,6 +266,37 @@ body {
     color: var(--text-dim);
     font-size: 0.75rem;
     margin-top: 0.25rem;
+}
+
+.opening-info-neon {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: #FF8C00;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 0.5rem;
+    text-shadow: 
+        0 0 5px #FF8C00,
+        0 0 10px #FF8C00,
+        0 0 20px #FF4500;
+    animation: neon-glow-orange 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes neon-glow-orange {
+    0% {
+        text-shadow:
+            0 0 5px #FF8C00,
+            0 0 10px #FF8C00,
+            0 0 20px #FF4500;
+        opacity: 0.8;
+    }
+    100% {
+        text-shadow:
+            0 0 10px #FF8C00,
+            0 0 20px #FF4500,
+            0 0 40px #FF4500;
+        opacity: 1;
+    }
 }
 
 
