@@ -103,11 +103,8 @@ function updateStoreStatus() {
             if (openingInfoNeon) {
                 openingInfoNeon.innerHTML = `
                     <div class="countdown-box">
-                        <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                            <span class="countdown-label">Fecha em</span>
-                            <span class="countdown-time">${timeLeftStr}</span>
-                        </div>
-                        <span style="font-size: 1.5rem;">🛑</span>
+                        <span class="countdown-label">Fecha em</span>
+                        <span class="countdown-time">${timeLeftStr}</span>
                     </div>
                 `;
                 openingInfoNeon.classList.remove('closed');
@@ -150,11 +147,8 @@ function updateStoreStatus() {
         if (openingInfoNeon) {
             openingInfoNeon.innerHTML = `
                 <div class="countdown-box">
-                    <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                        <span class="countdown-label">Abre em</span>
-                        <span class="countdown-time">${timeLeftStr}</span>
-                    </div>
-                    <span style="font-size: 1.5rem;">🔥</span>
+                    <span class="countdown-label">Abre em</span>
+                    <span class="countdown-time">${timeLeftStr}</span>
                 </div>
             `;
             openingInfoNeon.classList.remove('open');
@@ -213,14 +207,16 @@ const menuData = {
             name: "Santa Fúria",
             description: "Quando a fome perde a paciência: Dois Hambúrgueres Artesanais, Ovo, Tomate, Frango Desfiado, Bacon, Triplo de Queijo, Milho, Alface e Maionese Especial.",
             price: 48.00,
-            badge: "O MAIOR! 🔥"
+            badge: "O MAIOR! 🔥",
+            image: "santa_furia.png"
         },
         {
             id: 8,
             name: "Santo Juízo",
             description: "Um verdadeiro tribunal de sabores: Hambúrguer Suculento, Frango Grelhado, Bacon Suculento, Ovo, Triplo de Queijo, Milho, Alface, Tomate e Maionese Especial.",
             price: 44.00,
-            badge: "MAIS VENDIDO 🏆"
+            badge: "MAIS VENDIDO 🏆",
+            image: "santo_juizo.png"
         },
         {
             id: 9,
@@ -409,11 +405,111 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // initChat() será chamado pelo tracker quando o Firebase conectar
     
+    // Inicia Prova Social (Híbrida: Real-time + Simulação de Baixa Frequência)
+    setTimeout(() => {
+        if (typeof initRealTimeNotifications === 'function') {
+            initRealTimeNotifications();
+            initSimulatedNotifications(); // Adicionado para manter "como era antes" mas com frequência menor
+        }
+    }, 5000);
+
     // Log initial group
     const group = getABTestGroup();
     console.log(`[AB TEST] User assigned to group: ${group}`);
     trackABEvent('visit');
 });
+
+// ===== Social Proof (Prova Social Real-time) =====
+let isInitialOrderLoad = true;
+function initRealTimeNotifications() {
+    if (typeof firebase === 'undefined') return;
+    
+    const db = firebase.database();
+    // Monitora o último pedido inserido
+    const ordersRef = db.ref('orders').limitToLast(1);
+
+    ordersRef.on('child_added', (snapshot) => {
+        if (isInitialOrderLoad) {
+            isInitialOrderLoad = false;
+            return;
+        }
+
+        const order = snapshot.val();
+        if (!order || !order.customer) return;
+
+        showRealOrderNotification(order);
+    });
+}
+
+function showRealOrderNotification(order) {
+    const nomeOriginal = order.customer.name || "Cliente";
+    const bairro = order.customer.address ? extractBairro(order.customer.address) : "Itaúna";
+    
+    const items = Array.isArray(order.items) ? order.items : Object.values(order.items || {});
+    const firstItem = items[0] ? items[0].name : "um pedido";
+
+    displaySocialProof(nomeOriginal, bairro, firstItem);
+}
+
+// ===== Simulação Controlada (Frequência Baixa) =====
+function initSimulatedNotifications() {
+    const nomes = ["Marcos", "Ana", "Lucas", "Gabriel", "Julia", "Renata", "Paulo", "Fernanda", "Rodrigo", "Beatriz", "Ricardo", "Camila"];
+    const itens = ["Santa Fúria 🔥", "Santo Juízo 🏆", "X-Bacon", "X-Egg Bacon", "Milagre Cremoso", "Combo Família"];
+    const bairros = ["Garcias", "Varzea da Olaria", "Cidade Nova", "Graças", "Centro", "Santanense", "Aeroporto", "Três Marias", "Itaunense"];
+
+    function triggerNext() {
+        const nome = nomes[Math.floor(Math.random() * nomes.length)];
+        const item = itens[Math.floor(Math.random() * itens.length)];
+        const bairro = bairros[Math.floor(Math.random() * bairros.length)];
+
+        displaySocialProof(nome, bairro, item);
+
+        // Agendamento: Entre 3 e 7 minutos (Diminuindo a frequência como solicitado)
+        const proximoIntervalo = (Math.random() * (420000 - 180000)) + 180000;
+        setTimeout(triggerNext, proximoIntervalo);
+    }
+
+    // Inicia a primeira simulação após 1 a 2 minutos do carregamento
+    setTimeout(triggerNext, (Math.random() * 60000) + 60000);
+}
+
+function displaySocialProof(nome, bairro, produto) {
+    const container = document.getElementById('social-proof-container');
+    if (!container) return;
+
+    // Censura discreta do nome para privacidade/realismo
+    const nomeCensurado = nome.length > 3 ? nome.substring(0, 3) + "***" : nome;
+
+    container.innerHTML = `
+        <div class="social-proof-toast">
+            <div class="sp-icon">🔥</div>
+            <div class="sp-content">
+                <strong>${nomeCensurado}</strong> de <span>${bairro}</span><br>
+                pediu ${produto}!
+            </div>
+        </div>
+    `;
+    container.classList.add('active');
+
+    setTimeout(() => {
+        container.classList.remove('active');
+    }, 6000); // 6 segundos visível
+}
+
+function extractBairro(address) {
+    const bairrosConhecidos = ["Garcias", "Varzea da Olaria", "Cidade Nova", "Graças", "Centro", "Piedade", "Santanense", "Aeroporto", "Santanense", "Itaunense", "Três Marias"];
+    for (let b of bairrosConhecidos) {
+        if (address.toLowerCase().includes(b.toLowerCase())) return b;
+    }
+    
+    const parts = address.split(',');
+    if (parts.length > 1) {
+        const lastPart = parts[parts.length - 1].trim();
+        return lastPart.split(' ')[0] || "Itaúna";
+    }
+    
+    return "Itaúna";
+}
 
 // ===== Direct Add to Cart (for Drinks) =====
 function addDirectToCart(itemId) {
@@ -475,31 +571,36 @@ function renderMenu() {
             }
 
             return `
-            <div class="menu-item ${item.soldOut ? 'sold-out' : ''}" data-id="${item.id}">
+            <div class="menu-item ${item.soldOut ? 'sold-out' : ''} ${item.image ? 'has-image' : ''}" data-id="${item.id}">
                 ${item.soldOut ? '<div class="sold-out-ribbon">ESGOTADO</div>' : ''}
+                
+                ${item.image ? `
+                <div class="item-visual" onclick="openAddonModal(${item.id})">
+                    <img src="${item.image}" alt="${item.name}" class="item-image-premium" loading="lazy">
+                </div>
+                ` : ''}
+
                 <div class="item-info">
                     <h3 class="item-name">
                         ${item.name}
                         ${item.badge ? `<span class="item-badge">${item.badge}</span>` : ''}
                     </h3>
                     <p class="item-description">${item.description}</p>
-                </div>
-                <div class="menu-item-actions">
-                    <div class="price-container">
-                        ${item.soldOut ? '<span class="sold-out-status">ESGOTADO</span>' : `<span class="item-price">${item.price.toFixed(2).replace('.', ',')}</span>`}
+                    <div class="menu-item-actions">
+                        <div class="price-container">
+                            ${item.soldOut ? '<span class="sold-out-status">ESGOTADO</span>' : `<span class="item-price">${item.price.toFixed(2).replace('.', ',')}</span>`}
+                        </div>
+                        ${!item.soldOut ? `
+                        <button class="add-button" onclick="${clickAction}" aria-label="Adicionar ${item.name}">
+                            +
+                        </button>
+                        ` : ''}
                     </div>
-                    ${!item.soldOut ? `
-                    <button class="add-button" onclick="${clickAction}" aria-label="Adicionar ${item.name}">
-                        +
-                    </button>
-                    ` : ''}
                 </div>
             </div>
             `;
         }).join('');
     });
-
-
 }
 
 // ===== Find Item by ID =====
@@ -738,11 +839,10 @@ function updateCartUI() {
             <div class="cart-item">
                 <div class="cart-item-main">
                     <div class="cart-item-info">
-                        <div class="cart-item-name">${item.name}</div>
+                        <div class="cart-item-name">R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')} - ${item.name}</div>
                         ${item.addons && item.addons.length > 0 ?
                 `<div style="font-size:0.75rem; color:var(--text-secondary);">+ ${item.addons.map(a => a.name).join(', ')}</div>`
                 : ''}
-                        <div class="cart-item-price">${(item.price * item.quantity).toFixed(2).replace('.', ',')}</div>
                     </div>
                     <div class="cart-item-controls">
                         <button class="qty-button" onclick="updateQuantity('${item.cartId}', -1)">−</button>
