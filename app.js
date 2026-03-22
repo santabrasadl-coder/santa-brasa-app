@@ -154,7 +154,8 @@ const menuData = {
             id: 10,
             name: "Dom Contra",
             description: "Carne nobre, sabor marcante: Pão, Contrafilé, Bacon, Ovo, Dobro de Queijo, Salada e Molho Especial.",
-            price: 42.00
+            price: 42.00,
+            soldOut: true
         }
     ],
     sobremesas: [
@@ -222,6 +223,7 @@ const ADDONS = [
 // ===== Cart State & Modal State =====
 let cart = [];
 let currentModalItem = null;
+let currentModalCartId = null;
 let currentModalQuantity = 1;
 let selectedAddons = [];
 let orderType = 'delivery'; // 'delivery' ou 'pickup'
@@ -423,13 +425,23 @@ function findItemById(id) {
 }
 
 // ===== Add-ons Modal Logic =====
-function openAddonModal(itemId) {
+function openAddonModal(itemId, cartId = null) {
     const item = findItemById(itemId);
     if (!item) return;
 
     currentModalItem = item;
+    currentModalCartId = cartId; // Track if we are editing a specific cart entry
     currentModalQuantity = 1;
     selectedAddons = [];
+
+    // If editing existing cart item, load its current state
+    if (cartId) {
+        const cartItem = cart.find(i => i.cartId === cartId);
+        if (cartItem) {
+            currentModalQuantity = cartItem.quantity;
+            selectedAddons = cartItem.addons.map(a => a.id);
+        }
+    }
 
     // Reset Modal UI
     document.getElementById('modalItemName').textContent = item.name;
@@ -496,7 +508,11 @@ function updateModalTotal() {
 }
 
 function confirmAddonOrder() {
-    addToCartWithAddons();
+    if (currentModalCartId) {
+        updateCartItemAddons();
+    } else {
+        addToCartWithAddons();
+    }
     closeAddonModal();
     trackABEvent('confirm_addon');
 
@@ -541,20 +557,30 @@ function addToCartWithAddons() {
 
     saveCart();
     updateCartUI();
-    showToast(`${currentModalQuantity}x ${currentModalItem.name} adicionado!`);
+    showToast(`${currentModalQuantity}x ${currentModalItem.name} atualizado!`);
+}
+
+function updateCartItemAddons() {
+    if (!currentModalItem || !currentModalCartId) return;
+
+    const addonsObjects = selectedAddons.map(id => ADDONS.find(a => a.id === id));
+    const item = cart.find(i => i.cartId === currentModalCartId);
+
+    if (item) {
+        item.addons = addonsObjects;
+        item.price = (item.basePrice + addonsObjects.reduce((sum, a) => sum + a.price, 0));
+        item.quantity = currentModalQuantity;
+    }
+
+    saveCart();
+    updateCartUI();
+    showToast(`Adicionais salvos em ${currentModalItem.name}!`);
 }
 
 function addToCart(itemId) {
-    const group = getABTestGroup();
-    if (group === 'variant') {
-        // Variant B: Jump directly to cart, bypass modal
-        addDirectToCart(itemId, true); // Pass true to avoid double tracking
-        trackABEvent('skip_modal');
-    } else {
-        // Control A: Show modal as usual
-        openAddonModal(itemId);
-        trackABEvent('open_modal');
-    }
+    // Recommendation: Always Direct Add to increase conversion
+    addDirectToCart(itemId);
+    trackABEvent('direct_add');
 }
 
 // ===== Remove from Cart =====
@@ -624,6 +650,11 @@ function updateCartUI() {
                         <span class="cart-item-qty">${item.quantity}</span>
                         <button class="qty-button" onclick="updateQuantity('${item.cartId}', 1)">+</button>
                     </div>
+                </div>
+                <div class="cart-item-addon-upsell">
+                    <button class="addon-upsell-btn" onclick="openAddonModal(${item.id}, '${item.cartId}')">
+                        ✨ + Adicionais (Bacon, Queijo...)
+                    </button>
                 </div>
                 <div class="cart-item-obs-container">
                     <input type="text" 
@@ -1024,6 +1055,7 @@ function sendToWhatsApp() {
         document.getElementById('clientName').focus();
         return;
     }
+    // Phone is no longer mandatory to reduce friction
     if (!address && orderType === 'delivery') {
         alert("Por favor, digite seu endereço de entrega.");
         document.getElementById('clientAddress').focus();

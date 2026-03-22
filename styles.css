@@ -1435,6 +1435,32 @@ body {
     font-size: 1.1rem;
 }
 
+.cart-item-addon-upsell {
+    margin-top: -0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.addon-upsell-btn {
+    background: rgba(255, 49, 49, 0.1);
+    border: 1px dashed var(--primary);
+    color: var(--primary);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.addon-upsell-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-style: solid;
+}
+
 .cart-item-obs-container {
     width: 100%;
 }
@@ -1935,15 +1961,22 @@ body {
 .item-badge {
     background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
     color: #000;
-    font-size: 0.65rem;
-    font-weight: 800;
-    padding: 0.15rem 0.4rem;
-    border-radius: 4px;
+    font-size: 0.75rem; /* Larger font */
+    font-weight: 900;
+    padding: 4px 10px; /* Larger padding */
+    border-radius: 6px;
     vertical-align: middle;
     margin-left: 0.5rem;
     text-shadow: none;
-    box-shadow: 0 2px 5px rgba(255, 215, 0, 0.3);
-    border: 1px solid #FFF;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); /* More glow */
+    border: 2px solid #FFF; /* Stronger border */
+    animation: badge-pulse 2s infinite ease-in-out;
+}
+
+@keyframes badge-pulse {
+    0% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+    50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+    100% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
 }
 
 /* ===== Itens Esgotados ===== */
