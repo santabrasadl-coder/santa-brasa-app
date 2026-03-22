@@ -1,5 +1,5 @@
-const OPEN_HOUR = 19;
-const OPEN_MINUTE = 20;
+const OPEN_HOUR = 15;
+const OPEN_MINUTE = 0;
 const CLOSE_HOUR = 3;
 const CLOSE_MINUTE = 0;
 const WHATSAPP_NUMBER = "553799982046";
@@ -52,7 +52,11 @@ function updateStoreStatus() {
         statusBar.classList.remove('closed');
         statusBar.classList.add('open');
         statusBar.classList.remove('closing-soon');
-        if (openingInfoNeon) openingInfoNeon.textContent = '';
+        if (openingInfoNeon) {
+            openingInfoNeon.textContent = 'Estamos Abertos! 🔥';
+            openingInfoNeon.classList.remove('closed');
+            openingInfoNeon.classList.add('open');
+        }
     } else {
         const now = new Date();
         const openTime = new Date();
@@ -76,6 +80,8 @@ function updateStoreStatus() {
 
         if (openingInfoNeon) {
             openingInfoNeon.textContent = `ABRE ÀS ${OPEN_HOUR}h${OPEN_MINUTE} - ${timeLeftStr}`;
+            openingInfoNeon.classList.remove('open');
+            openingInfoNeon.classList.add('closed');
         }
     }
     updateCartUI();
@@ -209,6 +215,7 @@ const ADDONS = [
     { id: 'ovo', name: 'Ovo Extra', price: 4.00 },
     { id: 'maionese', name: 'Maionese da Casa', price: 3.00 },
     { id: 'abacaxi', name: 'Abacaxi', price: 3.00 },
+    { id: 'banana_terra', name: 'Banana da Terra', price: 8.00 },
     { id: 'banana', name: 'Banana', price: 3.00 }
 ];
 

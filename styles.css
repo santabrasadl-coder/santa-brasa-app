@@ -271,15 +271,28 @@ body {
 .opening-info-neon {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1.1rem;
-    color: #FF8C00;
     text-transform: uppercase;
     letter-spacing: 2px;
     margin-top: 0.5rem;
+    transition: all 0.5s ease;
+}
+
+.opening-info-neon.closed {
+    color: #FF8C00;
     text-shadow: 
         0 0 5px #FF8C00,
         0 0 10px #FF8C00,
         0 0 20px #FF4500;
     animation: neon-glow-orange 1.5s ease-in-out infinite alternate;
+}
+
+.opening-info-neon.open {
+    color: #00FF41;
+    text-shadow: 
+        0 0 5px #00FF41,
+        0 0 10px #00FF41,
+        0 0 20px #00FF41;
+    animation: neon-glow 1.5s ease-in-out infinite alternate;
 }
 
 @keyframes neon-glow-orange {
