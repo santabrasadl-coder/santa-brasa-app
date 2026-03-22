@@ -1,8 +1,18 @@
-const OPEN_HOUR = 15;
-const OPEN_MINUTE = 0;
-const CLOSE_HOUR = 3;
-const CLOSE_MINUTE = 0;
-const WHATSAPP_NUMBER = "553799982046";
+function getSchedule(date = new Date()) {
+    const day = date.getDay(); // 0(Dom), 1(Seg), ..., 6(Sáb)
+    // Meio de semana: Mon-Thu (1, 2, 3, 4) -> 18h-23h
+    // Final de semana: Fri-Sun (5, 6, 0) -> 18h-03h
+    const isWeekend = (day === 0 || day === 5 || day === 6);
+
+    return {
+        openHour: 18,
+        openMinute: 0,
+        closeHour: isWeekend ? 3 : 23,
+        closeMinute: 0
+    };
+}
+
+const WHATSAPP_NUMBER = "5537999982046";
 
 // ===== Meta Pixel Helper =====
 function trackPixelEvent(eventName, params = {}) {
@@ -18,23 +28,37 @@ function isStoreOpen() {
     if (manualStoreStatus === "closed") return false;
     if (manualStoreStatus === "open") return true;
 
-    // manualStoreStatus === "auto" logic:
     const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    const currentTotalMinutes = (hours * 60) + minutes;
+    const currentTotalMinutes = (now.getHours() * 60) + now.getMinutes();
 
-    const openTotalMinutes = (OPEN_HOUR * 60) + OPEN_MINUTE;
-    const closeTotalMinutes = (CLOSE_HOUR * 60) + CLOSE_MINUTE;
+    // 1. Verifica janela de HOJE
+    const todaySched = getSchedule(now);
+    const todayOpen = (todaySched.openHour * 60) + todaySched.openMinute;
+    const todayClose = (todaySched.closeHour * 60) + todaySched.closeMinute;
 
-    // Se o horário de fechar é no dia seguinte (ex: abre 15h, fecha 3h)
-    if (closeTotalMinutes < openTotalMinutes) {
-        // Aberto se (agora >= abre) OU (agora < fecha)
-        return currentTotalMinutes >= openTotalMinutes || currentTotalMinutes < closeTotalMinutes;
+    let openToday = false;
+    if (todayClose < todayOpen) {
+        // Crossover (fecha amanhã) - Ex: Abre 18h, Fecha 3h
+        openToday = currentTotalMinutes >= todayOpen;
     } else {
-        // Horário padrão no mesmo dia
-        return currentTotalMinutes >= openTotalMinutes && currentTotalMinutes < closeTotalMinutes;
+        // Normal - Ex: Abre 18h, Fecha 23h
+        openToday = currentTotalMinutes >= todayOpen && currentTotalMinutes < todayClose;
     }
+
+    // 2. Verifica janela de ONTEM (se ainda estiver aberta na madrugada de hoje)
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const yesterdaySched = getSchedule(yesterday);
+    const yesterdayOpen = (yesterdaySched.openHour * 60) + yesterdaySched.openMinute;
+    const yesterdayClose = (yesterdaySched.closeHour * 60) + yesterdaySched.closeMinute;
+
+    let stillOpenFromYesterday = false;
+    if (yesterdayClose < yesterdayOpen) {
+        // Somente se fechou DEPOIS da meia noite
+        stillOpenFromYesterday = currentTotalMinutes < yesterdayClose;
+    }
+
+    return openToday || stillOpenFromYesterday;
 }
 
 // ===== Função para Atualizar Status Visual =====
@@ -48,23 +72,68 @@ function updateStoreStatus() {
     const open = isStoreOpen();
 
     if (open) {
-        statusText.textContent = 'ABERTO';
-        statusBar.classList.remove('closed');
-        statusBar.classList.add('open');
-        statusBar.classList.remove('closing-soon');
-        if (openingInfoNeon) {
-            openingInfoNeon.textContent = "Entrega em toda cidade! 🛵";
-            openingInfoNeon.classList.remove('closed');
-            openingInfoNeon.classList.add('open');
+        // Logica para "Fecha em breve"
+        const now = new Date();
+        const sched = getSchedule(now);
+        const closeTime = new Date(now);
+        closeTime.setHours(sched.closeHour, sched.closeMinute, 0, 0);
+
+        // Ajuste para crossover (ex: abre 18h, fecha 3h)
+        if (sched.closeHour < sched.openHour) {
+            // Se agora é >= abertura, closeTime é amanhã
+            if (now.getHours() >= sched.openHour) {
+                closeTime.setDate(now.getDate() + 1);
+            }
+            // Se agora é < fechamento (madrugada), closeTime é hoje (já definido)
+        }
+
+        const diffClose = closeTime - now;
+        const minutesToClose = Math.floor(diffClose / (1000 * 60));
+
+        if (minutesToClose <= 60 && minutesToClose > 0) {
+            const hoursLeft = Math.floor(diffClose / (1000 * 60 * 60));
+            const minutesLeft = Math.floor((diffClose % (1000 * 60 * 60)) / (1000 * 60));
+            const secondsLeft = Math.floor((diffClose % (1000 * 60)) / 1000);
+            const timeLeftStr = `${String(hoursLeft).padStart(2, '0')}:${String(minutesLeft).padStart(2, '0')}:${String(secondsLeft).padStart(2, '0')}`;
+
+            statusText.textContent = 'FECHANDO EM BREVE';
+            statusBar.classList.remove('closed', 'open');
+            statusBar.classList.add('closing-soon');
+            
+            if (openingInfoNeon) {
+                openingInfoNeon.innerHTML = `
+                    <div class="countdown-box">
+                        <div style="display:flex; flex-direction:column; align-items:flex-start;">
+                            <span class="countdown-label">Fecha em</span>
+                            <span class="countdown-time">${timeLeftStr}</span>
+                        </div>
+                        <span style="font-size: 1.5rem;">🛑</span>
+                    </div>
+                `;
+                openingInfoNeon.classList.remove('closed');
+                openingInfoNeon.classList.add('open');
+            }
+        } else {
+            statusText.textContent = 'ABERTO';
+            statusBar.classList.remove('closed', 'closing-soon');
+            statusBar.classList.add('open');
+            if (openingInfoNeon) {
+                openingInfoNeon.textContent = "Entrega em toda cidade! 🛵";
+                openingInfoNeon.classList.remove('closed');
+                openingInfoNeon.classList.add('open');
+            }
         }
     } else {
         const now = new Date();
-        const openTime = new Date();
-        openTime.setHours(OPEN_HOUR, OPEN_MINUTE, 0, 0);
+        let openTime = new Date(now);
+        const sched = getSchedule(now);
+        openTime.setHours(sched.openHour, sched.openMinute, 0, 0);
 
-        // Se o horário de abertura for menor que o atual, assume que é amanhã
+        // Se o horário de abertura já passou hoje, assume que é amanhã
+        // MAS primeiro verifica se ainda estamos na janela de "ontem" (madrugada)
+        // isStoreOpen já retornaria true se estivéssemos.
         if (openTime < now) {
-            openTime.setDate(openTime.getDate() + 1);
+            openTime.setDate(now.getDate() + 1);
         }
 
         const diff = openTime - now;
@@ -79,7 +148,15 @@ function updateStoreStatus() {
         statusBar.classList.add('closed');
 
         if (openingInfoNeon) {
-            openingInfoNeon.textContent = `ABRE ÀS ${OPEN_HOUR}h${OPEN_MINUTE} - ${timeLeftStr}`;
+            openingInfoNeon.innerHTML = `
+                <div class="countdown-box">
+                    <div style="display:flex; flex-direction:column; align-items:flex-start;">
+                        <span class="countdown-label">Abre em</span>
+                        <span class="countdown-time">${timeLeftStr}</span>
+                    </div>
+                    <span style="font-size: 1.5rem;">🔥</span>
+                </div>
+            `;
             openingInfoNeon.classList.remove('open');
             openingInfoNeon.classList.add('closed');
         }
@@ -307,8 +384,8 @@ function setOrderType(type) {
 // O WHATSAPP_NUMBER agora é gerenciado globalmente no topo do arquivo
 
 // ===== DOM Elements =====
-const cartButton = document.getElementById('cartButton');
-const cartCount = document.getElementById('cartCount');
+// const cartButton = document.getElementById('cartButton');
+// const cartCount = document.getElementById('cartCount');
 const cartSidebar = document.getElementById('cartSidebar');
 const cartOverlay = document.getElementById('cartOverlay');
 const cartItems = document.getElementById('cartItems');
@@ -324,6 +401,12 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCart();
     loadUserData(); // Carrega dados salvos do cliente
     updateCartUI();
+
+    // Listener para atualizar taxa de entrega em tempo real
+    const addrInput = document.getElementById('clientAddress');
+    if (addrInput) {
+        addrInput.addEventListener('input', () => updateCartUI());
+    }
     // initChat() será chamado pelo tracker quando o Firebase conectar
     
     // Log initial group
@@ -403,7 +486,7 @@ function renderMenu() {
                 </div>
                 <div class="menu-item-actions">
                     <div class="price-container">
-                        ${item.soldOut ? '<span class="sold-out-status">ESGOTADO</span>' : `<span class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</span>`}
+                        ${item.soldOut ? '<span class="sold-out-status">ESGOTADO</span>' : `<span class="item-price">${item.price.toFixed(2).replace('.', ',')}</span>`}
                     </div>
                     ${!item.soldOut ? `
                     <button class="add-button" onclick="${clickAction}" aria-label="Adicionar ${item.name}">
@@ -514,10 +597,10 @@ function updateModalTotal() {
     const label = currentModalCartId ? "SALVAR ALTERAÇÕES" : "ADICIONAR AO PEDIDO";
     
     if (btn) {
-        btn.innerHTML = `${label} • <span id="modalTotalPrice">R$ ${total.toFixed(2).replace('.', ',')}</span>`;
+        btn.innerHTML = `${label} • <span id="modalTotalPrice">${total.toFixed(2).replace('.', ',')}</span>`;
     }
     
-    document.getElementById('modalItemPrice').textContent = `R$ ${currentModalItem.price.toFixed(2).replace('.', ',')}`;
+    document.getElementById('modalItemPrice').textContent = `${currentModalItem.price.toFixed(2).replace('.', ',')}`;
 }
 
 function confirmAddonOrder() {
@@ -634,8 +717,11 @@ function updateObservation(cartId, text) {
 function updateCartUI() {
     // Update count badge
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    cartCount.textContent = totalItems;
-    cartCount.style.display = totalItems > 0 ? 'flex' : 'none';
+    const badge = document.getElementById('barBadge');
+    if (badge) {
+        badge.textContent = totalItems;
+        badge.style.display = totalItems > 0 ? 'flex' : 'none';
+    }
 
     // Update cart items
     if (cart.length === 0) {
@@ -656,7 +742,7 @@ function updateCartUI() {
                         ${item.addons && item.addons.length > 0 ?
                 `<div style="font-size:0.75rem; color:var(--text-secondary);">+ ${item.addons.map(a => a.name).join(', ')}</div>`
                 : ''}
-                        <div class="cart-item-price">R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}</div>
+                        <div class="cart-item-price">${(item.price * item.quantity).toFixed(2).replace('.', ',')}</div>
                     </div>
                     <div class="cart-item-controls">
                         <button class="qty-button" onclick="updateQuantity('${item.cartId}', -1)">−</button>
@@ -680,8 +766,9 @@ function updateCartUI() {
         `).join('');
         // Update checkout button state
         if (!isStoreOpen()) {
+            const sched = getSchedule();
             checkoutButton.disabled = false;
-            checkoutButton.innerHTML = `<span class="whatsapp-icon">📱</span> Agendar p/ às ${OPEN_HOUR}h${OPEN_MINUTE}`;
+            checkoutButton.innerHTML = `<span class="whatsapp-icon">📱</span> Agendar p/ às ${sched.openHour}h${String(sched.openMinute).padStart(2, '0')}`;
         } else {
             checkoutButton.disabled = false;
             checkoutButton.innerHTML = '<span class="whatsapp-icon">📱</span> Pedir agora';
@@ -690,7 +777,7 @@ function updateCartUI() {
 
     // Update total
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const fee = orderType === 'delivery' ? DELIVERY_FEE : 0;
+    const fee = orderType === 'delivery' ? getDynamicDeliveryFee() : 0;
     const total = subtotal + fee;
 
     cartTotal.innerHTML = ''; // Clear safely
@@ -704,19 +791,19 @@ function updateCartUI() {
         sub.style.fontSize = '0.8rem';
         sub.style.color = 'var(--text-secondary)';
         sub.style.fontFamily = "'Poppins'";
-        sub.textContent = `Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}`;
+        sub.textContent = `Subtotal: ${subtotal.toFixed(2).replace('.', ',')}`;
         totalDiv.appendChild(sub);
         
         const deliver = document.createElement('span');
         deliver.style.fontSize = '0.8rem';
         deliver.style.color = 'var(--text-secondary)';
         deliver.style.fontFamily = "'Poppins'";
-        deliver.textContent = `Entrega: R$ ${fee.toFixed(2).replace('.', ',')}`;
+        deliver.textContent = `Entrega: ${fee.toFixed(2).replace('.', ',')}`;
         totalDiv.appendChild(deliver);
     }
     
     const final = document.createElement('span');
-    final.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    final.textContent = `${total.toFixed(2).replace('.', ',')}`;
     totalDiv.appendChild(final);
     
     cartTotal.appendChild(totalDiv);
@@ -740,236 +827,7 @@ function toggleCart() {
     }
 }
 
-// ===== Real-time Chat Logic =====
-let chatSessionId = localStorage.getItem('santaBrasaChatSessionId');
-if (!chatSessionId) {
-    chatSessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('santaBrasaChatSessionId', chatSessionId);
-}
-
-function toggleChat() {
-    const chatWidget = document.getElementById('chatWidget');
-    const chatInput = document.getElementById('chatInput');
-
-    chatWidget.classList.toggle('active');
-
-    if (chatWidget.classList.contains('active')) {
-        checkChatIdentity();
-        markMessagesAsRead();
-    }
-}
-
-function checkChatIdentity() {
-    const saved = localStorage.getItem('santaBrasaUserData');
-    const prompt = document.getElementById('chatNamePrompt');
-    const mainArea = document.getElementById('chatMainArea');
-    const nameInput = document.getElementById('chatUserName');
-
-    if (saved) {
-        try {
-            const { name } = JSON.parse(saved);
-            if (name) {
-                prompt.style.display = 'none';
-                mainArea.style.display = 'flex';
-                setTimeout(() => document.getElementById('chatInput').focus(), 300);
-                return;
-            }
-        } catch (e) { }
-    }
-
-    // Se não tiver nome, mostra o prompt
-    prompt.style.display = 'flex';
-    mainArea.style.display = 'none';
-    setTimeout(() => nameInput.focus(), 300);
-}
-
-function saveChatName() {
-    const nameInput = document.getElementById('chatUserName');
-    const name = nameInput.value.trim();
-
-    if (!name) return;
-
-    // Salvar no formato do resto do app
-    const saved = localStorage.getItem('santaBrasaUserData');
-    let userData = {};
-    if (saved) {
-        try { userData = JSON.parse(saved); } catch (e) { }
-    }
-    userData.name = name;
-    localStorage.setItem('santaBrasaUserData', JSON.stringify(userData));
-
-    // Refletir no campo do checkout se estiver aberto
-    const clientNameInput = document.getElementById('clientName');
-    if (clientNameInput) clientNameInput.value = name;
-
-    // Trocar UI
-    checkChatIdentity();
-
-    // Sincronizar com Firebase
-    updateChatSessionInfo();
-}
-
-function handleNameKey(event) {
-    if (event.key === 'Enter') {
-        saveChatName();
-    }
-}
-
-let isChatInitialized = false;
-
-function initChat() {
-    if (isChatInitialized) return;
-    if (typeof firebase === 'undefined' || !firebase.apps.length) return;
-
-    const db = firebase.database();
-    const chatRef = db.ref('chats/' + chatSessionId + '/messages');
-
-    // Listener para novas mensagens
-    chatRef.on('child_added', (snapshot) => {
-        const msg = snapshot.val();
-        renderChatMessage(msg);
-    });
-
-    // Listener para status de lido/não lido para o cliente
-    db.ref('chats/' + chatSessionId + '/unreadByCustomer').on('value', (snapshot) => {
-        const unread = snapshot.val();
-        const dot = document.getElementById('chatUnreadDot');
-        const widget = document.getElementById('chatWidget');
-        if (dot) {
-            dot.style.display = (unread && !widget.classList.contains('active')) ? 'block' : 'none';
-        }
-    });
-
-    // Atualizar info da sessão (nome do cliente se disponível)
-    updateChatSessionInfo();
-    isChatInitialized = true;
-}
-
-function updateChatSessionInfo() {
-    const saved = localStorage.getItem('santaBrasaUserData');
-    if (saved && typeof firebase !== 'undefined' && firebase.apps.length) {
-        try {
-            const { name, phone } = JSON.parse(saved);
-            const db = firebase.database();
-            db.ref('chats/' + chatSessionId).update({
-                customerName: name || 'Cliente Anônimo',
-                customerPhone: phone || '',
-                lastUpdate: new Date().toISOString()
-            });
-
-            // Enviar mensagem de boas-vindas se for a primeira vez
-            const welcomeSent = localStorage.getItem('santaBrasaWelcomeSent');
-            if (!welcomeSent && name) {
-                setTimeout(() => {
-                    db.ref('chats/' + chatSessionId + '/messages').push({
-                        text: `Olá ${name}! 🔥 Que bom ter você por aqui. Como podemos te ajudar hoje?`,
-                        sender: 'admin',
-                        timestamp: new Date().toISOString()
-                    });
-                    localStorage.setItem('santaBrasaWelcomeSent', 'true');
-                }, 2000);
-            }
-        } catch (e) { }
-    }
-}
-
-function renderChatMessage(msg) {
-    const container = document.getElementById('chatMessages');
-    if (!container) return;
-
-    const div = document.createElement('div');
-    div.className = `chat-bubble ${msg.sender === 'customer' ? 'sent' : 'received'}`;
-    div.textContent = msg.text;
-
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
-}
-
-function sendChatMessage() {
-    const chatInput = document.getElementById('chatInput');
-    const text = chatInput.value.trim();
-
-    if (!text || typeof firebase === 'undefined' || !firebase.apps.length) return;
-
-    const db = firebase.database();
-    const chatRef = db.ref('chats/' + chatSessionId);
-
-    // Push message
-    chatRef.child('messages').push({
-        text: text,
-        sender: 'customer',
-        timestamp: new Date().toISOString()
-    });
-
-    // Update session meta
-    chatRef.update({
-        lastMessage: text,
-        timestamp: new Date().toISOString(),
-        unreadByAdmin: true
-    });
-
-    chatInput.value = '';
-    updateChatSessionInfo();
-    triggerAutoResponse(text);
-}
-
-const AUTO_RESPONSES = {
-    "horário": "Nosso horário de atendimento é de 15:00 as 03:00! 🔥",
-    "entrega": "Fazemos entregas em toda a cidade! A taxa é fixa de R$ 10,00. 🛵",
-    "cardápio": "Nosso cardápio completo está logo acima! Temos burgers artesanais, sobremesas e bebidas. 🍔",
-    "pagamento": "Aceitamos Pix, Cartões de Crédito/Débito e Dinheiro (levamos troco). 💳",
-    "endereço": "Estamos na Rua Marechal Deodoro, 398, Centro, Itaúna-MG. 📍",
-    "pix": "Nossa chave Pix é o nosso telefone: 3799982046. Favor enviar o comprovante! 📲",
-    "olá": "Olá! 🔥 Como podemos te ajudar com seu pedido hoje?",
-    "oi": "Oi! 🔥 Tudo bem? O que vai pedir de gostoso hoje?"
-};
-
-function triggerAutoResponse(text) {
-    const lowerText = text.toLowerCase();
-    let response = null;
-
-    for (const key in AUTO_RESPONSES) {
-        if (lowerText.includes(key)) {
-            response = AUTO_RESPONSES[key];
-            break;
-        }
-    }
-
-    if (response) {
-        setTimeout(() => {
-            const db = firebase.database();
-            db.ref('chats/' + chatSessionId + '/messages').push({
-                text: response,
-                sender: 'admin',
-                timestamp: new Date().toISOString()
-            });
-            db.ref('chats/' + chatSessionId).update({
-                lastMessage: response,
-                timestamp: new Date().toISOString(),
-                unreadByCustomer: true
-            });
-        }, 1500);
-    }
-}
-
-function handleChatKey(event) {
-    if (event.key === 'Enter') {
-        sendChatMessage();
-    }
-}
-
-function markMessagesAsRead() {
-    if (typeof firebase !== 'undefined' && firebase.apps.length) {
-        firebase.database().ref('chats/' + chatSessionId).update({
-            unreadByCustomer: false
-        });
-    }
-}
-
-// Chamar initChat após o carregamento do Firebase
-document.addEventListener('DOMContentLoaded', () => {
-    // ... rest of init logic is already there, I'll add initChat to the bottom observer
-});
+// ===== Retired Chat Logic =====
 
 // ===== Save/Load Cart =====
 function saveCart() {
@@ -1026,6 +884,23 @@ function toggleChangeInput() {
 
 // ===== Delivery Fee =====
 const DELIVERY_FEE = 10.00;
+
+function getDynamicDeliveryFee() {
+    const addressInput = document.getElementById('clientAddress');
+    if (!addressInput) return DELIVERY_FEE;
+    
+    // Normalizar: minúsculas e remover acentos
+    const address = addressInput.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    
+    // Lista de bairros com taxa de R$ 13,00
+    const specialBairros = [
+        "varzea da olaria", "garcias", "cidade nova", "aeroporto", "aeroporoto",
+        "santanense", "itaunense 1", "itaunense 2", "tres marias"
+    ];
+    
+    const isSpecial = specialBairros.some(bairro => address.includes(bairro));
+    return isSpecial ? 13.00 : DELIVERY_FEE;
+}
 
 // ===== Send to WhatsApp =====
 function sendToWhatsApp() {
@@ -1089,7 +964,7 @@ function sendToWhatsApp() {
     saveUserData(name, address, phone);
 
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const fee = orderType === 'delivery' ? DELIVERY_FEE : 0;
+    const fee = orderType === 'delivery' ? getDynamicDeliveryFee() : 0;
     const total = subtotal + fee;
 
     let message = `🍔 *PEDIDO SANTA BRASA* 🔥\n`;
@@ -1259,7 +1134,7 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
             if (snap.val() === true) {
                 console.log("✅ Tracker Conectado ao Firebase.");
 
-                initChat(); // Inicializa o Chat em Tempo Real
+                // initChat(); // Retired chat
 
                 // Registro de Presença (Contar como cliente)
                 const myPresenceRef = db.ref('presence/users').push();

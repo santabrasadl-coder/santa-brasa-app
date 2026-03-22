@@ -140,50 +140,39 @@
         </section>
     </main>
 
-    <button class="cart-button" id="cartButton" onclick="toggleCart()">
-        <span class="cart-icon">🛒</span>
-        <span class="cart-count" id="cartCount">0</span>
-    </button>
-
-    <!-- Chat Widget -->
-    <div class="chat-widget" id="chatWidget">
-        <div class="chat-container" id="chatContainer">
-            <div class="chat-header">
-                <div class="chat-header-info">
-                    <img src="logo.png" alt="Santa Brasa" class="chat-avatar">
-                    <div class="chat-status-info">
-                        <span class="chat-name">Santa Brasa</span>
-                        <span class="chat-status">Online</span>
-                    </div>
-                </div>
-                <button class="chat-close" onclick="toggleChat()">✕</button>
-            </div>
-            <div class="chat-name-prompt" id="chatNamePrompt" style="display: none;">
-                <p>Olá! Para começarmos, como podemos te chamar? 🔥</p>
-                <input type="text" id="chatUserName" placeholder="Seu nome aqui..." onkeypress="handleNameKey(event)">
-                <button onclick="saveChatName()">Começar Conversa</button>
-            </div>
-            <div id="chatMainArea" style="display: none; flex-direction: column; flex: 1;">
-                <div class="chat-messages" id="chatMessages">
-                    <!-- Messages will be loaded here -->
-                    <div class="chat-bubble received">
-                        Olá! Como podemos te ajudar hoje? 🔥
-                    </div>
-                </div>
-                <div class="chat-input-area">
-                    <input type="text" id="chatInput" placeholder="Digite sua mensagem..."
-                        onkeypress="handleChatKey(event)">
-                    <button class="chat-send" onclick="sendChatMessage()">
-                        <span>➤</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-        <button class="chat-toggle" onclick="toggleChat()" aria-label="Abrir Chat">
-            <span class="chat-toggle-icon">💬</span>
-            <span class="chat-unread-dot" id="chatUnreadDot"></span>
+    <!-- Bottom Action Bar (Replaces old cart/chat buttons) -->
+    <div class="bottom-action-bar">
+        <a href="https://wa.me/5537999982046" target="_blank" class="bar-item whatsapp">
+            <span>📱 WhatsApp</span>
+        </a>
+        <button class="bar-item cart" onclick="toggleCart()">
+            <span>🛒 Carrinho</span>
+            <span class="bar-badge" id="barBadge">0</span>
         </button>
     </div>
+
+    <!-- Contato Section -->
+    <section id="contato" class="contato-section">
+        <h2 class="contato-title neon-white">Fale Conosco</h2>
+        <div class="contato-grid">
+            <div class="contato-item">
+                <span class="contato-icon">📍</span>
+                <span class="contato-label">Localização</span>
+                <span class="contato-value">Itaúna-MG</span>
+            </div>
+            <div class="contato-item">
+                <span class="contato-icon">📱</span>
+                <span class="contato-label">WhatsApp</span>
+                <span class="contato-value">(37) 99998-2046</span>
+            </div>
+            <div class="contato-item">
+                <span class="contato-icon">⏰</span>
+                <span class="contato-label">Horário</span>
+                <span class="contato-value">Dom a Qui: 18h - 23h</span>
+                <span class="contato-value">Sex a Sáb: 18h - 03h</span>
+            </div>
+        </div>
+    </section>
 
     <!-- Cart Sidebar -->
     <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
@@ -267,7 +256,7 @@
         <div class="cart-footer">
             <div class="cart-total">
                 <span>Total:</span>
-                <div id="cartTotal">R$ 0,00</div>
+                <div id="cartTotal">0,00</div>
             </div>
             <button class="checkout-button" id="checkoutButton" onclick="sendToWhatsApp()">
                 <span class="whatsapp-icon">📱</span>
@@ -283,7 +272,7 @@
             <div class="modal-header">
                 <h3 id="modalItemName">Nome do Burger</h3>
                 <p id="modalItemDesc">Descrição do item</p>
-                <span class="modal-price" id="modalItemPrice">R$ 0,00</span>
+                <span class="modal-price" id="modalItemPrice">0,00</span>
             </div>
 
             <div class="modal-body">
@@ -300,7 +289,7 @@
                     <button onclick="updateModalQuantity(1)">+</button>
                 </div>
                 <button class="add-to-order-btn" onclick="confirmAddonOrder()">
-                    Adicionar • <span id="modalTotalPrice">R$ 0,00</span>
+                    Adicionar • <span id="modalTotalPrice">0,00</span>
                 </button>
             </div>
         </div>

@@ -152,6 +152,49 @@ body {
     animation: neon-glow-red 1.5s ease-in-out infinite alternate;
 }
 
+/* Digital Countdown (High Impact) */
+.countdown-box {
+    background: #050505;
+    border: 2px solid var(--primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3), inset 0 0 10px rgba(0, 255, 65, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.countdown-box::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(0deg, rgba(0, 255, 65, 0.05) 0%, transparent 50%, rgba(0, 255, 65, 0.05) 100%);
+    pointer-events: none;
+}
+
+.countdown-time {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    color: var(--primary);
+    letter-spacing: 3px;
+    text-shadow: 0 0 15px var(--primary), 0 0 30px rgba(0, 255, 65, 0.5);
+    line-height: 1;
+}
+
+.countdown-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 600;
+}
+
 @keyframes neon-glow-red {
     0% {
         text-shadow:
@@ -287,14 +330,14 @@ body {
 }
 
 .opening-info-neon.open {
-    color: #ff3131; /* Neon red */
-    text-shadow: 0 0 5px #ff3131, 0 0 10px #ff3131, 0 0 20px #ff3131;
-    animation: neon-pulse-red 1.5s infinite alternate;
+    color: #A2D2FF; /* Baby Blue */
+    text-shadow: 0 0 5px #A2D2FF, 0 0 10px rgba(162, 210, 255, 0.5);
+    animation: neon-pulse-blue 2s infinite alternate;
 }
 
-@keyframes neon-pulse-red {
-    from { text-shadow: 0 0 5px #ff3131, 0 0 10px #ff3131, 0 0 20px #ff3131; }
-    to { text-shadow: 0 0 10px #ff3131, 0 0 20px #ff3131, 0 0 40px #ff3131, 0 0 60px #ff3131; }
+@keyframes neon-pulse-blue {
+    from { text-shadow: 0 0 5px #A2D2FF, 0 0 10px rgba(162, 210, 255, 0.3); }
+    to { text-shadow: 0 0 10px #A2D2FF, 0 0 20px rgba(162, 210, 255, 0.6); }
 }
 
 @keyframes neon-glow-orange {
@@ -748,13 +791,9 @@ body {
     box-shadow: 0 0 15px var(--primary-glow);
 }
 
-/* ===== Chat Widget ===== */
+/* ===== Chat Widget (HIDDEN - Replaced by Action Bar) ===== */
 .chat-widget {
-    position: fixed;
-    bottom: 1.5rem;
-    left: 1.5rem;
-    z-index: 900;
-    /* Abaixo do modal (1000) mas acima do resto */
+    display: none !important;
 }
 
 .chat-toggle {
@@ -1248,23 +1287,9 @@ body {
     font-size: 0.8rem;
 }
 
-/* ===== Cart Button (Fixed) ===== */
+/* ===== Cart Button (HIDDEN - Replaced by Action Bar) ===== */
 .cart-button {
-    position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: var(--gradient-fire);
-    border: none;
-    box-shadow: var(--shadow-glow), var(--shadow-card);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    transition: all 0.3s ease;
+    display: none !important;
 }
 
 .cart-button:hover {
@@ -1593,6 +1618,7 @@ body {
     transform: none;
     box-shadow: none;
 }
+
 .order-type-toggle {
     display: flex;
     gap: 0.5rem;
@@ -1854,6 +1880,146 @@ body {
 .add-to-order-btn:hover {
     transform: scale(1.02);
     box-shadow: 0 0 12px rgba(0, 255, 65, 0.4); /* Reduced glow from 20px/0.6 */
+}
+
+/* ===== Bottom Action Bar (Premium Glassmorphism) ===== */
+.bottom-action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 75px;
+    background: rgba(10, 10, 10, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+    border-top: 2px solid var(--primary);
+    box-shadow: 0 -4px 30px rgba(0, 255, 65, 0.2);
+    padding: 0 1rem;
+}
+
+.bar-item {
+    flex: 1;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+    border: none;
+    background: none;
+    cursor: pointer;
+    position: relative;
+    font-family: 'Poppins', sans-serif;
+}
+
+.bar-item:hover {
+    background: rgba(0, 255, 65, 0.1);
+    transform: translateY(-2px);
+}
+
+.bar-item.whatsapp {
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bar-item.whatsapp:hover {
+    color: var(--primary);
+    text-shadow: 0 0 10px var(--primary-glow);
+}
+
+.bar-item.cart:hover {
+    color: var(--primary);
+}
+
+.bar-badge {
+    position: absolute;
+    top: 5px;
+    right: 25%;
+    background: #FF3131;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 900;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(255, 49, 49, 0.5);
+    border: 1px solid #fff;
+}
+
+/* ===== Contato Section ===== */
+.contato-section {
+    padding: 4rem 1.5rem;
+    max-width: 800px;
+    margin: 0 auto;
+    background: linear-gradient(180deg, #000 0%, #111 100%);
+    border-radius: var(--radius-lg);
+    margin-bottom: 3rem;
+    border: 1px solid rgba(0, 255, 65, 0.1);
+}
+
+.contato-title {
+    text-align: center;
+    margin-bottom: 3rem;
+    font-size: 2.5rem;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 3px;
+}
+
+.contato-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+}
+
+.contato-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.4s ease;
+}
+
+.contato-item:hover {
+    transform: translateY(-10px);
+    border-color: var(--primary);
+    box-shadow: 0 10px 30px rgba(0, 255, 65, 0.1);
+    background: rgba(0, 255, 65, 0.02);
+}
+
+.contato-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 0 10px rgba(0, 255, 65, 0.3));
+}
+
+.contato-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+}
+
+.contato-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    color: #fff;
+    letter-spacing: 1px;
 }
 
 /* ===== Toast Notification ===== */
