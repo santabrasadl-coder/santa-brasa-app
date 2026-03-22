@@ -194,10 +194,9 @@
 
             <!-- Checkout Form -->
             <div class="checkout-form" id="checkoutForm">
-                <h3 class="checkout-title">Dados do Pedido</h3>
-
-                <div class="form-group">
-                    <label>Como deseja receber?</label>
+                
+                <div class="cart-section-card">
+                    <h3 class="checkout-title">🛵 Como deseja receber?</h3>
                     <div class="order-type-toggle">
                         <button type="button" id="typeDelivery" class="type-button active"
                             onclick="setOrderType('delivery')">
@@ -207,50 +206,55 @@
                             Retirada
                         </button>
                     </div>
+
+                    <div id="pickupAddressInfo"
+                        style="display: none; padding: 15px; background: rgba(0,255,65,0.05); border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--primary);">
+                        <p style="font-size: 0.85rem; margin-bottom: 5px; color: var(--primary); font-weight: 700;">📍 LOCAL DE RETIRADA:</p>
+                        <p style="font-size: 1rem; color: #fff; font-weight: 600;">Rua Marechal Deodoro, 398</p>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Itaúna-MG</p>
+                    </div>
                 </div>
 
-                <div class="form-group" id="pickupAddressInfo"
-                    style="display: none; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--primary);">
-                    <p style="font-size: 0.85rem; margin-bottom: 5px; color: var(--primary); font-weight: 600;">📍 Local
-                        de Retirada:</p>
-                    <p style="font-size: 0.9rem; color: #fff;">Rua Marechal Deodoro, 398</p>
-                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 5px;">Itaúna-MG</p>
+                <div class="cart-section-card">
+                    <h3 class="checkout-title">👤 Seus Dados</h3>
+                    <div class="form-group">
+                        <label>Seu Nome:</label>
+                        <input type="text" id="clientName" placeholder="Como podemos te chamar?">
+                    </div>
+
+                    <div class="form-group" id="addressFieldGroup">
+                        <label>Endereço de Entrega:</label>
+                        <textarea id="clientAddress" placeholder="Rua, Número, Bairro e Complemento" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Telefone (Opcional):</label>
+                        <input type="tel" id="clientPhone" placeholder="(37) 9****-****">
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Seu Nome:</label>
-                    <input type="text" id="clientName" placeholder="Digite seu nome">
+                <div class="cart-section-card">
+                    <h3 class="checkout-title">💰 Pagamento</h3>
+                    <div class="form-group">
+                        <label>Forma de Pagamento:</label>
+                        <select id="paymentMethod" onchange="toggleChangeInput()">
+                            <option value="">Selecione...</option>
+                            <option value="Pix">Pix (Rápido e Seguro)</option>
+                            <option value="Cartão de Crédito">Cartão de Crédito</option>
+                            <option value="Cartão de Débito">Cartão de Débito</option>
+                            <option value="Dinheiro">Dinheiro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="changeGroup" style="display: none;">
+                        <label>Troco para quanto?</label>
+                        <input type="text" id="changeAmount" placeholder="Ex: 50,00">
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Endereço Completo:</label>
-                    <textarea id="clientAddress" placeholder="Rua, Número, Bairro e Complemento" rows="3"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Telefone:</label>
-                    <input type="tel" id="clientPhone" placeholder="(XX) 9XXXX-XXXX">
-                </div>
-
-                <!-- Bot Protection Honeypot (Invisible to humans) -->
+                <!-- Bot Protection Honeypot -->
                 <div style="display:none !important;" aria-hidden="true">
                     <input type="text" id="hp_field" name="hp_field" tabindex="-1" autocomplete="off">
-                </div>
-
-                <div class="form-group">
-                    <label>Forma de Pagamento:</label>
-                    <select id="paymentMethod" onchange="toggleChangeInput()">
-                        <option value="">Selecione...</option>
-                        <option value="Pix">Pix</option>
-                        <option value="Cartão de Crédito">Cartão de Crédito</option>
-                        <option value="Cartão de Débito">Cartão de Débito</option>
-                        <option value="Dinheiro">Dinheiro</option>
-                    </select>
-                </div>
-
-                <div class="form-group" id="changeGroup" style="display: none;">
-                    <label>Troco para quanto?</label>
-                    <input type="text" id="changeAmount" placeholder="Ex: 50,00">
                 </div>
             </div>
         </div>

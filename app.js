@@ -362,15 +362,15 @@ function setOrderType(type) {
     document.getElementById('typePickup').classList.toggle('active', type === 'pickup');
 
     // Toggle Visibility
-    const addressGroup = document.getElementById('clientAddress').closest('.form-group');
+    const addressGroup = document.getElementById('addressFieldGroup');
     const pickupInfo = document.getElementById('pickupAddressInfo');
 
     if (type === 'pickup') {
-        addressGroup.style.display = 'none';
-        pickupInfo.style.display = 'block';
+        if (addressGroup) addressGroup.style.display = 'none';
+        if (pickupInfo) pickupInfo.style.display = 'block';
     } else {
-        addressGroup.style.display = 'block';
-        pickupInfo.style.display = 'none';
+        if (addressGroup) addressGroup.style.display = 'block';
+        if (pickupInfo) pickupInfo.style.display = 'none';
     }
 
     updateCartUI();
@@ -645,7 +645,7 @@ function openAddonModal(itemId, cartId = null) {
                     <div class="addon-check"></div>
                     <span>${addon.name}</span>
                 </div>
-                <span style="color: var(--primary); font-weight:600;">+ R$ ${addon.price.toFixed(2).replace('.', ',')}</span>
+                <span style="color: var(--primary); font-weight:600;">+ ${addon.price.toFixed(2).replace('.', ',')}</span>
             </div>
         `;
     }).join('');
@@ -837,24 +837,29 @@ function updateCartUI() {
     } else {
         cartItems.innerHTML = cart.map(item => `
             <div class="cart-item">
-                <div class="cart-item-main">
-                    <div class="cart-item-info">
-                        <div class="cart-item-name">R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')} - ${item.name}</div>
-                        ${item.addons && item.addons.length > 0 ?
-                `<div style="font-size:0.75rem; color:var(--text-secondary);">+ ${item.addons.map(a => a.name).join(', ')}</div>`
+                <div class="cart-item-header">
+                    <div class="cart-item-name">${item.name}</div>
+                    <div class="cart-item-price-tag">${(item.price * item.quantity).toFixed(2).replace('.', ',')}</div>
+                </div>
+
+                ${item.addons && item.addons.length > 0 ?
+                `<div style="font-size:0.75rem; color:var(--text-secondary); margin-top: -0.5rem; margin-bottom: 0.5rem; padding-left: 2px;">
+                    + ${item.addons.map(a => a.name).join(', ')}
+                </div>`
                 : ''}
-                    </div>
+
+                <div class="cart-item-main-row">
                     <div class="cart-item-controls">
                         <button class="qty-button" onclick="updateQuantity('${item.cartId}', -1)">−</button>
                         <span class="cart-item-qty">${item.quantity}</span>
                         <button class="qty-button" onclick="updateQuantity('${item.cartId}', 1)">+</button>
                     </div>
-                </div>
-                <div class="cart-item-addon-upsell">
+                    
                     <button class="addon-upsell-btn" onclick="openAddonModal(${item.id}, '${item.cartId}')">
-                        ✨ + Adicionais (Bacon, Queijo...)
+                        ✨ + Adicionais
                     </button>
                 </div>
+
                 <div class="cart-item-obs-container">
                     <input type="text" 
                         class="cart-item-obs" 
@@ -1004,10 +1009,7 @@ function getDynamicDeliveryFee() {
 
 // ===== Send to WhatsApp =====
 function sendToWhatsApp() {
-    if (!isStoreOpen()) {
-        showToast("Desculpe, a loja está fechada!");
-        return;
-    }
+    // We no longer block if store is closed, we treat as agendamento
     if (cart.length === 0) {
         showToast("Seu carrinho está vazio!");
         return;
@@ -1033,7 +1035,7 @@ function sendToWhatsApp() {
     }
 
     const submissionTime = Date.now() - checkoutOpenTime;
-    if (submissionTime < 2000) { // Humans rarely fill and click in < 2s
+    if (submissionTime < 1000) { // Humans rarely fill and click in < 1s (reduced from 2s)
         console.warn("Action too fast, potential bot.");
     }
 
@@ -1067,9 +1069,10 @@ function sendToWhatsApp() {
     const fee = orderType === 'delivery' ? getDynamicDeliveryFee() : 0;
     const total = subtotal + fee;
 
+    const sched = getSchedule();
     let message = `🍔 *PEDIDO SANTA BRASA* 🔥\n`;
     if (!isStoreOpen()) {
-        message += `⚠️ *AGENDAMENTO (Abre às ${OPEN_HOUR}:${OPEN_MINUTE})*\n`;
+        message += `⚠️ *AGENDAMENTO (Abre às ${sched.openHour}h${String(sched.openMinute).padStart(2, '0')})*\n`;
     }
     message += `👤 *Cliente:* ${name}\n`;
     if (phone) message += `📞 *Tel:* ${phone}\n`;
@@ -1170,7 +1173,14 @@ function sendToWhatsApp() {
         console.error("Erro ao salvar no CRM:", e);
     }
 
-    window.open(whatsappUrl, '_blank');
+    // On mobile, window.location.href is more reliable and avoids popup blockers
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        window.location.href = whatsappUrl;
+    } else {
+        window.open(whatsappUrl, '_blank');
+    }
 
     // Meta Pixel: Purchase/Lead (WhatsApp Click)
     trackPixelEvent('Purchase', {
