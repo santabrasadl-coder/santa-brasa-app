@@ -287,12 +287,14 @@ body {
 }
 
 .opening-info-neon.open {
-    color: #00FF41;
-    text-shadow: 
-        0 0 5px #00FF41,
-        0 0 10px #00FF41,
-        0 0 20px #00FF41;
-    animation: neon-glow 1.5s ease-in-out infinite alternate;
+    color: #ff3131; /* Neon red */
+    text-shadow: 0 0 5px #ff3131, 0 0 10px #ff3131, 0 0 20px #ff3131;
+    animation: neon-pulse-red 1.5s infinite alternate;
+}
+
+@keyframes neon-pulse-red {
+    from { text-shadow: 0 0 5px #ff3131, 0 0 10px #ff3131, 0 0 20px #ff3131; }
+    to { text-shadow: 0 0 10px #ff3131, 0 0 20px #ff3131, 0 0 40px #ff3131, 0 0 60px #ff3131; }
 }
 
 @keyframes neon-glow-orange {
@@ -1444,15 +1446,16 @@ body {
     background: rgba(255, 49, 49, 0.1);
     border: 1px dashed var(--primary);
     color: var(--primary);
-    padding: 6px 12px;
+    padding: 10px 12px; /* Increased padding */
     border-radius: var(--radius-sm);
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: 0.8rem; /* Slightly larger font */
+    font-weight: 700;
     cursor: pointer;
     width: 100%;
     transition: all 0.2s;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .addon-upsell-btn:hover {
@@ -1664,8 +1667,8 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.9);
-    z-index: 1000;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 4000; /* Much higher than everything else */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1673,6 +1676,7 @@ body {
     visibility: hidden;
     transition: all 0.3s ease;
     padding: 1rem;
+    backdrop-filter: blur(5px);
 }
 
 .modal-overlay.active {
@@ -1757,13 +1761,14 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem;
+    padding: 1rem; /* Better for mobile touch */
     background: var(--surface-light);
     border-radius: var(--radius-sm);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.8rem;
     cursor: pointer;
-    border: 1px solid transparent;
+    border: 1px solid rgba(255,255,255,0.05);
     transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .addon-option:hover {

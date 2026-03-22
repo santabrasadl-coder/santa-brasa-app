@@ -53,7 +53,7 @@ function updateStoreStatus() {
         statusBar.classList.add('open');
         statusBar.classList.remove('closing-soon');
         if (openingInfoNeon) {
-            openingInfoNeon.textContent = 'Estamos Abertos! 🔥';
+            openingInfoNeon.textContent = "Entrega em toda cidade! 🛵";
             openingInfoNeon.classList.remove('closed');
             openingInfoNeon.classList.add('open');
         }
@@ -135,7 +135,8 @@ const menuData = {
             id: 7,
             name: "Santa Fúria",
             description: "Quando a fome perde a paciência: Dois Hambúrgueres Artesanais, Ovo, Tomate, Frango Desfiado, Bacon, Triplo de Queijo, Milho, Alface e Maionese Especial.",
-            price: 46.00
+            price: 48.00,
+            badge: "O MAIOR! 🔥"
         },
         {
             id: 8,
@@ -147,7 +148,7 @@ const menuData = {
         {
             id: 9,
             name: "Milagre Cremoso",
-            description: "O sabor que faz milagre: Frango Desfiado, Bacon Suculento, Triplo de Queijo, Milho e Maionese Especial.",
+            description: "O sabor que faz milagre: Frango Desfiado, Bacon Suculento, Queijo à Vontade, Milho e Maionese Especial.",
             price: 40.00
         },
         {
@@ -394,7 +395,10 @@ function renderMenu() {
             <div class="menu-item ${item.soldOut ? 'sold-out' : ''}" data-id="${item.id}">
                 ${item.soldOut ? '<div class="sold-out-ribbon">ESGOTADO</div>' : ''}
                 <div class="item-info">
-                    <h3 class="item-name">${item.name}</h3>
+                    <h3 class="item-name">
+                        ${item.name}
+                        ${item.badge ? `<span class="item-badge">${item.badge}</span>` : ''}
+                    </h3>
                     <p class="item-description">${item.description}</p>
                 </div>
                 <div class="menu-item-actions">
@@ -449,15 +453,18 @@ function openAddonModal(itemId, cartId = null) {
 
     // Render Addons List
     const list = document.getElementById('addonsList');
-    list.innerHTML = ADDONS.map(addon => `
-        <div class="addon-option" onclick="toggleAddon('${addon.id}', this)">
-            <div style="display:flex; align-items:center;">
-                <div class="addon-check"></div>
-                <span>${addon.name}</span>
+    list.innerHTML = ADDONS.map(addon => {
+        const isSelected = selectedAddons.includes(addon.id);
+        return `
+            <div class="addon-option ${isSelected ? 'selected' : ''}" onclick="toggleAddon('${addon.id}', this)">
+                <div style="display:flex; align-items:center;">
+                    <div class="addon-check"></div>
+                    <span>${addon.name}</span>
+                </div>
+                <span style="color: var(--primary); font-weight:600;">+ R$ ${addon.price.toFixed(2).replace('.', ',')}</span>
             </div>
-            <span style="color: var(--primary); font-weight:600;">+ R$ ${addon.price.toFixed(2).replace('.', ',')}</span>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 
     updateModalTotal();
 
@@ -503,7 +510,13 @@ function updateModalTotal() {
 
     total *= currentModalQuantity;
 
-    document.getElementById('modalTotalPrice').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    const btn = document.querySelector('.add-to-order-btn');
+    const label = currentModalCartId ? "SALVAR ALTERAÇÕES" : "ADICIONAR AO PEDIDO";
+    
+    if (btn) {
+        btn.innerHTML = `${label} • <span id="modalTotalPrice">R$ ${total.toFixed(2).replace('.', ',')}</span>`;
+    }
+    
     document.getElementById('modalItemPrice').textContent = `R$ ${currentModalItem.price.toFixed(2).replace('.', ',')}`;
 }
 
