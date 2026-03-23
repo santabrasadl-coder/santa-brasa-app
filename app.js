@@ -161,6 +161,50 @@ function updateStoreStatus() {
 // Atualiza o status frequentemente para o cronômetro
 setInterval(updateStoreStatus, 1000);
 
+// ===== Promoção Maluca =====
+const CRAZY_PROMO = {
+    active: true,
+    label: "🔥 PROMOÇÃO MALUCA",
+    totalStock: 20,       // Estoque total compartilhado entre os 3 itens
+    storageKey: 'sb_crazy_promo_sold',
+    discounts: {
+        1: { promoPrice: 15.00 }, // X-Salada
+        2: { promoPrice: 15.00 }, // Vegetariano
+        3: { promoPrice: 20.00 }  // X-Egg
+    }
+};
+
+function getPromoSold() {
+    return parseInt(localStorage.getItem(CRAZY_PROMO.storageKey) || '0', 10);
+}
+
+function getPromoRemaining() {
+    return Math.max(0, CRAZY_PROMO.totalStock - getPromoSold());
+}
+
+function isPromoActive() {
+    return CRAZY_PROMO.active && getPromoRemaining() > 0;
+}
+
+function incrementPromoSold() {
+    const sold = getPromoSold() + 1;
+    localStorage.setItem(CRAZY_PROMO.storageKey, sold);
+    updatePromoBannerStock();
+}
+
+function updatePromoBannerStock() {
+    const remaining = getPromoRemaining();
+    const stockEl = document.getElementById('cpb-stock-count');
+    if (stockEl) {
+        stockEl.textContent = remaining;
+        if (remaining <= 5) stockEl.classList.add('cpb-stock-critical');
+    }
+    // Se zerou, re-renderiza o menu para remover as ribbons/promos
+    if (remaining <= 0) {
+        renderMenu();
+    }
+}
+
 // ===== Menu Data =====
 const menuData = {
     tradicionais: [
@@ -555,6 +599,67 @@ function addDirectToCart(itemId) {
     }
 }
 
+// ===== Render Promo Banner =====
+function renderPromoBanner() {
+    if (!CRAZY_PROMO.active) return;
+
+    const section = document.getElementById('tradicionais')?.closest('.menu-section');
+    if (!section) return;
+
+    // Remove banner antigo para re-renderizar (caso estoque mude)
+    const existing = document.getElementById('crazy-promo-banner');
+    if (existing) existing.remove();
+
+    const remaining = getPromoRemaining();
+    const promoEnded = remaining <= 0;
+
+    const banner = document.createElement('div');
+    banner.id = 'crazy-promo-banner';
+    banner.className = 'crazy-promo-banner' + (promoEnded ? ' promo-ended' : '');
+    banner.innerHTML = promoEnded ? `
+        <div class="cpb-inner">
+            <div class="cpb-tag cpb-tag-ended">PROMOÇÃO ENCERRADA</div>
+            <h2 class="cpb-title cpb-title-ended">😢 Acabou! As 20 Unidades Foram!</h2>
+            <p class="cpb-subtitle">Mas nossos lanches continuam incríveis. Volte em breve!</p>
+        </div>
+    ` : `
+        <div class="cpb-lightning">⚡</div>
+        <div class="cpb-lightning cpb-lightning-right">⚡</div>
+        <div class="cpb-inner">
+            <div class="cpb-tag">OFERTA IMPERDÍVEL</div>
+            <h2 class="cpb-title">🔥 PROMOÇÃO MALUCA! 🔥</h2>
+            <p class="cpb-subtitle">X-Salada, Vegetariano e X-Egg<br>com preço de chorar de alegria!</p>
+            <div class="cpb-prices">
+                <div class="cpb-price-item">
+                    <span class="cpb-item-name">X-Salada</span>
+                    <span class="cpb-old-price">24,00</span>
+                    <span class="cpb-new-price">15,00</span>
+                </div>
+                <div class="cpb-divider">|</div>
+                <div class="cpb-price-item">
+                    <span class="cpb-item-name">Vegetariano</span>
+                    <span class="cpb-old-price">24,00</span>
+                    <span class="cpb-new-price">15,00</span>
+                </div>
+                <div class="cpb-divider">|</div>
+                <div class="cpb-price-item">
+                    <span class="cpb-item-name">X-Egg</span>
+                    <span class="cpb-old-price">27,00</span>
+                    <span class="cpb-new-price">20,00</span>
+                </div>
+            </div>
+            <div class="cpb-stock-bar">
+                <span class="cpb-stock-label">🔥 Restam apenas</span>
+                <span class="cpb-stock-number ${remaining <= 5 ? 'cpb-stock-critical' : ''}" id="cpb-stock-count">${remaining}</span>
+                <span class="cpb-stock-label">de 20 unidades!</span>
+            </div>
+            <div class="cpb-footer">Válido enquanto durarem os estoques • Peça já! 🚀</div>
+        </div>
+    `;
+
+    section.insertAdjacentElement('beforebegin', banner);
+}
+
 // ===== Render Menu =====
 function renderMenu() {
     Object.keys(menuData).forEach(category => {
@@ -570,9 +675,23 @@ function renderMenu() {
                 clickAction = `addToCart(${item.id})`;
             }
 
+            // Verifica se o item está em promoção (e tem estoque)
+            const promoInfo = isPromoActive() && CRAZY_PROMO.discounts[item.id];
+            const displayPrice = promoInfo ? promoInfo.promoPrice : item.price;
+
+            const priceBlock = item.soldOut
+                ? '<span class="sold-out-status">ESGOTADO</span>'
+                : promoInfo
+                    ? `<div class="promo-price-block">
+                           <span class="promo-original-price">${item.price.toFixed(2).replace('.', ',')}</span>
+                           <span class="item-price promo-active-price">${displayPrice.toFixed(2).replace('.', ',')}</span>
+                       </div>`
+                    : `<span class="item-price">${item.price.toFixed(2).replace('.', ',')}</span>`;
+
             return `
-            <div class="menu-item ${item.soldOut ? 'sold-out' : ''} ${item.image ? 'has-image' : ''}" data-id="${item.id}">
+            <div class="menu-item ${item.soldOut ? 'sold-out' : ''} ${item.image ? 'has-image' : ''} ${promoInfo ? 'item-on-promo' : ''}" data-id="${item.id}">
                 ${item.soldOut ? '<div class="sold-out-ribbon">ESGOTADO</div>' : ''}
+                ${promoInfo ? '<div class="promo-ribbon">🔥 PROMOÇÃO</div>' : ''}
                 
                 ${item.image ? `
                 <div class="item-visual" onclick="openAddonModal(${item.id})">
@@ -584,14 +703,15 @@ function renderMenu() {
                     <h3 class="item-name">
                         ${item.name}
                         ${item.badge ? `<span class="item-badge">${item.badge}</span>` : ''}
+                        ${promoInfo ? `<span class="item-badge promo-badge-item">${CRAZY_PROMO.label}</span>` : ''}
                     </h3>
                     <p class="item-description">${item.description}</p>
                     <div class="menu-item-actions">
                         <div class="price-container">
-                            ${item.soldOut ? '<span class="sold-out-status">ESGOTADO</span>' : `<span class="item-price">${item.price.toFixed(2).replace('.', ',')}</span>`}
+                            ${priceBlock}
                         </div>
                         ${!item.soldOut ? `
-                        <button class="add-button" onclick="${clickAction}" aria-label="Adicionar ${item.name}">
+                        <button class="add-button ${promoInfo ? 'add-button-promo' : ''}" onclick="${clickAction}" aria-label="Adicionar ${item.name}">
                             +
                         </button>
                         ` : ''}
@@ -601,6 +721,9 @@ function renderMenu() {
             `;
         }).join('');
     });
+
+    // Injeta o banner de promoção maluca
+    renderPromoBanner();
 }
 
 // ===== Find Item by ID =====
@@ -775,8 +898,37 @@ function updateCartItemAddons() {
 }
 
 function addToCart(itemId) {
-    // Recommendation: Always Direct Add to increase conversion
-    addDirectToCart(itemId);
+    // Se o item está em promoção e tem estoque, aplica o preço promocional
+    const promoInfo = isPromoActive() && CRAZY_PROMO.discounts[itemId];
+    if (promoInfo) {
+        const item = findItemById(itemId);
+        if (item) {
+            const originalPrice = item.price;
+            item.price = promoInfo.promoPrice; // Temporariamente aplica promo
+            addDirectToCart(itemId);
+            item.price = originalPrice; // Restaura o preço original no menuData
+            // Corrige o basePrice no cart também
+            const uniqueCartId = `${itemId}-default`;
+            const cartItem = cart.find(i => i.cartId === uniqueCartId);
+            if (cartItem) {
+                cartItem.basePrice = promoInfo.promoPrice;
+                cartItem.price = promoInfo.promoPrice;
+                saveCart();
+                updateCartUI();
+            }
+            // Desconta do estoque da promoção
+            incrementPromoSold();
+            const remaining = getPromoRemaining();
+            if (remaining <= 0) {
+                showToast('🔥 Últimas unidades esgotadas! Promoção encerrada.');
+                renderMenu(); // Re-renderiza sem promos
+            } else if (remaining <= 5) {
+                showToast(`⚠️ Atenção! Restam apenas ${remaining} unidades na promoção!`);
+            }
+        }
+    } else {
+        addDirectToCart(itemId);
+    }
     trackABEvent('direct_add');
 }
 

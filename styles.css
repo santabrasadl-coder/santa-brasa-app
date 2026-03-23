@@ -2430,3 +2430,306 @@ body {
 .sold-out-status {
     display: none;
 }
+
+/* ===== PROMOÇÃO MALUCA ===== */
+
+/* Banner principal */
+.crazy-promo-banner {
+    position: relative;
+    background: linear-gradient(135deg, #1a0000 0%, #0d0000 40%, #1a0d00 100%);
+    border: 2px solid #FF4500;
+    border-radius: 16px;
+    padding: 1.8rem 1.5rem;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    text-align: center;
+    box-shadow:
+        0 0 30px rgba(255, 69, 0, 0.5),
+        0 0 60px rgba(255, 69, 0, 0.2),
+        inset 0 0 30px rgba(255, 69, 0, 0.05);
+    animation: promo-banner-pulse 2s ease-in-out infinite;
+}
+
+@keyframes promo-banner-pulse {
+    0%, 100% { box-shadow: 0 0 30px rgba(255,69,0,0.4), 0 0 60px rgba(255,69,0,0.15); border-color: #FF4500; }
+    50%       { box-shadow: 0 0 50px rgba(255,69,0,0.7), 0 0 90px rgba(255,69,0,0.3); border-color: #FF6A00; }
+}
+
+/* Estado encerrado */
+.crazy-promo-banner.promo-ended {
+    background: linear-gradient(135deg, #111 0%, #0a0a0a 100%);
+    border-color: #444;
+    box-shadow: none;
+    animation: none;
+    opacity: 0.7;
+}
+
+/* Raios laterais animados */
+.cpb-lightning {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    font-size: 2.5rem;
+    animation: lightning-flash 1.2s ease-in-out infinite;
+    line-height: 1;
+    filter: drop-shadow(0 0 8px #FFD700);
+}
+
+.cpb-lightning-right {
+    left: auto;
+    right: 12px;
+    animation-delay: 0.6s;
+}
+
+@keyframes lightning-flash {
+    0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
+    50%       { opacity: 0.4; transform: translateY(-50%) scale(0.85); }
+}
+
+/* Inner content */
+.cpb-inner {
+    position: relative;
+    z-index: 2;
+}
+
+/* Tag "OFERTA IMPERDÍVEL" */
+.cpb-tag {
+    display: inline-block;
+    background: #FF4500;
+    color: #fff;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 3px;
+    padding: 0.3rem 1.2rem;
+    border-radius: 50px;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
+    animation: tag-bounce 0.8s ease-in-out infinite alternate;
+}
+
+.cpb-tag-ended {
+    background: #555;
+    box-shadow: none;
+    animation: none;
+}
+
+@keyframes tag-bounce {
+    from { transform: scale(1); }
+    to   { transform: scale(1.04); }
+}
+
+/* Título */
+.cpb-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.4rem;
+    letter-spacing: 3px;
+    color: #FF6A00;
+    text-shadow:
+        0 0 10px rgba(255, 106, 0, 0.8),
+        0 0 25px rgba(255, 106, 0, 0.4);
+    margin-bottom: 0.5rem;
+    animation: fire-glow 1.5s ease-in-out infinite alternate;
+}
+
+.cpb-title-ended {
+    color: #888;
+    text-shadow: none;
+    animation: none;
+}
+
+@keyframes fire-glow {
+    from { text-shadow: 0 0 10px rgba(255,106,0,0.6), 0 0 20px rgba(255,106,0,0.3); }
+    to   { text-shadow: 0 0 20px rgba(255,106,0,1),   0 0 40px rgba(255,106,0,0.6), 0 0 60px rgba(255,69,0,0.3); }
+}
+
+/* Subtítulo */
+.cpb-subtitle {
+    color: #ccc;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+/* Grade de preços */
+.cpb-prices {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.cpb-price-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    background: rgba(255, 69, 0, 0.08);
+    border: 1px solid rgba(255, 69, 0, 0.3);
+    border-radius: 10px;
+    padding: 0.6rem 0.9rem;
+    min-width: 80px;
+}
+
+.cpb-item-name {
+    font-size: 0.75rem;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.cpb-old-price {
+    font-size: 0.85rem;
+    color: #666;
+    text-decoration: line-through;
+    font-weight: 500;
+}
+
+.cpb-new-price {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    color: #00FF41;
+    line-height: 1;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+    letter-spacing: 1px;
+}
+
+.cpb-divider {
+    color: rgba(255,69,0,0.4);
+    font-size: 1.5rem;
+    align-self: center;
+}
+
+/* Barra de estoque */
+.cpb-stock-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,69,0,0.4);
+    border-radius: 50px;
+    padding: 0.5rem 1.2rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.cpb-stock-label {
+    color: #aaa;
+    font-size: 0.85rem;
+}
+
+.cpb-stock-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: #FF6A00;
+    line-height: 1;
+    text-shadow: 0 0 10px rgba(255, 106, 0, 0.7);
+    min-width: 32px;
+    text-align: center;
+}
+
+/* Estado crítico (≤ 5 unidades) */
+.cpb-stock-critical {
+    color: #FF3131 !important;
+    text-shadow: 0 0 15px rgba(255, 49, 49, 0.9) !important;
+    animation: critical-pulse 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes critical-pulse {
+    from { transform: scale(1); }
+    to   { transform: scale(1.15); }
+}
+
+/* Rodapé do banner */
+.cpb-footer {
+    font-size: 0.78rem;
+    color: rgba(255, 106, 0, 0.7);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* ===== Item card em promoção ===== */
+.menu-item.item-on-promo {
+    border: 1.5px solid rgba(255, 69, 0, 0.5);
+    box-shadow: 0 0 12px rgba(255, 69, 0, 0.15);
+    background: linear-gradient(135deg, #111 0%, #120500 100%);
+}
+
+.menu-item.item-on-promo:hover {
+    border-color: #FF6A00;
+    box-shadow: 0 4px 20px rgba(255, 69, 0, 0.35);
+}
+
+/* Ribbon de promoção no card */
+.promo-ribbon {
+    position: absolute;
+    top: 10px;
+    right: -28px;
+    background: linear-gradient(135deg, #FF4500, #FF6A00);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 4px 36px;
+    transform: rotate(45deg);
+    box-shadow: 0 2px 8px rgba(255, 69, 0, 0.5);
+    z-index: 10;
+    font-family: 'Poppins', sans-serif;
+    white-space: nowrap;
+}
+
+/* Badge no nome do item */
+.item-badge.promo-badge-item {
+    background: linear-gradient(135deg, #FF4500, #FF6A00);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 0 0 8px rgba(255, 69, 0, 0.5);
+    animation: badge-flare 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes badge-flare {
+    from { box-shadow: 0 0 6px rgba(255,69,0,0.4); }
+    to   { box-shadow: 0 0 14px rgba(255,106,0,0.8); }
+}
+
+/* Bloco de preço com desconto */
+.promo-price-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+}
+
+.promo-original-price {
+    font-size: 0.78rem;
+    color: #666;
+    text-decoration: line-through;
+    line-height: 1.2;
+}
+
+.item-price.promo-active-price {
+    color: #FF6A00;
+    text-shadow: 0 0 8px rgba(255, 106, 0, 0.5);
+    font-size: 1.3rem;
+}
+
+/* Botão + em promoção */
+.add-button.add-button-promo {
+    background: linear-gradient(135deg, #FF4500, #FF6A00);
+    box-shadow: 0 0 12px rgba(255, 69, 0, 0.5);
+}
+
+.add-button.add-button-promo:hover {
+    background: linear-gradient(135deg, #FF6A00, #FF8C00);
+    box-shadow: 0 0 22px rgba(255, 106, 0, 0.7);
+    transform: scale(1.1);
+}
