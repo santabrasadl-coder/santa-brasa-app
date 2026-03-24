@@ -99,7 +99,7 @@ function updateStoreStatus() {
             statusText.textContent = 'FECHANDO EM BREVE';
             statusBar.classList.remove('closed', 'open');
             statusBar.classList.add('closing-soon');
-            
+
             if (openingInfoNeon) {
                 openingInfoNeon.innerHTML = `
                     <div class="countdown-box">
@@ -166,7 +166,7 @@ const CRAZY_PROMO = {
     active: true,
     label: "🔥 PROMOÇÃO MALUCA",
     totalStock: 20,       // Estoque total compartilhado entre os 3 itens
-    storageKey: 'sb_crazy_promo_sold',
+    storageKey: 'sb_crazy_promo_sold_v2',
     discounts: {
         1: { promoPrice: 15.00 }, // X-Salada
         2: { promoPrice: 15.00 }, // Vegetariano
@@ -175,7 +175,7 @@ const CRAZY_PROMO = {
 };
 
 function getPromoSold() {
-    return parseInt(localStorage.getItem(CRAZY_PROMO.storageKey) || '0', 10);
+    return parseInt(localStorage.getItem(CRAZY_PROMO.storageKey) || '16', 10);
 }
 
 function getPromoRemaining() {
@@ -196,8 +196,8 @@ function updatePromoBannerStock() {
     const remaining = getPromoRemaining();
     const stockEl = document.getElementById('cpb-stock-count');
     if (stockEl) {
-        stockEl.textContent = remaining;
-        if (remaining <= 5) stockEl.classList.add('cpb-stock-critical');
+        stockEl.textContent = String(remaining).padStart(2, '0');
+        if (remaining <= 5) stockEl.closest('.cpb-stock-badge').classList.add('cpb-stock-critical');
     }
     // Se zerou, re-renderiza o menu para remover as ribbons/promos
     if (remaining <= 0) {
@@ -360,10 +360,10 @@ function getABTestGroup() {
 function trackABEvent(eventName) {
     const group = getABTestGroup();
     const fullEventName = `ab_${eventName}_${group}`;
-    
+
     // Log to console for debugging
     console.log(`[AB TEST] Tracking: ${fullEventName}`);
-    
+
     // Increment in Firebase if available
     if (typeof window.dbIncrement === 'function') {
         window.dbIncrement(fullEventName);
@@ -448,7 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addrInput.addEventListener('input', () => updateCartUI());
     }
     // initChat() será chamado pelo tracker quando o Firebase conectar
-    
+
     // Inicia Prova Social (Híbrida: Real-time + Simulação de Baixa Frequência)
     setTimeout(() => {
         if (typeof initRealTimeNotifications === 'function') {
@@ -467,7 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
 let isInitialOrderLoad = true;
 function initRealTimeNotifications() {
     if (typeof firebase === 'undefined') return;
-    
+
     const db = firebase.database();
     // Monitora o último pedido inserido
     const ordersRef = db.ref('orders').limitToLast(1);
@@ -488,7 +488,7 @@ function initRealTimeNotifications() {
 function showRealOrderNotification(order) {
     const nomeOriginal = order.customer.name || "Cliente";
     const bairro = order.customer.address ? extractBairro(order.customer.address) : "Itaúna";
-    
+
     const items = Array.isArray(order.items) ? order.items : Object.values(order.items || {});
     const firstItem = items[0] ? items[0].name : "um pedido";
 
@@ -545,13 +545,13 @@ function extractBairro(address) {
     for (let b of bairrosConhecidos) {
         if (address.toLowerCase().includes(b.toLowerCase())) return b;
     }
-    
+
     const parts = address.split(',');
     if (parts.length > 1) {
         const lastPart = parts[parts.length - 1].trim();
         return lastPart.split(' ')[0] || "Itaúna";
     }
-    
+
     return "Itaúna";
 }
 
@@ -592,7 +592,7 @@ function addDirectToCart(itemId) {
         value: item.price,
         currency: 'BRL'
     });
-    
+
     // Only track direct_add if it wasn't triggered by a Skip Modal event (which handles its own better tracking)
     if (!arguments[1]) {
         trackABEvent('direct_add');
@@ -619,7 +619,7 @@ function renderPromoBanner() {
     banner.innerHTML = promoEnded ? `
         <div class="cpb-inner">
             <div class="cpb-tag cpb-tag-ended">PROMOÇÃO ENCERRADA</div>
-            <h2 class="cpb-title cpb-title-ended">😢 Acabou! As 08 Unidades Foram!</h2>
+            <h2 class="cpb-title cpb-title-ended">😢 Acabou! As 20 Unidades Foram!</h2>
             <p class="cpb-subtitle">Mas nossos lanches continuam incríveis. Volte em breve!</p>
         </div>
     ` : `
@@ -648,11 +648,16 @@ function renderPromoBanner() {
                     <span class="cpb-new-price">20,00</span>
                 </div>
             </div>
-            <div class="cpb-stock-bar">
-                <span class="cpb-stock-label">🔥 Restam apenas</span>
-                <span class="cpb-stock-number ${remaining <= 5 ? 'cpb-stock-critical' : ''}" id="cpb-stock-count">${remaining}</span>
-                <span class="cpb-stock-label">de 8 unidades!</span>
+
+            <!-- Restam X de 20 + Countdown -->
+            <div class="cpb-urgency-row">
+                <div class="cpb-stock-badge ${remaining <= 5 ? 'cpb-stock-critical' : ''}">
+                    <span class="cpb-stock-txt">restão apenas</span>
+                    <span class="cpb-stock-big" id="cpb-stock-count">${String(remaining).padStart(2, '0')}</span>
+                    <span class="cpb-stock-of">de 20</span>
+                </div>
             </div>
+
             <div class="cpb-footer">Válido enquanto durarem os estoques • Peça já! 🚀</div>
         </div>
     `;
@@ -660,7 +665,7 @@ function renderPromoBanner() {
     section.insertAdjacentElement('beforebegin', banner);
 }
 
-// ===== Render Menu =====
+
 function renderMenu() {
     Object.keys(menuData).forEach(category => {
         const container = document.getElementById(category);
@@ -819,11 +824,11 @@ function updateModalTotal() {
 
     const btn = document.querySelector('.add-to-order-btn');
     const label = currentModalCartId ? "SALVAR ALTERAÇÕES" : "ADICIONAR AO PEDIDO";
-    
+
     if (btn) {
         btn.innerHTML = `${label} • <span id="modalTotalPrice">${total.toFixed(2).replace('.', ',')}</span>`;
     }
-    
+
     document.getElementById('modalItemPrice').textContent = `${currentModalItem.price.toFixed(2).replace('.', ',')}`;
 }
 
@@ -1042,7 +1047,7 @@ function updateCartUI() {
     totalDiv.style.display = 'flex';
     totalDiv.style.flexDirection = 'column';
     totalDiv.style.alignItems = 'flex-end';
-    
+
     if (fee > 0) {
         const sub = document.createElement('span');
         sub.style.fontSize = '0.8rem';
@@ -1050,7 +1055,7 @@ function updateCartUI() {
         sub.style.fontFamily = "'Poppins'";
         sub.textContent = `Subtotal: ${subtotal.toFixed(2).replace('.', ',')}`;
         totalDiv.appendChild(sub);
-        
+
         const deliver = document.createElement('span');
         deliver.style.fontSize = '0.8rem';
         deliver.style.color = 'var(--text-secondary)';
@@ -1058,11 +1063,11 @@ function updateCartUI() {
         deliver.textContent = `Entrega: ${fee.toFixed(2).replace('.', ',')}`;
         totalDiv.appendChild(deliver);
     }
-    
+
     const final = document.createElement('span');
     final.textContent = `${total.toFixed(2).replace('.', ',')}`;
     totalDiv.appendChild(final);
-    
+
     cartTotal.appendChild(totalDiv);
 }
 
@@ -1071,10 +1076,10 @@ function toggleCart() {
     cartSidebar.classList.toggle('active');
     cartOverlay.classList.toggle('active');
     document.body.style.overflow = cartSidebar.classList.contains('active') ? 'hidden' : '';
-    
+
     if (cartSidebar.classList.contains('active')) {
         logCheckoutOpen();
-        
+
         // Meta Pixel: InitiateCheckout
         trackPixelEvent('InitiateCheckout', {
             num_items: cart.length,
@@ -1145,16 +1150,16 @@ const DELIVERY_FEE = 10.00;
 function getDynamicDeliveryFee() {
     const addressInput = document.getElementById('clientAddress');
     if (!addressInput) return DELIVERY_FEE;
-    
+
     // Normalizar: minúsculas e remover acentos
     const address = addressInput.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    
+
     // Lista de bairros com taxa de R$ 13,00
     const specialBairros = [
         "varzea da olaria", "garcias", "cidade nova", "aeroporto", "aeroporoto",
         "santanense", "itaunense 1", "itaunense 2", "tres marias"
     ];
-    
+
     const isSpecial = specialBairros.some(bairro => address.includes(bairro));
     return isSpecial ? 13.00 : DELIVERY_FEE;
 }
@@ -1327,7 +1332,7 @@ function sendToWhatsApp() {
 
     // On mobile, window.location.href is more reliable and avoids popup blockers
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
+
     if (isMobile) {
         window.location.href = whatsappUrl;
     } else {
