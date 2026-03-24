@@ -651,7 +651,7 @@ function renderPromoBanner() {
             <div class="cpb-stock-bar">
                 <span class="cpb-stock-label">🔥 Restam apenas</span>
                 <span class="cpb-stock-number ${remaining <= 5 ? 'cpb-stock-critical' : ''}" id="cpb-stock-count">${remaining}</span>
-                <span class="cpb-stock-label">de 2 unidades!</span>
+                <span class="cpb-stock-label">de 8 unidades!</span>
             </div>
             <div class="cpb-footer">Válido enquanto durarem os estoques • Peça já! 🚀</div>
         </div>
