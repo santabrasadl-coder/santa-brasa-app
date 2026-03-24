@@ -619,7 +619,7 @@ function renderPromoBanner() {
     banner.innerHTML = promoEnded ? `
         <div class="cpb-inner">
             <div class="cpb-tag cpb-tag-ended">PROMOÇÃO ENCERRADA</div>
-            <h2 class="cpb-title cpb-title-ended">😢 Acabou! As 20 Unidades Foram!</h2>
+            <h2 class="cpb-title cpb-title-ended">😢 Acabou! As 08 Unidades Foram!</h2>
             <p class="cpb-subtitle">Mas nossos lanches continuam incríveis. Volte em breve!</p>
         </div>
     ` : `
@@ -651,7 +651,7 @@ function renderPromoBanner() {
             <div class="cpb-stock-bar">
                 <span class="cpb-stock-label">🔥 Restam apenas</span>
                 <span class="cpb-stock-number ${remaining <= 5 ? 'cpb-stock-critical' : ''}" id="cpb-stock-count">${remaining}</span>
-                <span class="cpb-stock-label">de 12 unidades!</span>
+                <span class="cpb-stock-label">de 2 unidades!</span>
             </div>
             <div class="cpb-footer">Válido enquanto durarem os estoques • Peça já! 🚀</div>
         </div>
