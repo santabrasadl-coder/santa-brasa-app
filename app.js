@@ -163,7 +163,7 @@ setInterval(updateStoreStatus, 1000);
 
 // ===== Promoção Maluca =====
 const CRAZY_PROMO = {
-    active: true,
+    active: false,
     label: "🔥 PROMOÇÃO MALUCA",
     totalStock: 20,       // Estoque total compartilhado entre os 3 itens
     storageKey: 'sb_crazy_promo_sold_v2',
@@ -1282,6 +1282,31 @@ function sendToWhatsApp() {
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
 
+    // On mobile, window.location.href is more reliable and avoids popup blockers
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    const finishCheckoutAndRedirect = () => {
+        // Meta Pixel: Purchase/Lead (WhatsApp Click)
+        trackPixelEvent('Purchase', {
+            value: total,
+            currency: 'BRL',
+            content_type: 'product',
+            content_ids: cart.map(item => item.id),
+            num_items: cart.length
+        });
+
+        // Log do Pedido para o Dashboard (Métricas legadas)
+        logEvent("Iniciou pedido via WhatsApp");
+        dbIncrement("total_orders_clicked");
+        trackABEvent('checkout_whatsapp');
+
+        if (isMobile) {
+            window.location.href = whatsappUrl;
+        } else {
+            window.open(whatsappUrl, '_blank');
+        }
+    };
+
     // --- SALVAR PEDIDO NO CRM (FIREBASE) ---
     try {
         if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
@@ -1307,59 +1332,62 @@ function sendToWhatsApp() {
                 payment: payment
             };
 
-            // Salva na lista de pedidos
-            db.ref('orders/' + orderId).set(orderData);
-
-            // Atualiza/Cria registro do cliente
             const customerKey = name.toLowerCase().replace(/\s+/g, '_');
-            db.ref('customers/' + customerKey).transaction((current) => {
-                if (!current) {
-                    return {
-                        name: name,
-                        phone: phone || '',
-                        address: orderType === 'delivery' ? address : '',
-                        totalSpent: total,
-                        orderCount: 1,
-                        lastOrder: orderData.timestamp
-                    };
-                } else {
-                    current.totalSpent = (current.totalSpent || 0) + total;
-                    current.orderCount = (current.orderCount || 0) + 1;
-                    current.lastOrder = orderData.timestamp;
-                    if (phone) current.phone = phone;
-                    if (orderType === 'delivery' && address) current.address = address;
-                    return current;
-                }
-            });
+            
+            // Promise.all para registrar ambas ações no Firebase
+            const savePromises = Promise.all([
+                db.ref('orders/' + orderId).set(orderData),
+                db.ref('customers/' + customerKey).transaction((current) => {
+                    if (!current) {
+                        return {
+                            name: name,
+                            phone: phone || '',
+                            address: orderType === 'delivery' ? address : '',
+                            totalSpent: total,
+                            orderCount: 1,
+                            lastOrder: orderData.timestamp
+                        };
+                    } else {
+                        current.totalSpent = (current.totalSpent || 0) + total;
+                        current.orderCount = (current.orderCount || 0) + 1;
+                        current.lastOrder = orderData.timestamp;
+                        if (phone) current.phone = phone;
+                        if (orderType === 'delivery' && address) current.address = address;
+                        return current;
+                    }
+                })
+            ]);
 
-            logEvent(`Pedido registrado no CRM: R$ ${total.toFixed(2)}`);
+            if (isMobile) {
+                // Mobile: Esperar a promessa do firebase resolver ANTES de mudar a página
+                // (Evita matar a conexão web-socket antes do pedido chegar ao dash)
+                const timeoutFallback = setTimeout(() => { finishCheckoutAndRedirect(); }, 2500); 
+                savePromises.then(() => {
+                    clearTimeout(timeoutFallback);
+                    logEvent(`Pedido registrado no CRM: R$ ${total.toFixed(2)}`);
+                    finishCheckoutAndRedirect();
+                }).catch((e) => {
+                    clearTimeout(timeoutFallback);
+                    console.error("Erro Promise CRM:", e);
+                    finishCheckoutAndRedirect();
+                });
+            } else {
+                // Desktop: window.open síncrono por conta do Popup Blocker.
+                // Salva no background sem problema pq a aba original não fecha!
+                savePromises.then(() => {
+                    logEvent(`Pedido registrado no CRM: R$ ${total.toFixed(2)}`);
+                }).catch(e => console.error("Erro assincrono Desktop CRM:", e));
+                finishCheckoutAndRedirect();
+            }
+
+        } else {
+            console.warn("Sem firebase, pulando envio");
+            finishCheckoutAndRedirect();
         }
     } catch (e) {
-        console.error("Erro ao salvar no CRM:", e);
+        console.error("Erro crítico ao salvar no CRM:", e);
+        finishCheckoutAndRedirect();
     }
-
-    // On mobile, window.location.href is more reliable and avoids popup blockers
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-    if (isMobile) {
-        window.location.href = whatsappUrl;
-    } else {
-        window.open(whatsappUrl, '_blank');
-    }
-
-    // Meta Pixel: Purchase/Lead (WhatsApp Click)
-    trackPixelEvent('Purchase', {
-        value: total,
-        currency: 'BRL',
-        content_type: 'product',
-        content_ids: cart.map(item => item.id),
-        num_items: cart.length
-    });
-
-    // Log do Pedido para o Dashboard (Métricas legadas)
-    logEvent("Iniciou pedido via WhatsApp");
-    dbIncrement("total_orders_clicked");
-    trackABEvent('checkout_whatsapp');
 }
 
 // ╔════════════════════════════════════════════════════════════════╗
