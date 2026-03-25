@@ -62,7 +62,7 @@ body {
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 4px 8px rgba(0, 255, 65, 0.4);
+    box-shadow: 0 4px 20px rgba(0, 255, 65, 0.4);
 }
 
 .status-indicator {

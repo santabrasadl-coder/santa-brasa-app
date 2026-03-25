@@ -1165,7 +1165,11 @@ function getDynamicDeliveryFee() {
 }
 
 // ===== Send to WhatsApp =====
+let isSubmittingOrder = false;
+
 function sendToWhatsApp() {
+    if (isSubmittingOrder) return;
+
     // We no longer block if store is closed, we treat as agendamento
     if (cart.length === 0) {
         showToast("Seu carrinho está vazio!");
@@ -1218,6 +1222,10 @@ function sendToWhatsApp() {
         document.getElementById('changeAmount').focus();
         return;
     }
+
+    // Marca como enviando AGORA, após todas as validações passarem
+    isSubmittingOrder = true;
+    setTimeout(() => { isSubmittingOrder = false; }, 4000);
 
     // Salvar dados para a próxima compra
     saveUserData(name, address, phone);
