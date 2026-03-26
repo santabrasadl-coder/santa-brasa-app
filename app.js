@@ -163,14 +163,12 @@ setInterval(updateStoreStatus, 1000);
 
 // ===== Promoção Maluca =====
 const CRAZY_PROMO = {
-    active: false,
-    label: "🔥 PROMOÇÃO MALUCA",
-    totalStock: 20,       // Estoque total compartilhado entre os 3 itens
-    storageKey: 'sb_crazy_promo_sold_v2',
+    active: true,
+    label: "🔥 OFERTA SANTO JUÍZO",
+    totalStock: 30,       // Estoque total compartilhado
+    storageKey: 'sb_santo_juizo_promo_v1',
     discounts: {
-        1: { promoPrice: 15.00 }, // X-Salada
-        2: { promoPrice: 15.00 }, // Vegetariano
-        3: { promoPrice: 20.00 }  // X-Egg
+        8: { promoPrice: 39.90 } // Santo Juízo
     }
 };
 
@@ -619,42 +617,30 @@ function renderPromoBanner() {
     banner.innerHTML = promoEnded ? `
         <div class="cpb-inner">
             <div class="cpb-tag cpb-tag-ended">PROMOÇÃO ENCERRADA</div>
-            <h2 class="cpb-title cpb-title-ended">😢 Acabou! As 20 Unidades Foram!</h2>
+            <h2 class="cpb-title cpb-title-ended">😢 Acabou! As 30 Unidades Foram!</h2>
             <p class="cpb-subtitle">Mas nossos lanches continuam incríveis. Volte em breve!</p>
         </div>
     ` : `
         <div class="cpb-lightning">⚡</div>
         <div class="cpb-lightning cpb-lightning-right">⚡</div>
         <div class="cpb-inner">
-            <div class="cpb-tag">OFERTA IMPERDÍVEL</div>
-            <h2 class="cpb-title">🔥 PROMOÇÃO MALUCA! 🔥</h2>
-            <p class="cpb-subtitle">X-Salada, Vegetariano e X-Egg<br>com preço de chorar de alegria!</p>
+            <div class="cpb-tag">OFERTA EXCLUSIVA</div>
+            <h2 class="cpb-title">🔥 PROMOÇÃO SANTO JUÍZO! 🔥</h2>
+            <p class="cpb-subtitle">Experimente o nosso mais vendido com um desconto especial!</p>
             <div class="cpb-prices">
                 <div class="cpb-price-item">
-                    <span class="cpb-item-name">X-Salada</span>
-                    <span class="cpb-old-price">24,00</span>
-                    <span class="cpb-new-price">15,00</span>
-                </div>
-                <div class="cpb-divider">|</div>
-                <div class="cpb-price-item">
-                    <span class="cpb-item-name">Vegetariano</span>
-                    <span class="cpb-old-price">24,00</span>
-                    <span class="cpb-new-price">15,00</span>
-                </div>
-                <div class="cpb-divider">|</div>
-                <div class="cpb-price-item">
-                    <span class="cpb-item-name">X-Egg</span>
-                    <span class="cpb-old-price">27,00</span>
-                    <span class="cpb-new-price">20,00</span>
+                    <span class="cpb-item-name">Santo Juízo</span>
+                    <span class="cpb-old-price">44,00</span>
+                    <span class="cpb-new-price">39,90</span>
                 </div>
             </div>
 
-            <!-- Restam X de 20 + Countdown -->
+            <!-- Restam X de 30 + Countdown -->
             <div class="cpb-urgency-row">
                 <div class="cpb-stock-badge ${remaining <= 5 ? 'cpb-stock-critical' : ''}">
                     <span class="cpb-stock-txt">restão apenas</span>
                     <span class="cpb-stock-big" id="cpb-stock-count">${String(remaining).padStart(2, '0')}</span>
-                    <span class="cpb-stock-of">de 20</span>
+                    <span class="cpb-stock-of">de 30</span>
                 </div>
             </div>
 
