@@ -173,7 +173,7 @@ const CRAZY_PROMO = {
 };
 
 function getPromoSold() {
-    return parseInt(localStorage.getItem(CRAZY_PROMO.storageKey) || '16', 10);
+    return parseInt(localStorage.getItem(CRAZY_PROMO.storageKey) || '0', 10);
 }
 
 function getPromoRemaining() {
@@ -624,9 +624,9 @@ function renderPromoBanner() {
         <div class="cpb-lightning">⚡</div>
         <div class="cpb-lightning cpb-lightning-right">⚡</div>
         <div class="cpb-inner">
-            <div class="cpb-tag">OFERTA EXCLUSIVA</div>
+            <div class="cpb-tag">OFERTA DE QUINTA-FEIRA</div>
             <h2 class="cpb-title">🔥 PROMOÇÃO SANTO JUÍZO! 🔥</h2>
-            <p class="cpb-subtitle">Experimente o nosso mais vendido com um desconto especial!</p>
+            <p class="cpb-subtitle">Experimente o nosso mais vendido com um desconto especial apenas hoje!</p>
             <div class="cpb-prices">
                 <div class="cpb-price-item">
                     <span class="cpb-item-name">Santo Juízo</span>
