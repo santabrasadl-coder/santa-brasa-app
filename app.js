@@ -165,7 +165,7 @@ setInterval(updateStoreStatus, 1000);
 const CRAZY_PROMO = {
     active: true,
     label: "🔥 OFERTA SANTO JUÍZO",
-    totalStock: 30,       // Estoque total compartilhado
+    totalStock: 10,       // Estoque total compartilhado
     storageKey: 'sb_santo_juizo_promo_v1',
     discounts: {
         8: { promoPrice: 39.90 } // Santo Juízo
@@ -617,7 +617,7 @@ function renderPromoBanner() {
     banner.innerHTML = promoEnded ? `
         <div class="cpb-inner">
             <div class="cpb-tag cpb-tag-ended">PROMOÇÃO ENCERRADA</div>
-            <h2 class="cpb-title cpb-title-ended">😢 Acabou! As 30 Unidades Foram!</h2>
+            <h2 class="cpb-title cpb-title-ended">😢 Acabou! As 10 Unidades Foram!</h2>
             <p class="cpb-subtitle">Mas nossos lanches continuam incríveis. Volte em breve!</p>
         </div>
     ` : `
@@ -635,12 +635,12 @@ function renderPromoBanner() {
                 </div>
             </div>
 
-            <!-- Restam X de 30 + Countdown -->
+            <!-- Restam X de 10 + Countdown -->
             <div class="cpb-urgency-row">
                 <div class="cpb-stock-badge ${remaining <= 5 ? 'cpb-stock-critical' : ''}">
                     <span class="cpb-stock-txt">restão apenas</span>
                     <span class="cpb-stock-big" id="cpb-stock-count">${String(remaining).padStart(2, '0')}</span>
-                    <span class="cpb-stock-of">de 30</span>
+                    <span class="cpb-stock-of">de 10</span>
                 </div>
             </div>
 
