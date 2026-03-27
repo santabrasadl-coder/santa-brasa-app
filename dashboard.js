@@ -139,9 +139,18 @@ function initDashboard() {
             console.log(`✅ ${orders.length} pedidos carregados.`);
         }
 
-        // Se não for o carregamento inicial e a quantidade de pedidos aumentou, toca o som
-        if (!isInitialLoad && window.currentOrders && orders.length > window.currentOrders.length) {
-            playNotificationSound();
+        // NOVO: Lógica de Notificação Robusta (Baseada no ID do pedido mais recente)
+        const newestOrder = orders[0];
+        if (!isInitialLoad && newestOrder) {
+            const lastId = localStorage.getItem('last_alerted_order_id');
+            if (newestOrder.firebaseKey !== lastId) {
+                console.log("🔔 Novo pedido detectado:", newestOrder.firebaseKey);
+                playNotificationSound();
+                localStorage.setItem('last_alerted_order_id', newestOrder.firebaseKey);
+            }
+        } else if (isInitialLoad && newestOrder) {
+            // No carregamento inicial, apenas salva o ID para não apitar depois
+            localStorage.setItem('last_alerted_order_id', newestOrder.firebaseKey);
         }
 
         try {
@@ -721,24 +730,58 @@ function playNotificationSound() {
     const stopBtn = document.getElementById('stopSoundBtn');
 
     if (sound) {
-        sound.loop = true; // Força loop
+        sound.loop = true; 
         sound.currentTime = 0;
 
-        // Fallback robusto para loop
+        // Fallback para loop se o atributo 'loop' falhar
         sound.onended = () => {
             if (stopBtn && stopBtn.style.display !== 'none') {
                 sound.currentTime = 0;
-                sound.play();
+                sound.play().catch(e => console.warn("Erro no loop:", e));
             }
         };
 
-        sound.play().then(() => {
-            if (stopBtn) stopBtn.style.display = 'block';
-            console.log("🔔 Tocando som de notificação (LOOP REFORÇADO)!");
-        }).catch(e => {
-            console.warn("Erro ao tocar som:", e);
-        });
+        const playPromise = sound.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                if (stopBtn) stopBtn.style.display = 'block';
+                console.log("🔔 Tocando som de notificação!");
+            }).catch(e => {
+                console.warn("⚠️ Som bloqueado pelo navegador. Clique em qualquer lugar para liberar.", e);
+                // Notificar visualmente que o som falhou
+                addLogRow(new Date().toLocaleTimeString('pt-BR'), "⚠️ NOVO PEDIDO! (Som bloqueado pelo navegador - Clique no painel)");
+                
+                // Mostrar alerta visual flutuante se possível
+                showVisualAlert();
+            });
+        }
     }
+}
+
+// Função para liberar o som no primeiro clique caso o navegador tenha bloqueado
+document.addEventListener('click', () => {
+    const sound = document.getElementById('notificationSound');
+    if (sound && sound.paused && document.getElementById('stopSoundBtn').style.display === 'block') {
+         sound.play().catch(() => {});
+    }
+}, { once: false });
+
+function showVisualAlert() {
+    // Tenta piscar o título da página
+    let isTabActive = true;
+    window.onfocus = () => { isTabActive = true; document.title = "Santa Brasa - Dashboard Live"; };
+    window.onblur = () => { isTabActive = false; };
+
+    let blink = true;
+    const interval = setInterval(() => {
+        document.title = blink ? "🚨 NOVO PEDIDO! 🚨" : "Santa Brasa - Dashboard";
+        blink = !blink;
+        if (document.getElementById('stopSoundBtn').style.display === 'none') {
+            clearInterval(interval);
+            document.title = "Santa Brasa - Dashboard Live";
+        }
+    }, 1000);
 }
 
 function stopNotificationSound() {
