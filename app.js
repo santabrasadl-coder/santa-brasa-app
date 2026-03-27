@@ -306,6 +306,12 @@ const menuData = {
             description: "Fatia generosa. Massa de cenoura fresquinha com aquela cobertura de chocolate que crackela.",
             price: 18.00,
             soldOut: true
+        },
+        {
+            id: 3004,
+            name: "Bolo Dois Amores",
+            description: "Fatia generosa. Irresistível creme de Ninho Original combinado com autêntico Chocolate Nobre 50% cacau.",
+            price: 18.00
         }
     ],
     bebidas: [
