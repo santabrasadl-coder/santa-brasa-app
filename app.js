@@ -1318,7 +1318,7 @@ function sendToWhatsApp() {
                 payment: payment
             };
 
-            const customerKey = name.toLowerCase().replace(/\s+/g, '_');
+            const customerKey = name.toLowerCase().replace(/[.#$\[\]\s]/g, '_');
             
             // Promise.all para registrar ambas ações no Firebase
             const savePromises = Promise.all([
