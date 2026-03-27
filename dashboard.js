@@ -819,24 +819,5 @@ function formatDate(date) {
 
 // ===== Segurança Simples: Senha de Acesso =====
 function checkAccess() {
-    const MASTER_PASSWORD = "brasa-admin"; 
-    const authorized = sessionStorage.getItem('dashboard_auth');
-
-    if (authorized === 'true') return true;
-
-    const pass = prompt("Digite a senha de administrador para acessar o Painel SANTA BRASA:");
-    if (pass === MASTER_PASSWORD) {
-        sessionStorage.setItem('dashboard_auth', 'true');
-        return true;
-    } else {
-        alert("Senha incorreta. Acesso negado.");
-        document.body.innerHTML = `
-            <div style="background:#000; color:#fff; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
-                <h1 style="color:#FF3131;">🔥 ACESSO NEGADO</h1>
-                <p>Você não tem permissão para visualizar este painel.</p>
-                <button onclick="location.reload()" style="background:#FF3131; color:#fff; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; margin-top:20px;">Tentar Novamente</button>
-            </div>
-        `;
-        return false;
-    }
+    return true; // Removido verificação de senha para facilitar o acesso e evitar bugs
 }

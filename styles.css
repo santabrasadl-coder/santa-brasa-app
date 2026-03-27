@@ -1398,6 +1398,30 @@ body {
     font-size: 1.8rem !important;
 }
 
+/* ===== Green Highlight Item (Bolo Dois Amores) ===== */
+.highlight-green-item {
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.05) 0%, #111 100%) !important;
+    border: 2px solid #00FF41 !important;
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.2) !important;
+    animation: green-pulse-border 2s infinite alternate !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.highlight-green-item .item-name {
+    color: #00FF41 !important;
+    text-shadow: 0 0 8px rgba(0, 255, 65, 0.4) !important;
+}
+
+@keyframes green-pulse-border {
+    from {
+        box-shadow: 0 0 10px rgba(0, 255, 65, 0.1);
+    }
+    to {
+        box-shadow: 0 0 25px rgba(0, 255, 65, 0.5);
+    }
+}
+
 .flash-item .add-button {
     background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.5) !important;

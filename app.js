@@ -22,7 +22,7 @@ function trackPixelEvent(eventName, params = {}) {
     }
 }
 
-let manualStoreStatus = "auto"; // "open", "closed" ou "auto"
+let manualStoreStatus = "open"; // "open", "closed" ou "auto"
 
 function isStoreOpen() {
     if (manualStoreStatus === "closed") return false;
@@ -311,7 +311,9 @@ const menuData = {
             id: 3004,
             name: "Bolo Dois Amores",
             description: "Fatia generosa. Irresistível creme de Ninho Original combinado com autêntico Chocolate Nobre 50% cacau.",
-            price: 18.00
+            price: 18.00,
+            highlightGreen: true,
+            badge: "NOVIDADE ✨"
         }
     ],
     bebidas: [
@@ -686,7 +688,7 @@ function renderMenu() {
                     : `<span class="item-price">${item.price.toFixed(2).replace('.', ',')}</span>`;
 
             return `
-            <div class="menu-item ${item.soldOut ? 'sold-out' : ''} ${item.image ? 'has-image' : ''} ${promoInfo ? 'item-on-promo' : ''}" data-id="${item.id}">
+            <div class="menu-item ${item.soldOut ? 'sold-out' : ''} ${item.image ? 'has-image' : ''} ${promoInfo ? 'item-on-promo' : ''} ${item.highlightGreen ? 'highlight-green-item' : ''}" data-id="${item.id}">
                 ${item.soldOut ? '<div class="sold-out-ribbon">ESGOTADO</div>' : ''}
                 ${promoInfo ? '<div class="promo-ribbon">🔥 PROMOÇÃO</div>' : ''}
                 
