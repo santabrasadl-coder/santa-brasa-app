@@ -115,7 +115,7 @@ function updateStoreStatus() {
             statusBar.classList.remove('closed', 'closing-soon');
             statusBar.classList.add('open');
             if (openingInfoNeon) {
-                openingInfoNeon.textContent = "Entrega em toda cidade! 🛵";
+                openingInfoNeon.textContent = "Entrega em ±30 min! 🛵";
                 openingInfoNeon.classList.remove('closed');
                 openingInfoNeon.classList.add('open');
             }
@@ -163,7 +163,7 @@ setInterval(updateStoreStatus, 1000);
 
 // ===== Promoção Maluca =====
 const CRAZY_PROMO = {
-    active: true,
+    active: false,
     label: "🔥 OFERTA SANTO JUÍZO",
     totalStock: 10,       // Estoque total compartilhado
     storageKey: 'sb_santo_juizo_promo_v1',
@@ -216,38 +216,38 @@ const menuData = {
             id: 2,
             name: "Vegetariano",
             description: "Pão, 2 ovos, Dobro de Queijo, Milho, Alface, Tomate e Maionese Especial.",
-            price: 24.00
+            price: 25.00
         },
         {
             id: 3,
             name: "X-Egg",
             description: "Pão, Hambúrguer Artesanal, Ovo, Dobro de Queijo, Alface, Tomate e Maionese Especial.",
-            price: 27.00
+            price: 29.00
         },
         {
             id: 4,
             name: "X-Bacon",
             description: "Pão, Hambúrguer Artesanal, Bacon, Queijo, Alface, Tomate e Maionese Especial.",
-            price: 30.00
+            price: 33.00
         },
         {
             id: 5,
             name: "Laçador",
             description: "Pão, Hambúrguer Artesanal, Bacon, Milho, Dobro de Queijo, Alface, Tomate e Maionese Artesanal.",
-            price: 32.00
+            price: 34.00
         },
         {
             id: 6,
             name: "X-Egg Bacon",
             description: "Pão, Hambúrguer Artesanal, Bacon, Ovo, Mussarela, Alface, Tomate e Molho Especial.",
-            price: 32.00
+            price: 34.00
         }
     ],
     especiais: [
         {
             id: 7,
             name: "Santa Fúria",
-            description: "Quando a fome perde a paciência: Dois Hambúrgueres Artesanais, Ovo, Tomate, Frango Desfiado, Bacon, Triplo de Queijo, Milho, Alface e Maionese Especial.",
+            description: "Quando a fome perde a paciência: Dois Hambúrgueres Artesanais, Ovo, Tomate, Frango Desfiado, Bacon, Triplo de Queijo, Milho, Alface e Maionese Especial.<br><small style='color: var(--primary); font-size: 0.85rem; font-weight: 600; display: block; margin-top: 5px;'>👉 Pode servir até duas pessoas</small>",
             price: 48.00,
             badge: "O MAIOR! 🔥",
             image: "santa_furia.png"
@@ -270,7 +270,7 @@ const menuData = {
             id: 10,
             name: "Dom Contra",
             description: "Carne nobre, sabor marcante: Pão, Contrafilé, Bacon, Ovo, Dobro de Queijo, Salada e Molho Especial.",
-            price: 42.00,
+            price: 54.00,
             soldOut: true
         }
     ],
@@ -629,11 +629,9 @@ function renderPromoBanner() {
             <p class="cpb-subtitle">Mas nossos lanches continuam incríveis. Volte em breve!</p>
         </div>
     ` : `
-        <div class="cpb-lightning">⚡</div>
-        <div class="cpb-lightning cpb-lightning-right">⚡</div>
         <div class="cpb-inner">
             <div class="cpb-tag">OFERTA DE QUINTA-FEIRA</div>
-            <h2 class="cpb-title">🔥 PROMOÇÃO SANTO JUÍZO! 🔥</h2>
+            <h2 class="cpb-title">🔥 SANTO JUÍZO 🔥</h2>
             <p class="cpb-subtitle">Experimente o nosso mais vendido com um desconto especial apenas hoje!</p>
             <div class="cpb-prices">
                 <div class="cpb-price-item">
@@ -1327,7 +1325,7 @@ function sendToWhatsApp() {
             };
 
             const customerKey = name.toLowerCase().replace(/[.#$\[\]\s]/g, '_');
-            
+
             // Promise.all para registrar ambas ações no Firebase
             const savePromises = Promise.all([
                 db.ref('orders/' + orderId).set(orderData),
@@ -1355,7 +1353,7 @@ function sendToWhatsApp() {
             if (isMobile) {
                 // Mobile: Esperar a promessa do firebase resolver ANTES de mudar a página
                 // (Evita matar a conexão web-socket antes do pedido chegar ao dash)
-                const timeoutFallback = setTimeout(() => { finishCheckoutAndRedirect(); }, 2500); 
+                const timeoutFallback = setTimeout(() => { finishCheckoutAndRedirect(); }, 2500);
                 savePromises.then(() => {
                     clearTimeout(timeoutFallback);
                     logEvent(`Pedido registrado no CRM: R$ ${total.toFixed(2)}`);
