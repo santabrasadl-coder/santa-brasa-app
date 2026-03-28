@@ -32,7 +32,9 @@ window.onerror = function(msg, url, lineNo, columnNo, error) {
 
 if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
     try {
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps || !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         console.log("✅ Firebase inicializado com sucesso.");
         
         // --- ADICIONADO: Guard de Segurança ---
@@ -72,6 +74,12 @@ function initDashboard() {
             document.querySelector('.live-dot').style.backgroundColor = "#00FF41";
             document.querySelector('.live-dot').style.boxShadow = "0 0 10px #00FF41";
             setupHint.style.display = 'none';
+
+            // NOVO: Log de Diagnóstico Mobile no Dashboard
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobile) {
+                 addLogRow(new Date().toLocaleTimeString('pt-BR'), "🚀 Painel sincronizado via dispositivo móvel.");
+            }
 
             // Registro de Presença do próprio Painel (Separado para não contar como cliente)
             const myPresenceRef = db.ref('presence/admins').push();

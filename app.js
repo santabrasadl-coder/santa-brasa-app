@@ -1361,13 +1361,17 @@ function sendToWhatsApp() {
             ]);
 
             if (isMobile) {
-                // Mobile: Esperar a promessa do firebase resolver ANTES de mudar a página
-                // (Evita matar a conexão web-socket antes do pedido chegar ao dash)
-                const timeoutFallback = setTimeout(() => { finishCheckoutAndRedirect(); }, 2500);
+                // Mobile: Priorizar pedido e esperar a confirmação (com timeout maior para conexões instáveis)
+                const timeoutFallback = setTimeout(() => { 
+                    console.warn("CRM Timeout (Mobile) - Redirecionando mesmo assim.");
+                    finishCheckoutAndRedirect(); 
+                }, 3500);
+
                 savePromises.then(() => {
                     clearTimeout(timeoutFallback);
-                    logEvent(`Pedido registrado no CRM: R$ ${total.toFixed(2)}`);
-                    finishCheckoutAndRedirect();
+                    if (typeof logEvent === 'function') logEvent(`Pedido registrado no CRM: R$ ${total.toFixed(2)}`);
+                    // Pequeno delay para garantir que o buffer de rede finalize o envio no mobile
+                    setTimeout(finishCheckoutAndRedirect, 100);
                 }).catch((e) => {
                     clearTimeout(timeoutFallback);
                     console.error("Erro Promise CRM:", e);
@@ -1414,7 +1418,7 @@ window.logEvent = () => { };
 if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
     try {
         // Inicializar Firebase
-        const app = !firebase.apps.length ? firebase.initializeApp(firebaseConfig) : firebase.app();
+        const app = (!firebase.apps || !firebase.apps.length) ? firebase.initializeApp(firebaseConfig) : firebase.app();
         const db = app.database();
         const today = new Date().toISOString().split('T')[0]; // Define hoje globalmente para o tracker
 
@@ -1449,6 +1453,13 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
 
                 // Log de conexão (Removido guard de sessão para teste)
                 logEvent("Visitante conectou ao site");
+
+                // NOVO: Diagnóstico Mobile no Log do Banco
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                if (isMobile) {
+                    logEvent("📱 Cliente conectado via dispositivo móvel");
+                }
+
                 dbIncrement("total_visits");
                 console.log("📊 Incremento de visita e log de presença enviados.");
             } else {
