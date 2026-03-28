@@ -139,17 +139,17 @@ function initDashboard() {
             console.log(`✅ ${orders.length} pedidos carregados.`);
         }
 
-        // NOVO: Lógica de Notificação Robusta (Baseada no ID do pedido mais recente)
+        // NOVO: Lógica de Notificação Robusta (Não perde pedidos enquanto fechado)
         const newestOrder = orders[0];
-        if (!isInitialLoad && newestOrder) {
-            const lastId = localStorage.getItem('last_alerted_order_id');
-            if (newestOrder.firebaseKey !== lastId) {
+        const lastId = localStorage.getItem('last_alerted_order_id');
+
+        if (newestOrder) {
+            // Se já tínhamos um registro e o novo é DIFERENTE, significa que é novo (ou chegou enquanto fechado)
+            if (lastId && newestOrder.firebaseKey !== lastId) {
                 console.log("🔔 Novo pedido detectado:", newestOrder.firebaseKey);
                 playNotificationSound();
-                localStorage.setItem('last_alerted_order_id', newestOrder.firebaseKey);
             }
-        } else if (isInitialLoad && newestOrder) {
-            // No carregamento inicial, apenas salva o ID para não apitar depois
+            // Atualiza sempre para o mais recente
             localStorage.setItem('last_alerted_order_id', newestOrder.firebaseKey);
         }
 
@@ -748,14 +748,14 @@ function playNotificationSound() {
                 if (stopBtn) stopBtn.style.display = 'block';
                 console.log("🔔 Tocando som de notificação!");
             }).catch(e => {
-                console.warn("⚠️ Som bloqueado pelo navegador. Clique em qualquer lugar para liberar.", e);
+                console.warn("⚠️ Som bloqueado pelo navegador. Tentando avisar visualmente.", e);
                 // Notificar visualmente que o som falhou
-                addLogRow(new Date().toLocaleTimeString('pt-BR'), "⚠️ NOVO PEDIDO! (Som bloqueado pelo navegador - Clique no painel)");
-                
-                // Mostrar alerta visual flutuante se possível
+                addLogRow(new Date().toLocaleTimeString('pt-BR'), "⚠️ NOVO PEDIDO! (Clique no painel para ativar o som)");
                 showVisualAlert();
             });
         }
+    } else {
+        console.error("❌ Elemento de áudio 'notificationSound' não encontrado!");
     }
 }
 
