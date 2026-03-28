@@ -34,7 +34,7 @@
     <link rel="stylesheet" href="styles.css">
     
     <!-- Security Headers -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://connect.facebook.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://zepeg.github.io https://santabrasa.app https://www.facebook.com; connect-src https://*.firebaseio.com wss://*.firebaseio.com https://*.googleapis.com https://connect.facebook.net;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://connect.facebook.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://zepeg.github.io https://santabrasa.app https://www.facebook.com; connect-src https://*.firebaseio.com wss://*.firebaseio.com https://*.googleapis.com https://connect.facebook.net https://wa.me;">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -219,7 +219,7 @@
                     <h3 class="checkout-title">👤 Seus Dados</h3>
                     <div class="form-group">
                         <label>Seu Nome:</label>
-                        <input type="text" id="clientName" placeholder="Como podemos te chamar?">
+                        <input type="text" id="clientName" placeholder="Como podemos te chamar?" required>
                     </div>
 
                     <div class="form-group" id="addressFieldGroup">
@@ -238,7 +238,7 @@
                     <div class="form-group">
                         <label>Forma de Pagamento:</label>
                         <select id="paymentMethod" onchange="toggleChangeInput()">
-                            <option value="">Selecione...</option>
+                            <option value="" disabled selected>Selecione...</option>
                             <option value="Pix">Pix (Rápido e Seguro)</option>
                             <option value="Cartão de Crédito">Cartão de Crédito</option>
                             <option value="Cartão de Débito">Cartão de Débito</option>

@@ -1275,33 +1275,43 @@ function sendToWhatsApp() {
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
 
     // On mobile, window.location.href is more reliable and avoids popup blockers
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobile = /Android|webOS|iPhone|iPad|Macintosh|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
+    let redirectTriggered = false;
     const finishCheckoutAndRedirect = () => {
+        if (redirectTriggered) return;
+        redirectTriggered = true;
+
         // Meta Pixel: Purchase/Lead (WhatsApp Click)
-        trackPixelEvent('Purchase', {
-            value: total,
-            currency: 'BRL',
-            content_type: 'product',
-            content_ids: cart.map(item => item.id),
-            num_items: cart.length
-        });
+        if (typeof trackPixelEvent === 'function') {
+            trackPixelEvent('Purchase', {
+                value: total,
+                currency: 'BRL',
+                content_type: 'product',
+                content_ids: cart.map(item => item.id),
+                num_items: cart.length
+            });
+        }
 
         // Log do Pedido para o Dashboard (Métricas legadas)
-        logEvent("Iniciou pedido via WhatsApp");
-        dbIncrement("total_orders_clicked");
-        trackABEvent('checkout_whatsapp');
+        if (typeof logEvent === 'function') logEvent("Iniciou pedido via WhatsApp");
+        if (typeof dbIncrement === 'function') dbIncrement("total_orders_clicked");
+        if (typeof trackABEvent === 'function') trackABEvent('checkout_whatsapp');
 
         if (isMobile) {
             window.location.href = whatsappUrl;
         } else {
-            window.open(whatsappUrl, '_blank');
+            const win = window.open(whatsappUrl, '_blank');
+            if (!win || win.closed || typeof win.closed === 'undefined') {
+                // Se popup bloqueado no desktop, usa redireção na mesma aba
+                window.location.href = whatsappUrl;
+            }
         }
     };
 
     // --- SALVAR PEDIDO NO CRM (FIREBASE) ---
     try {
-        if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+        if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
             const db = firebase.database();
             const orderId = Date.now();
             const orderData = {
@@ -1367,8 +1377,9 @@ function sendToWhatsApp() {
                 // Desktop: window.open síncrono por conta do Popup Blocker.
                 // Salva no background sem problema pq a aba original não fecha!
                 savePromises.then(() => {
-                    logEvent(`Pedido registrado no CRM: R$ ${total.toFixed(2)}`);
+                    if (typeof logEvent === 'function') logEvent(`Pedido registrado no CRM: R$ ${total.toFixed(2)}`);
                 }).catch(e => console.error("Erro assincrono Desktop CRM:", e));
+                
                 finishCheckoutAndRedirect();
             }
 
