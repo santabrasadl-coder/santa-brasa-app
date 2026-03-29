@@ -22,7 +22,7 @@ function trackPixelEvent(eventName, params = {}) {
     }
 }
 
-let manualStoreStatus = "open"; // "open", "closed" ou "auto"
+let manualStoreStatus = localStorage.getItem('sb_manual_status') || "auto"; // Fallback imediato para mobile
 
 function isStoreOpen() {
     if (manualStoreStatus === "closed") return false;
@@ -1501,14 +1501,18 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
             }
         });
 
-        // Listener para o Status da Loja (Manual/Auto Override) - Fora do loop para evitar duplicatas
+        // Listener para o Status da Loja (Manual/Auto Override) - Reatividade Total
         db.ref('settings/storeStatus').on('value', (snapshot) => {
             const status = snapshot.val();
             if (status) {
                 manualStoreStatus = status;
+                localStorage.setItem('sb_manual_status', status); // Persiste para carregamento instantâneo
                 updateStoreStatus();
-                console.log("🔄 Status da loja atualizado (Real-time):", status);
+                console.log("🔄 Status da loja sincronizado (Real-time):", status);
             }
+        }, (err) => {
+            console.error("Erro ao sincronizar status da loja:", err);
+            // Em caso de erro de rede no mobile, o LocalStorage garante que o último estado seja mantido
         });
 
     } catch (error) {
