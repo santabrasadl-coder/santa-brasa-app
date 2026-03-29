@@ -161,8 +161,27 @@ function updateStoreStatus() {
 // Atualiza o status frequentemente para o cronômetro
 setInterval(updateStoreStatus, 1000);
 
-// ===== Promoção Maluca =====
+// CRAZY PROMO: Santo Juízo por 24.90 (Limite 10 unidades)
 const CRAZY_PROMO = {
+    active: true,
+    id: 10,
+    price: 24.90,
+    limit: 10
+};
+
+// SMART PROMO: Burger + Cake Combo
+const COMBO_PROMO = {
+    active: true,
+    burgerIds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], // Todos os burgers
+    cakeIds: [3001, 3002, 3003, 3004], // Todos os bolos
+    promoPrice: 15.00,
+    defaultCakeId: 3001 // Bolo de Maracujá como padrão para o Cross-Sell
+};
+
+let crossSellShown = false;
+
+// ===== Promoção Maluca =====
+const PROMO_CONFIG = {
     active: false,
     label: "🔥 OFERTA SANTO JUÍZO",
     totalStock: 10,       // Estoque total compartilhado
@@ -173,20 +192,20 @@ const CRAZY_PROMO = {
 };
 
 function getPromoSold() {
-    return parseInt(localStorage.getItem(CRAZY_PROMO.storageKey) || '0', 10);
+    return parseInt(localStorage.getItem(PROMO_CONFIG.storageKey) || '0', 10);
 }
 
 function getPromoRemaining() {
-    return Math.max(0, CRAZY_PROMO.totalStock - getPromoSold());
+    return Math.max(0, PROMO_CONFIG.totalStock - getPromoSold());
 }
 
 function isPromoActive() {
-    return CRAZY_PROMO.active && getPromoRemaining() > 0;
+    return PROMO_CONFIG.active && getPromoRemaining() > 0;
 }
 
 function incrementPromoSold() {
     const sold = getPromoSold() + 1;
-    localStorage.setItem(CRAZY_PROMO.storageKey, sold);
+    localStorage.setItem(PROMO_CONFIG.storageKey, sold);
     updatePromoBannerStock();
 }
 
@@ -561,7 +580,7 @@ function extractBairro(address) {
     return "Itaúna";
 }
 
-// ===== Direct Add to Cart (for Drinks) =====
+// ===== Direct Add to Cart (for Drinks and simple items) =====
 function addDirectToCart(itemId) {
     const item = findItemById(itemId);
     if (!item) return;
@@ -599,15 +618,44 @@ function addDirectToCart(itemId) {
         currency: 'BRL'
     });
 
-    // Only track direct_add if it wasn't triggered by a Skip Modal event (which handles its own better tracking)
-    if (!arguments[1]) {
-        trackABEvent('direct_add');
+    // Cross-sell trigger: If burger added, show cake modal
+    if (!crossSellShown && COMBO_PROMO.active && COMBO_PROMO.burgerIds.includes(Number(itemId))) {
+        const hasCake = cart.some(item => COMBO_PROMO.cakeIds.includes(Number(item.id)));
+        if (!hasCake) {
+            setTimeout(showCrossSell, 800);
+        }
     }
+}
+
+// ===== Smart Cross-Sell Functions =====
+function showCrossSell() {
+    const overlay = document.getElementById('crossSellOverlay');
+    const img = document.getElementById('crossSellImage');
+    if (!overlay) return;
+
+    // Use high quality placeholder
+    if (img) img.src = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500&auto=format&fit=crop&q=80";
+    
+    overlay.style.display = 'flex';
+    crossSellShown = true;
+    
+    // Track event
+    if (typeof logEvent === 'function') logEvent("Smart Offer: Cross-sell de torta exibido");
+}
+
+window.closeCrossSell = function() {
+    const overlay = document.getElementById('crossSellOverlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+window.acceptCrossSell = function() {
+    closeCrossSell();
+    addDirectToCart(COMBO_PROMO.defaultCakeId);
 }
 
 // ===== Render Promo Banner =====
 function renderPromoBanner() {
-    if (!CRAZY_PROMO.active) return;
+    if (!PROMO_CONFIG.active) return;
 
     const section = document.getElementById('tradicionais')?.closest('.menu-section');
     if (!section) return;
@@ -673,7 +721,7 @@ function renderMenu() {
             }
 
             // Verifica se o item está em promoção (e tem estoque)
-            const promoInfo = isPromoActive() && CRAZY_PROMO.discounts[item.id];
+            const promoInfo = isPromoActive() && PROMO_CONFIG.discounts[item.id];
             const displayPrice = promoInfo ? promoInfo.promoPrice : item.price;
 
             const priceBlock = item.soldOut
@@ -700,7 +748,7 @@ function renderMenu() {
                     <h3 class="item-name">
                         ${item.name}
                         ${item.badge ? `<span class="item-badge">${item.badge}</span>` : ''}
-                        ${promoInfo ? `<span class="item-badge promo-badge-item">${CRAZY_PROMO.label}</span>` : ''}
+                        ${promoInfo ? `<span class="item-badge promo-badge-item">${PROMO_CONFIG.label}</span>` : ''}
                     </h3>
                     <p class="item-description">${item.description}</p>
                     <div class="menu-item-actions">
@@ -896,7 +944,7 @@ function updateCartItemAddons() {
 
 function addToCart(itemId) {
     // Se o item está em promoção e tem estoque, aplica o preço promocional
-    const promoInfo = isPromoActive() && CRAZY_PROMO.discounts[itemId];
+    const promoInfo = isPromoActive() && PROMO_CONFIG.discounts[itemId];
     if (promoInfo) {
         const item = findItemById(itemId);
         if (item) {
@@ -973,6 +1021,8 @@ function updateCartUI() {
         badge.style.display = totalItems > 0 ? 'flex' : 'none';
     }
 
+    const hasBurger = cart.some(item => COMBO_PROMO.burgerIds.includes(Number(item.id)));
+
     // Update cart items
     if (cart.length === 0) {
         cartItems.innerHTML = `
@@ -988,7 +1038,13 @@ function updateCartUI() {
             <div class="cart-item">
                 <div class="cart-item-header">
                     <div class="cart-item-name">${item.name}</div>
-                    <div class="cart-item-price-tag">${(item.price * item.quantity).toFixed(2).replace('.', ',')}</div>
+                    <div class="cart-item-price-tag">
+                        ${(hasBurger && COMBO_PROMO.cakeIds.includes(Number(item.id))) 
+                            ? `<span style="text-decoration: line-through; color: var(--text-dim); font-size: 0.8em; margin-right: 5px;">${(item.price * item.quantity).toFixed(2).replace('.', ',')}</span>`
+                            : ''
+                        }
+                        ${((hasBurger && COMBO_PROMO.cakeIds.includes(Number(item.id)) ? COMBO_PROMO.promoPrice : item.price) * item.quantity).toFixed(2).replace('.', ',')}
+                    </div>
                 </div>
 
                 ${item.addons && item.addons.length > 0 ?
@@ -1029,8 +1085,17 @@ function updateCartUI() {
         }
     }
 
-    // Update total
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // Update total with Smart Promo consideration
+    
+    const subtotal = cart.reduce((sum, item) => {
+        let price = item.price;
+        // Apply promo if applicable
+        if (hasBurger && COMBO_PROMO.cakeIds.includes(Number(item.id))) {
+            price = COMBO_PROMO.promoPrice;
+        }
+        return sum + (price * item.quantity);
+    }, 0);
+
     const fee = orderType === 'delivery' ? getDynamicDeliveryFee() : 0;
     const total = subtotal + fee;
 
@@ -1159,10 +1224,26 @@ function getDynamicDeliveryFee() {
 // ===== Send to WhatsApp =====
 let isSubmittingOrder = false;
 
-function sendToWhatsApp() {
+async function getNextOrderNumber() {
+    if (typeof firebase === 'undefined' || !firebase.apps || firebase.apps.length === 0) return "000";
+    try {
+        const db = firebase.database();
+        const counterRef = db.ref('settings/orderCounter');
+        const result = await counterRef.transaction((currentValue) => {
+            return (currentValue || 0) + 1;
+        });
+        if (result.committed) {
+            return String(result.snapshot.val()).padStart(3, '0');
+        }
+    } catch (e) {
+        console.error("Erro ao obter número do pedido:", e);
+    }
+    return Math.floor(Math.random() * 900) + 100; // Fallback aleatório
+}
+
+async function sendToWhatsApp() {
     if (isSubmittingOrder) return;
 
-    // We no longer block if store is closed, we treat as agendamento
     if (cart.length === 0) {
         showToast("Seu carrinho está vazio!");
         return;
@@ -1176,59 +1257,33 @@ function sendToWhatsApp() {
     const payment = validateAndSanitize(document.getElementById('paymentMethod').value, 30);
     const change = validateAndSanitize(document.getElementById('changeAmount').value, 20);
 
-    // Security Checks
-    if (hp) {
-        console.warn("Bot detected via honeypot.");
-        return;
-    }
-
-    if (isRateLimited()) {
-        alert("Muitas tentativas. Por favor, aguarde um minuto.");
-        return;
-    }
-
-    const submissionTime = Date.now() - checkoutOpenTime;
-    if (submissionTime < 1000) { // Humans rarely fill and click in < 1s (reduced from 2s)
-        console.warn("Action too fast, potential bot.");
-    }
-
     // Validation
-    if (!name) {
-        alert("Por favor, digite seu nome.");
-        document.getElementById('clientName').focus();
-        return;
-    }
-    // Phone is no longer mandatory to reduce friction
-    if (!address && orderType === 'delivery') {
-        alert("Por favor, digite seu endereço de entrega.");
-        document.getElementById('clientAddress').focus();
-        return;
-    }
-    if (!payment) {
-        alert("Por favor, selecione a forma de pagamento.");
-        document.getElementById('paymentMethod').focus();
-        return;
-    }
-    if (payment === 'Dinheiro' && !change) {
-        alert("Por favor, informe para quanto é o troco.");
-        document.getElementById('changeAmount').focus();
-        return;
-    }
+    if (!name) { alert("Por favor, digite seu nome."); document.getElementById('clientName').focus(); return; }
+    if (!address && orderType === 'delivery') { alert("Por favor, digite seu endereço de entrega."); document.getElementById('clientAddress').focus(); return; }
+    if (!payment) { alert("Por favor, selecione a forma de pagamento."); document.getElementById('paymentMethod').focus(); return; }
+    if (payment === 'Dinheiro' && !change) { alert("Por favor, informe para quanto é o troco."); document.getElementById('changeAmount').focus(); return; }
 
-    // Marca como enviando AGORA, após todas as validações passarem
+    // Bloqueio de bot e duplicidade
+    if (hp || isRateLimited()) return;
+
+    // Ativar estado de carregamento
     isSubmittingOrder = true;
-    setTimeout(() => { isSubmittingOrder = false; }, 4000);
+    const btn = document.getElementById('checkoutButton');
+    const originalBtnHTML = btn.innerHTML;
+    btn.classList.add('loading');
+    btn.disabled = true;
 
+    // Obter número do pedido
+    const orderNum = await getNextOrderNumber();
+    
     // Salvar dados para a próxima compra
     saveUserData(name, address, phone);
 
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const fee = orderType === 'delivery' ? getDynamicDeliveryFee() : 0;
-    const total = subtotal + fee;
-
-    const sched = getSchedule();
-    let message = `🍔 *PEDIDO SANTA BRASA* 🔥\n`;
+    const hasBurger = cart.some(item => COMBO_PROMO.burgerIds.includes(Number(item.id)));
+    let message = `🍔 *PEDIDO SANTA BRASA #${orderNum}* 🔥\n`;
+    
     if (!isStoreOpen()) {
+        const sched = getSchedule();
         message += `⚠️ *AGENDAMENTO (Abre às ${sched.openHour}h${String(sched.openMinute).padStart(2, '0')})*\n`;
     }
     message += `👤 *Cliente:* ${name}\n`;
@@ -1236,20 +1291,28 @@ function sendToWhatsApp() {
     message += `🛒 *Tipo:* ${orderType === 'delivery' ? 'Entrega 🛵' : 'Retirada 🛍️'}\n`;
     message += "━━━━━━━━━━━━━━━━━━\n\n";
 
-    cart.forEach(item => {
-        message += `▸ ${item.quantity}x ${item.name}\n`;
-
+    cart.forEach((item) => {
+        let price = item.price;
+        let promoTag = "";
+        if (hasBurger && COMBO_PROMO.cakeIds.includes(Number(item.id))) {
+            price = COMBO_PROMO.promoPrice;
+            promoTag = " (PROMO COMBO ⚡)";
+        }
+        message += `▸ ${item.quantity}x ${item.name}${promoTag}\n`;
         if (item.addons && item.addons.length > 0) {
-            item.addons.forEach(addon => {
-                message += `   + ${addon.name}\n`;
-            });
+            item.addons.forEach(addon => { message += `   + ${addon.name}\n`; });
         }
-
-        if (item.observation) {
-            message += `   📝 _Obs: ${item.observation}_\n`;
-        }
-        message += `   R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}\n`;
+        if (item.observation) { message += `   📝 _Obs: ${item.observation}_\n`; }
+        message += `   R$ ${(price * item.quantity).toFixed(2).replace('.', ',')}\n`;
     });
+
+    const subtotal = cart.reduce((sum, item) => {
+        let price = item.price;
+        if (hasBurger && COMBO_PROMO.cakeIds.includes(Number(item.id))) { price = COMBO_PROMO.promoPrice; }
+        return sum + (price * item.quantity);
+    }, 0);
+    const fee = orderType === 'delivery' ? getDynamicDeliveryFee() : 0;
+    const total = subtotal + fee;
 
     message += "\n━━━━━━━━━━━━━━━━━━\n";
     message += `Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
@@ -1266,15 +1329,10 @@ function sendToWhatsApp() {
 
     message += "💰 *PAGAMENTO:*\n";
     message += `${payment}`;
-
-    if (payment === 'Dinheiro') {
-        message += `\n💵 Troco para: R$ ${change}`;
-    }
+    if (payment === 'Dinheiro') { message += `\n💵 Troco para: R$ ${change}`; }
 
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
-
-    // On mobile, window.location.href is more reliable and avoids popup blockers
     const isMobile = /Android|webOS|iPhone|iPad|Macintosh|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
     let redirectTriggered = false;
@@ -1282,19 +1340,22 @@ function sendToWhatsApp() {
         if (redirectTriggered) return;
         redirectTriggered = true;
 
-        // Meta Pixel: Purchase/Lead (WhatsApp Click)
-        if (typeof trackPixelEvent === 'function') {
-            trackPixelEvent('Purchase', {
-                value: total,
-                currency: 'BRL',
-                content_type: 'product',
-                content_ids: cart.map(item => item.id),
-                num_items: cart.length
-            });
-        }
+        // Limpar Carrinho
+        cart = [];
+        saveCart();
+        updateCartUI();
+        toggleCart();
 
-        // Log do Pedido para o Dashboard (Métricas legadas)
-        if (typeof logEvent === 'function') logEvent("Iniciou pedido via WhatsApp");
+        // Restaurar Botão (caso o usuário volte)
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        isSubmittingOrder = false;
+
+        // Meta Pixel & AB Events
+        if (typeof trackPixelEvent === 'function') {
+            trackPixelEvent('Purchase', { value: total, currency: 'BRL', content_type: 'product', content_ids: cart.map(item => item.id), num_items: cart.length });
+        }
+        if (typeof logEvent === 'function') logEvent(`Pedido #${orderNum} enviado via WhatsApp`);
         if (typeof dbIncrement === 'function') dbIncrement("total_orders_clicked");
         if (typeof trackABEvent === 'function') trackABEvent('checkout_whatsapp');
 
@@ -1302,10 +1363,7 @@ function sendToWhatsApp() {
             window.location.href = whatsappUrl;
         } else {
             const win = window.open(whatsappUrl, '_blank');
-            if (!win || win.closed || typeof win.closed === 'undefined') {
-                // Se popup bloqueado no desktop, usa redireção na mesma aba
-                window.location.href = whatsappUrl;
-            }
+            if (!win || win.closed || typeof win.closed === 'undefined') { window.location.href = whatsappUrl; }
         }
     };
 
@@ -1316,12 +1374,9 @@ function sendToWhatsApp() {
             const orderId = Date.now();
             const orderData = {
                 id: orderId,
+                orderNumber: orderNum, // Novo Campo Sequencial
                 timestamp: new Date().toISOString(),
-                customer: {
-                    name,
-                    phone,
-                    address: orderType === 'delivery' ? address : 'RETIRADA'
-                },
+                customer: { name, phone, address: orderType === 'delivery' ? address : 'RETIRADA' },
                 items: cart.map(item => ({
                     name: item.name,
                     quantity: item.quantity,
@@ -1336,19 +1391,11 @@ function sendToWhatsApp() {
 
             const customerKey = name.toLowerCase().replace(/[.#$\[\]\s]/g, '_');
 
-            // Promise.all para registrar ambas ações no Firebase
             const savePromises = Promise.all([
                 db.ref('orders/' + orderId).set(orderData),
                 db.ref('customers/' + customerKey).transaction((current) => {
                     if (!current) {
-                        return {
-                            name: name,
-                            phone: phone || '',
-                            address: orderType === 'delivery' ? address : '',
-                            totalSpent: total,
-                            orderCount: 1,
-                            lastOrder: orderData.timestamp
-                        };
+                        return { name, phone: phone || '', address: orderType === 'delivery' ? address : '', totalSpent: total, orderCount: 1, lastOrder: orderData.timestamp };
                     } else {
                         current.totalSpent = (current.totalSpent || 0) + total;
                         current.orderCount = (current.orderCount || 0) + 1;
@@ -1360,39 +1407,26 @@ function sendToWhatsApp() {
                 })
             ]);
 
-            if (isMobile) {
-                // Mobile: Priorizar pedido e esperar a confirmação (com timeout maior para conexões instáveis)
-                const timeoutFallback = setTimeout(() => { 
-                    console.warn("CRM Timeout (Mobile) - Redirecionando mesmo assim.");
-                    finishCheckoutAndRedirect(); 
-                }, 3500);
+            // Timeout para garantir redirecionamento mesmo se o Firebase tardar
+            const timeoutFallback = setTimeout(() => { 
+                console.warn("CRM Timeout - Redirecionando.");
+                finishCheckoutAndRedirect(); 
+            }, 3500);
 
-                savePromises.then(() => {
-                    clearTimeout(timeoutFallback);
-                    if (typeof logEvent === 'function') logEvent(`Pedido registrado no CRM: R$ ${total.toFixed(2)}`);
-                    // Pequeno delay para garantir que o buffer de rede finalize o envio no mobile
-                    setTimeout(finishCheckoutAndRedirect, 100);
-                }).catch((e) => {
-                    clearTimeout(timeoutFallback);
-                    console.error("Erro Promise CRM:", e);
-                    finishCheckoutAndRedirect();
-                });
-            } else {
-                // Desktop: window.open síncrono por conta do Popup Blocker.
-                // Salva no background sem problema pq a aba original não fecha!
-                savePromises.then(() => {
-                    if (typeof logEvent === 'function') logEvent(`Pedido registrado no CRM: R$ ${total.toFixed(2)}`);
-                }).catch(e => console.error("Erro assincrono Desktop CRM:", e));
-                
+            savePromises.then(() => {
+                clearTimeout(timeoutFallback);
                 finishCheckoutAndRedirect();
-            }
+            }).catch((e) => {
+                clearTimeout(timeoutFallback);
+                console.error("Erro CRM:", e);
+                finishCheckoutAndRedirect();
+            });
 
         } else {
-            console.warn("Sem firebase, pulando envio");
             finishCheckoutAndRedirect();
         }
     } catch (e) {
-        console.error("Erro crítico ao salvar no CRM:", e);
+        console.error("Erro crítico:", e);
         finishCheckoutAndRedirect();
     }
 }

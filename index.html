@@ -266,6 +266,7 @@
                 <div id="cartTotal">0,00</div>
             </div>
             <button class="checkout-button" id="checkoutButton" onclick="sendToWhatsApp()">
+                <div class="spinner"></div>
                 <span class="whatsapp-icon">📱</span>
                 Pedir agora
             </button>
@@ -308,6 +309,23 @@
         <span class="toast-message" id="toastMessage">Item adicionado!</span>
     </div>
     <!-- Firebase SDK (Common/Database) -->
+    <!-- Cross-Sell Offer Modal -->
+    <div id="crossSellOverlay" class="cross-sell-overlay">
+        <div class="cross-sell-modal">
+            <img id="crossSellImage" src="" alt="Oferta Especial" class="cross-sell-image">
+            <h2 class="cross-sell-title">OFERTA INSTANTÂNEA! ⚡</h2>
+            <p class="cross-sell-text">Você adicionou um sanduíche! Que tal uma deliciosa <b>Fatia de Torta</b> para acompanhar por um preço especial?</p>
+            <div class="cross-sell-price">
+                <span class="old">R$ 18,00</span>
+                <span class="new">R$ 15,00</span>
+            </div>
+            <div class="cross-sell-buttons">
+                <button class="btn-accept-offer" onclick="acceptCrossSell()">ADICIONAR AGORA!</button>
+                <button class="btn-decline-offer" onclick="closeCrossSell()">Não, obrigado</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 

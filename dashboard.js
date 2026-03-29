@@ -457,18 +457,33 @@ function renderOrdersTable(orders) {
     if (!tbody) return;
 
     if (orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Nenhum pedido encontrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Nenhum pedido encontrado.</td></tr>';
         return;
     }
 
-    tbody.innerHTML = orders.map(order => {
-        if (!order || !order.customer) return '';
+    // Deduplicação Inteligente: Ignora pedidos idênticos do mesmo cliente em um curto intervalo
+    const filteredOrders = [];
+    const seenMap = new Set();
+
+    orders.forEach(order => {
+        if (!order || !order.customer) return;
         
-        // LOG DE DEPURAÇÃO PARA IDENTIFICAR O ID QUE ESTÁ CHEGANDO
-        console.log("Renderizando Pedido:", order.firebaseKey, order.customer.name);
+        // Chave de deduplicação: Nome + Total + Minuto (aproximado)
+        const timeKey = order.timestamp ? order.timestamp.substring(0, 16) : ''; // Até o minuto
+        const dupKey = `${order.customer.name.toLowerCase()}-${order.total}-${timeKey}`;
+        
+        if (seenMap.has(dupKey)) {
+            console.log("🟠 Pedido duplicado ocultado:", dupKey);
+            return;
+        }
+        seenMap.add(dupKey);
+        filteredOrders.push(order);
+    });
+
+    tbody.innerHTML = filteredOrders.map(order => {
         const date = order.timestamp ? new Date(order.timestamp).toLocaleString('pt-BR') : '-';
+        const num = order.orderNumber ? `<span class="order-number-badge">#${order.orderNumber}</span>` : '<span class="order-number-badge" style="background:#444; color:#aaa;">#---</span>';
         
-        // Proteção contra conversão objeto/array do Firebase
         const items = Array.isArray(order.items) ? order.items : Object.values(order.items || {});
         const itemsStr = items.map(i => `${i.quantity || 1}x ${i.name || 'Item'}`).join('<br>');
         
@@ -477,6 +492,7 @@ function renderOrdersTable(orders) {
 
         return `
             <tr>
+                <td>${num}</td>
                 <td>${date}</td>
                 <td>
                     <strong>${order.customer.name || 'Cliente'}</strong><br>
