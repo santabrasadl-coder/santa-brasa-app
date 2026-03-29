@@ -633,8 +633,8 @@ function showCrossSell() {
     const img = document.getElementById('crossSellImage');
     if (!overlay) return;
 
-    // Use high quality placeholder
-    if (img) img.src = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500&auto=format&fit=crop&q=80";
+    // Use real cake photo provided by user
+    if (img) img.src = "torta-promo.jpg";
     
     overlay.style.display = 'flex';
     crossSellShown = true;
@@ -1262,21 +1262,22 @@ async function sendToWhatsApp() {
     if (!address && orderType === 'delivery') { alert("Por favor, digite seu endereço de entrega."); document.getElementById('clientAddress').focus(); return; }
     if (!payment) { alert("Por favor, selecione a forma de pagamento."); document.getElementById('paymentMethod').focus(); return; }
     if (payment === 'Dinheiro' && !change) { alert("Por favor, informe para quanto é o troco."); document.getElementById('changeAmount').focus(); return; }
-
-    // Bloqueio de bot e duplicidade
     if (hp || isRateLimited()) return;
 
-    // Ativar estado de carregamento
+    // 🚀 INÍCIO DO CHECKOUT BLINDADO
     isSubmittingOrder = true;
+    
+    // UI Feedback Imediato
     const btn = document.getElementById('checkoutButton');
-    const originalBtnHTML = btn.innerHTML;
     btn.classList.add('loading');
     btn.disabled = true;
 
-    // Obter número do pedido
+    // Mostrar Modal de Transição (Evita bloqueio de popup e dá instrução)
+    const modal = document.getElementById('whatsappModal');
+    if (modal) modal.style.display = 'flex';
+
+    // Obter número do pedido (rápido)
     const orderNum = await getNextOrderNumber();
-    
-    // Salvar dados para a próxima compra
     saveUserData(name, address, phone);
 
     const hasBurger = cart.some(item => COMBO_PROMO.burgerIds.includes(Number(item.id)));
@@ -1332,93 +1333,91 @@ async function sendToWhatsApp() {
     if (payment === 'Dinheiro') { message += `\n💵 Troco para: R$ ${change}`; }
 
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
-    const isMobile = /Android|webOS|iPhone|iPad|Macintosh|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodedMessage}`;
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    const isInApp = /FBAN|FBAV|Instagram|LinkedIn|Messenger/i.test(ua);
+    const isMobile = /Android|webOS|iPhone|iPad|Macintosh|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
     let redirectTriggered = false;
     const finishCheckoutAndRedirect = () => {
         if (redirectTriggered) return;
         redirectTriggered = true;
 
+        // Configura link de contingência se o automático falhar
+        const fallbackLink = document.getElementById('whatsappFallbackLink');
+        if (fallbackLink) fallbackLink.href = whatsappUrl;
+        
+        // Exibe botão manual após 1.8s se a página continuar aqui (sinal que o redirecionamento travou)
+        setTimeout(() => {
+            const manualContent = document.getElementById('manualRedirectContent');
+            if (manualContent) manualContent.style.display = 'block';
+        }, 1800);
+
         // Limpar Carrinho
-        cart = [];
-        saveCart();
-        updateCartUI();
-        toggleCart();
+        const tempCart = [...cart];
+        cart = []; saveCart(); updateCartUI(); toggleCart();
 
-        // Restaurar Botão (caso o usuário volte)
-        btn.classList.remove('loading');
-        btn.disabled = false;
-        isSubmittingOrder = false;
-
-        // Meta Pixel & AB Events
+        // Meta Pixel & Log
         if (typeof trackPixelEvent === 'function') {
-            trackPixelEvent('Purchase', { value: total, currency: 'BRL', content_type: 'product', content_ids: cart.map(item => item.id), num_items: cart.length });
+            trackPixelEvent('Purchase', { value: total, currency: 'BRL', content_type: 'product', content_ids: tempCart.map(item => item.id), num_items: tempCart.length });
         }
-        if (typeof logEvent === 'function') logEvent(`Pedido #${orderNum} enviado via WhatsApp`);
-        if (typeof dbIncrement === 'function') dbIncrement("total_orders_clicked");
-        if (typeof trackABEvent === 'function') trackABEvent('checkout_whatsapp');
+        if (typeof logEvent === 'function') logEvent(`Pedido #${orderNum} - Redirecionando...`);
 
+        // Redirecionamento Inteligente
         if (isMobile) {
-            window.location.href = whatsappUrl;
+            // Em navegadores de redes sociais (InApp), window.open costuma ser bloqueado. Location é melhor.
+            window.location.assign(whatsappUrl);
         } else {
             const win = window.open(whatsappUrl, '_blank');
-            if (!win || win.closed || typeof win.closed === 'undefined') { window.location.href = whatsappUrl; }
+            if (!win || win.closed || typeof win.closed === 'undefined') {
+                window.location.href = whatsappUrl;
+            }
         }
     };
 
-    // --- SALVAR PEDIDO NO CRM (FIREBASE) ---
+    // --- SALVAR NO DASHBOARD (FIREBASE) COM TIMEOUT ACELERADO ---
     try {
         if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
             const db = firebase.database();
             const orderId = Date.now();
             const orderData = {
                 id: orderId,
-                orderNumber: orderNum, // Novo Campo Sequencial
+                orderNumber: orderNum,
                 timestamp: new Date().toISOString(),
                 customer: { name, phone, address: orderType === 'delivery' ? address : 'RETIRADA' },
                 items: cart.map(item => ({
-                    name: item.name,
-                    quantity: item.quantity,
-                    price: item.price,
+                    name: item.name, quantity: item.quantity, price: item.price,
                     addons: item.addons ? item.addons.map(a => a.name) : [],
                     observation: item.observation || ''
                 })),
-                total: total,
-                orderType: orderType,
-                payment: payment
+                total: total, orderType: orderType, payment: payment
             };
 
             const customerKey = name.toLowerCase().replace(/[.#$\[\]\s]/g, '_');
 
+            // Dispara salvamento mas não deixa o usuário esperando mais que 800ms
             const savePromises = Promise.all([
                 db.ref('orders/' + orderId).set(orderData),
                 db.ref('customers/' + customerKey).transaction((current) => {
-                    if (!current) {
-                        return { name, phone: phone || '', address: orderType === 'delivery' ? address : '', totalSpent: total, orderCount: 1, lastOrder: orderData.timestamp };
-                    } else {
-                        current.totalSpent = (current.totalSpent || 0) + total;
-                        current.orderCount = (current.orderCount || 0) + 1;
-                        current.lastOrder = orderData.timestamp;
-                        if (phone) current.phone = phone;
-                        if (orderType === 'delivery' && address) current.address = address;
-                        return current;
-                    }
+                    if (!current) return { name, phone: phone || '', address: orderType === 'delivery' ? address : '', totalSpent: total, orderCount: 1, lastOrder: orderData.timestamp };
+                    current.totalSpent = (current.totalSpent || 0) + total;
+                    current.orderCount = (current.orderCount || 0) + 1;
+                    current.lastOrder = orderData.timestamp;
+                    return current;
                 })
             ]);
 
-            // Timeout para garantir redirecionamento mesmo se o Firebase tardar
+            // Redireciona em no máximo 1 segundo, mesmo que a internet esteja lenta
             const timeoutFallback = setTimeout(() => { 
-                console.warn("CRM Timeout - Redirecionando.");
+                console.warn("CRM Slow - Prioritizing WhatsApp.");
                 finishCheckoutAndRedirect(); 
-            }, 3500);
+            }, 800);
 
             savePromises.then(() => {
                 clearTimeout(timeoutFallback);
                 finishCheckoutAndRedirect();
-            }).catch((e) => {
+            }).catch(() => {
                 clearTimeout(timeoutFallback);
-                console.error("Erro CRM:", e);
                 finishCheckoutAndRedirect();
             });
 
@@ -1426,7 +1425,6 @@ async function sendToWhatsApp() {
             finishCheckoutAndRedirect();
         }
     } catch (e) {
-        console.error("Erro crítico:", e);
         finishCheckoutAndRedirect();
     }
 }
