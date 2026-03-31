@@ -115,7 +115,7 @@ function updateStoreStatus() {
             statusBar.classList.remove('closed', 'closing-soon');
             statusBar.classList.add('open');
             if (openingInfoNeon) {
-                openingInfoNeon.textContent = "Entrega em ±30 min! 🛵";
+                openingInfoNeon.textContent = "Entrega em ±40 min! 🛵";
                 openingInfoNeon.classList.remove('closed');
                 openingInfoNeon.classList.add('open');
             }
@@ -740,7 +740,7 @@ function renderPromoBanner() {
             <!-- Restam X de 10 + Countdown -->
             <div class="cpb-urgency-row">
                 <div class="cpb-stock-badge ${remaining <= 5 ? 'cpb-stock-critical' : ''}">
-                    <span class="cpb-stock-txt">restão apenas</span>
+                    <span class="cpb-stock-txt">restam apenas</span>
                     <span class="cpb-stock-big" id="cpb-stock-count">${String(remaining).padStart(2, '0')}</span>
                     <span class="cpb-stock-of">de 10</span>
                 </div>
