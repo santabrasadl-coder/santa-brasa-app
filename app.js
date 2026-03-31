@@ -185,7 +185,7 @@ const PROMO_CONFIG = {
     active: true,
     label: "🔥 LOUCURA DE TERÇA",
     totalStock: 10,       // Estoque total compartilhado
-    storageKey: 'sb_santo_juizo_promo_terca_v1',
+    storageKey: 'sb_terca_loucura_v3',
     discounts: {
         8: { promoPrice: 38.90 } // Santo Juízo
     }
@@ -746,7 +746,7 @@ function renderPromoBanner() {
             <!-- Restam X de 10 + Countdown -->
             <div class="cpb-urgency-row">
                 <div class="cpb-stock-badge ${remaining <= 5 ? 'cpb-stock-critical' : ''}">
-                    <span class="cpb-stock-txt">restão</span>
+                    <span class="cpb-stock-txt">restam</span>
                     <span class="cpb-stock-big" id="cpb-stock-count">${String(remaining).padStart(2, '0')}</span>
                     <span class="cpb-stock-of">de 10</span>
                 </div>

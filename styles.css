@@ -1232,6 +1232,12 @@ body {
     }
 }
 
+@keyframes pulse-add-button {
+    0% { transform: scale(1); box-shadow: 0 0 10px var(--primary-glow); }
+    50% { transform: scale(1.1); box-shadow: 0 0 20px var(--primary-glow); }
+    100% { transform: scale(1); box-shadow: 0 0 10px var(--primary-glow); }
+}
+
 .add-button {
     background: var(--primary);
     border: none;
@@ -1247,9 +1253,11 @@ body {
     transition: all 0.3s ease;
     flex-shrink: 0;
     box-shadow: 0 0 10px var(--primary-glow);
+    animation: pulse-add-button 2s infinite ease-in-out;
 }
 
 .add-button:hover {
+    animation: none; /* Estático no hover para facilitar o clique */
     transform: scale(1.15) rotate(90deg);
     box-shadow: 0 0 20px var(--primary-glow);
 }
@@ -2778,13 +2786,21 @@ body {
     font-size: 1.3rem;
 }
 
+@keyframes pulse-add-button-promo {
+    0% { transform: scale(1); box-shadow: 0 0 10px rgba(117, 29, 29, 0.4); }
+    50% { transform: scale(1.15); box-shadow: 0 0 25px rgba(168, 46, 46, 0.8); }
+    100% { transform: scale(1); box-shadow: 0 0 10px rgba(117, 29, 29, 0.4); }
+}
+
 /* Botão + em promoção */
 .add-button.add-button-promo {
     background: linear-gradient(135deg, #751d1d, #a82e2e);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    animation: pulse-add-button-promo 1.5s infinite ease-in-out;
 }
 
 .add-button.add-button-promo:hover {
+    animation: none;
     background: linear-gradient(135deg, #a82e2e, #d14040);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
     transform: scale(1.1);
