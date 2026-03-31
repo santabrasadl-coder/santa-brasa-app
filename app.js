@@ -527,6 +527,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicia countdown automático de escassez da promoção
     startPromoCountdown();
 
+    // Pré-aquece o estoque da promoção (mostra 8 de 10 ao carregar)
+    if (PROMO_CONFIG.active && parseInt(localStorage.getItem(PROMO_CONFIG.storageKey) || '0') === 0) {
+        localStorage.setItem(PROMO_CONFIG.storageKey, '2');
+        renderMenu(); // Atualiza o banner com o valor correto
+    }
+
     // Log initial group
     const group = getABTestGroup();
     console.log(`[AB TEST] User assigned to group: ${group}`);
@@ -740,7 +746,7 @@ function renderPromoBanner() {
             <!-- Restam X de 10 + Countdown -->
             <div class="cpb-urgency-row">
                 <div class="cpb-stock-badge ${remaining <= 5 ? 'cpb-stock-critical' : ''}">
-                    <span class="cpb-stock-txt">restam apenas</span>
+                    <span class="cpb-stock-txt">restão</span>
                     <span class="cpb-stock-big" id="cpb-stock-count">${String(remaining).padStart(2, '0')}</span>
                     <span class="cpb-stock-of">de 10</span>
                 </div>
