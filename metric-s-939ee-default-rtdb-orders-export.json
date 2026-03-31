@@ -1,0 +1,676 @@
+{
+  "1772841041768": {
+    "customer": {
+      "address": "RETIRADA",
+      "name": "Luiz Filipe",
+      "phone": "37999485990"
+    },
+    "id": 1772841041768,
+    "items": [
+      {
+        "name": "Bolo de Cenoura com Chocolate",
+        "observation": "",
+        "price": 14.9,
+        "quantity": 1
+      }
+    ],
+    "orderType": "pickup",
+    "payment": "Pix",
+    "timestamp": "2026-03-06T23:50:41.768Z",
+    "total": 14.9
+  },
+  "1773462077412": {
+    "customer": {
+      "address": "Agostinho Martins parreiras  47 morro do engenhoe",
+      "name": "Salomao",
+      "phone": "37998137892"
+    },
+    "id": 1773462077412,
+    "items": [
+      {
+        "addons": [
+          "Abacaxi"
+        ],
+        "name": "X-Bacon",
+        "observation": "",
+        "price": 33,
+        "quantity": 1
+      },
+      {
+        "addons": [
+          "Banana"
+        ],
+        "name": "X-Bacon",
+        "observation": "",
+        "price": 33,
+        "quantity": 1
+      },
+      {
+        "addons": [
+          "Banana"
+        ],
+        "name": "Santa Fúria",
+        "observation": "",
+        "price": 49,
+        "quantity": 1
+      },
+      {
+        "name": "Coca-Cola",
+        "observation": "",
+        "price": 7,
+        "quantity": 3
+      },
+      {
+        "name": "Bolo de Maracujá com Chocolate",
+        "observation": "",
+        "price": 18,
+        "quantity": 1
+      },
+      {
+        "name": "Bolo de Cenoura com Chocolate",
+        "observation": "",
+        "price": 18,
+        "quantity": 1
+      },
+      {
+        "name": "Mini Pudim Tradicional 150g",
+        "observation": "",
+        "price": 15,
+        "quantity": 1
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Dinheiro",
+    "timestamp": "2026-03-14T04:21:17.412Z",
+    "total": 197
+  },
+  "1773585272859": {
+    "customer": {
+      "address": "RETIRADA",
+      "name": "Vinicius",
+      "phone": "37998135794"
+    },
+    "id": 1773585272859,
+    "items": [
+      {
+        "addons": [
+          "Abacaxi"
+        ],
+        "name": "X-Bacon",
+        "observation": "",
+        "price": 33,
+        "quantity": 1
+      }
+    ],
+    "orderType": "pickup",
+    "payment": "Cartão de Débito",
+    "timestamp": "2026-03-15T14:34:32.859Z",
+    "total": 33
+  },
+  "1773794737309": {
+    "customer": {
+      "address": "Avenida doutor Virgílio Gonçalves, 675\nRecanto dos peixotas \nCondomínio Murilo Augusto Gonçalves",
+      "name": "Yasmin Aviz",
+      "phone": "37984116505"
+    },
+    "id": 1773794737309,
+    "items": [
+      {
+        "name": "Laçador",
+        "observation": "",
+        "price": 32,
+        "quantity": 1
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Dinheiro",
+    "timestamp": "2026-03-18T00:45:37.309Z",
+    "total": 42
+  },
+  "1773879128381": {
+    "customer": {
+      "address": "Rua Manoel Zacarias 68 apt 401\nGraças",
+      "name": "João Paulo",
+      "phone": "(37) 99968-1731"
+    },
+    "id": 1773879128381,
+    "items": [
+      {
+        "name": "COMBO PECADO 😈",
+        "observation": "1x X-Bacon + 1x Mini Pudim Tradicional 150g + 1x Coca-Cola",
+        "price": 44.9,
+        "quantity": 1
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Cartão de Crédito",
+    "timestamp": "2026-03-19T00:12:08.381Z",
+    "total": 54.9
+  },
+  "1773880507213": {
+    "customer": {
+      "address": "Travessa Antônio Fonseca 32 Garcias,um beco sem saída pertinho da pizzaria labodeguita",
+      "name": "Michele morais",
+      "phone": ""
+    },
+    "id": 1773880507213,
+    "items": [
+      {
+        "name": "Santa Fúria",
+        "observation": "",
+        "price": 46,
+        "quantity": 1
+      },
+      {
+        "addons": [
+          "Ovo Extra"
+        ],
+        "name": "Milagre Cremoso",
+        "observation": "",
+        "price": 44,
+        "quantity": 1
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Dinheiro",
+    "timestamp": "2026-03-19T00:35:07.214Z",
+    "total": 100
+  },
+  "1773952289589": {
+    "customer": {
+      "address": "Rua Cândido Bernardes 992morada nova",
+      "name": "Tiago",
+      "phone": "37984120893"
+    },
+    "id": 1773952289589,
+    "items": [
+      {
+        "name": "Santo Juízo",
+        "observation": "",
+        "price": 44,
+        "quantity": 1
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Cartão de Crédito",
+    "timestamp": "2026-03-19T20:31:29.589Z",
+    "total": 54
+  },
+  "1773955749898": {
+    "customer": {
+      "address": "Avenida João Moreira de Carvalho 359",
+      "name": "Jeferson drumond",
+      "phone": "37998070202"
+    },
+    "id": 1773955749898,
+    "items": [
+      {
+        "name": "Bolo de Maracujá",
+        "observation": "",
+        "price": 18,
+        "quantity": 1
+      },
+      {
+        "name": "X-Egg Bacon",
+        "observation": "",
+        "price": 32,
+        "quantity": 2
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Cartão de Crédito",
+    "timestamp": "2026-03-19T21:29:09.898Z",
+    "total": 92
+  },
+  "1773962476579": {
+    "customer": {
+      "address": "R. Antenor Gonçalves de Oliveira - Conj. Hab. Jadir Marinho, Itaúna - MG, 35681-239, Brazil",
+      "name": "Joel Lino Silva",
+      "phone": "37998460022"
+    },
+    "id": 1773962476579,
+    "items": [
+      {
+        "name": "X-Egg Bacon",
+        "observation": "",
+        "price": 32,
+        "quantity": 2
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Cartão de Crédito",
+    "timestamp": "2026-03-19T23:21:16.579Z",
+    "total": 74
+  },
+  "1774044823879": {
+    "customer": {
+      "address": "Rua azurita 140",
+      "name": "Klayton",
+      "phone": "37998435837"
+    },
+    "id": 1774044823879,
+    "items": [
+      {
+        "name": "X-Egg Bacon",
+        "observation": "",
+        "price": 32,
+        "quantity": 1
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Cartão de Débito",
+    "timestamp": "2026-03-20T22:13:43.879Z",
+    "total": 42
+  },
+  "1774047747908": {
+    "customer": {
+      "address": "Rua Antônio Alves Rodrigues 56 aeroporto",
+      "name": "Thiene Esteves",
+      "phone": ""
+    },
+    "id": 1774047747908,
+    "items": [
+      {
+        "name": "Santo Juízo",
+        "observation": "Sem alface e tomate por favor ",
+        "price": 44,
+        "quantity": 1
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Cartão de Débito",
+    "timestamp": "2026-03-20T23:02:27.908Z",
+    "total": 54
+  },
+  "1774049099810": {
+    "customer": {
+      "address": "Rua José beba n76 Lourdes",
+      "name": "Rodrigo Laurindo",
+      "phone": "37999592065"
+    },
+    "id": 1774049099810,
+    "items": [
+      {
+        "name": "Santo Juízo",
+        "observation": "",
+        "price": 44,
+        "quantity": 1
+      },
+      {
+        "name": "Coca-Cola",
+        "observation": "",
+        "price": 7,
+        "quantity": 1
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Dinheiro",
+    "timestamp": "2026-03-20T23:24:59.810Z",
+    "total": 61
+  },
+  "1774050758326": {
+    "customer": {
+      "address": "Rua doutor Paulo Nogueira 138 piaguassu",
+      "name": "Vinicius",
+      "phone": "37999229565"
+    },
+    "id": 1774050758326,
+    "items": [
+      {
+        "name": "Santa Fúria",
+        "observation": "",
+        "price": 46,
+        "quantity": 1
+      },
+      {
+        "name": "X-Egg Bacon",
+        "observation": "",
+        "price": 32,
+        "quantity": 1
+      },
+      {
+        "name": "Coca-Cola",
+        "observation": "",
+        "price": 7,
+        "quantity": 1
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Pix",
+    "timestamp": "2026-03-20T23:52:38.326Z",
+    "total": 95
+  },
+  "1774131807499": {
+    "customer": {
+      "address": "Marieta Dangelo Moreira",
+      "name": "Lurdinha cerila Fidelis neta",
+      "phone": "(37) 99914-6326"
+    },
+    "id": 1774131807499,
+    "items": [
+      {
+        "name": "Dom Contra",
+        "observation": "",
+        "price": 42,
+        "quantity": 1
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Cartão de Débito",
+    "timestamp": "2026-03-21T22:23:27.499Z",
+    "total": 52
+  },
+  "1774156608181": {
+    "customer": {
+      "address": "Rua oromar Carlos Camargo 41 novo horizonte",
+      "name": "Giovana",
+      "phone": "37999671231"
+    },
+    "id": 1774156608181,
+    "items": [
+      {
+        "name": "X-Salada",
+        "observation": "",
+        "price": 24,
+        "quantity": 1
+      },
+      {
+        "name": "Vegetariano",
+        "observation": "",
+        "price": 24,
+        "quantity": 1
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Dinheiro",
+    "timestamp": "2026-03-22T05:16:48.181Z",
+    "total": 58
+  },
+  "1774218507136": {
+    "customer": {
+      "address": "RETIRADA",
+      "name": "Agatha Marisa",
+      "phone": "37999388601"
+    },
+    "id": 1774218507136,
+    "items": [
+      {
+        "name": "X-Egg Bacon",
+        "observation": "",
+        "price": 32,
+        "quantity": 1
+      },
+      {
+        "name": "X-Egg",
+        "observation": "",
+        "price": 27,
+        "quantity": 1
+      }
+    ],
+    "orderType": "pickup",
+    "payment": "Cartão de Débito",
+    "timestamp": "2026-03-22T22:28:27.136Z",
+    "total": 59
+  },
+  "1774220458562": {
+    "customer": {
+      "address": "Rua Maria Lima Coutinho, 714, AP, 301",
+      "name": "Filipe",
+      "phone": "37984010084"
+    },
+    "id": 1774220458562,
+    "items": [
+      {
+        "name": "Santo Juízo",
+        "observation": "",
+        "price": 44,
+        "quantity": 1
+      },
+      {
+        "name": "Milagre Cremoso",
+        "observation": "",
+        "price": 40,
+        "quantity": 1
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Cartão de Crédito",
+    "timestamp": "2026-03-22T23:00:58.562Z",
+    "total": 94
+  },
+  "1774301191048": {
+    "customer": {
+      "address": "Rua Antônio Fernandes, 130, Santanense ( casa da esquina cinza)",
+      "name": "Naiara Erica",
+      "phone": "37998623710"
+    },
+    "id": 1774301191048,
+    "items": [
+      {
+        "name": "Santo Juízo",
+        "observation": "",
+        "price": 44,
+        "quantity": 1
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Cartão de Crédito",
+    "timestamp": "2026-03-23T21:26:31.048Z",
+    "total": 57
+  },
+  "1774307342513": {
+    "customer": {
+      "address": "Rua crispim Martins Fagundes 136",
+      "name": "Joao Victor dos Reis viana",
+      "phone": "37999932776"
+    },
+    "id": 1774307342513,
+    "items": [
+      {
+        "name": "Santa Fúria",
+        "observation": "",
+        "price": 48,
+        "quantity": 1
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Dinheiro",
+    "timestamp": "2026-03-23T23:09:02.513Z",
+    "total": 58
+  },
+  "1774393658733": {
+    "customer": {
+      "address": "Rua doutor Paulo Nogueira 138 piaguassu",
+      "name": "Vinicius",
+      "phone": "37999229565"
+    },
+    "id": 1774393658733,
+    "items": [
+      {
+        "name": "Santa Fúria",
+        "observation": "",
+        "price": 46,
+        "quantity": 1
+      },
+      {
+        "name": "Coca-Cola",
+        "observation": "",
+        "price": 7,
+        "quantity": 1
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Pix",
+    "timestamp": "2026-03-24T23:07:38.733Z",
+    "total": 63
+  },
+  "1774397507501": {
+    "customer": {
+      "address": "Rua Miami 14 Morada nova",
+      "name": "Gabrielle",
+      "phone": "37999463300"
+    },
+    "id": 1774397507501,
+    "items": [
+      {
+        "name": "X-Egg",
+        "observation": "",
+        "price": 20,
+        "quantity": 1
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Pix",
+    "timestamp": "2026-03-25T00:11:47.501Z",
+    "total": 30
+  },
+  "1774757619112": {
+    "customer": {
+      "address": "Rua aurelio Campos 288",
+      "name": "Mariany",
+      "phone": ""
+    },
+    "id": 1774757619112,
+    "items": [
+      {
+        "name": "X-Bacon",
+        "observation": "",
+        "price": 33,
+        "quantity": 2
+      }
+    ],
+    "orderType": "delivery",
+    "payment": "Cartão de Débito",
+    "timestamp": "2026-03-29T04:13:39.112Z",
+    "total": 76
+  },
+  "1774819251233": {
+    "customer": {
+      "address": "Rua Ricardina Maria Lopes, 88, São Bento",
+      "name": "Mariana",
+      "phone": "31998870676"
+    },
+    "id": 1774819251233,
+    "items": [
+      {
+        "name": "Santa Fúria",
+        "observation": "",
+        "price": 48,
+        "quantity": 1
+      },
+      {
+        "name": "Bolo Dois Amores",
+        "observation": "",
+        "price": 18,
+        "quantity": 1
+      }
+    ],
+    "orderNumber": "003",
+    "orderType": "delivery",
+    "payment": "Dinheiro",
+    "timestamp": "2026-03-29T21:20:51.233Z",
+    "total": 73
+  },
+  "1774819526733": {
+    "customer": {
+      "address": "Rua 3",
+      "name": "Juliana",
+      "phone": ""
+    },
+    "id": 1774819526733,
+    "items": [
+      {
+        "name": "X-Bacon",
+        "observation": "",
+        "price": 33,
+        "quantity": 1
+      },
+      {
+        "name": "Bolo de Maracujá",
+        "observation": "",
+        "price": 18,
+        "quantity": 1
+      },
+      {
+        "name": "Bolo Dois Amores",
+        "observation": "",
+        "price": 18,
+        "quantity": 1
+      }
+    ],
+    "orderNumber": "004",
+    "orderType": "delivery",
+    "payment": "Dinheiro",
+    "timestamp": "2026-03-29T21:25:26.733Z",
+    "total": 73
+  },
+  "1774820355869": {
+    "customer": {
+      "address": "Rua doutor Paulo Nogueira 138 piaguassu",
+      "name": "Vinicius",
+      "phone": "37999229565"
+    },
+    "id": 1774820355869,
+    "items": [
+      {
+        "name": "Santo Juízo",
+        "observation": "",
+        "price": 44,
+        "quantity": 1
+      }
+    ],
+    "orderNumber": "005",
+    "orderType": "delivery",
+    "payment": "Pix",
+    "timestamp": "2026-03-29T21:39:15.869Z",
+    "total": 54
+  },
+  "1774822165284": {
+    "customer": {
+      "address": "Avenida Manoel da custódia número 145 bairro piedade( depósito de gás em frente a NASA bebidas",
+      "name": "Rani",
+      "phone": "31998508615"
+    },
+    "id": 1774822165284,
+    "items": [
+      {
+        "name": "Laçador",
+        "observation": "",
+        "price": 34,
+        "quantity": 1
+      },
+      {
+        "name": "Santa Fúria",
+        "observation": "",
+        "price": 48,
+        "quantity": 1
+      }
+    ],
+    "orderNumber": "006",
+    "orderType": "delivery",
+    "payment": "Dinheiro",
+    "timestamp": "2026-03-29T22:09:25.284Z",
+    "total": 92
+  },
+  "1774830195813": {
+    "customer": {
+      "address": "Carmo do cajuru 218 parque jardim",
+      "name": "Mairon",
+      "phone": "37999910820"
+    },
+    "id": 1774830195813,
+    "items": [
+      {
+        "name": "Santo Juízo",
+        "observation": "",
+        "price": 44,
+        "quantity": 2
+      }
+    ],
+    "orderNumber": "007",
+    "orderType": "delivery",
+    "payment": "Cartão de Débito",
+    "timestamp": "2026-03-30T00:23:15.813Z",
+    "total": 98
+  }
+}

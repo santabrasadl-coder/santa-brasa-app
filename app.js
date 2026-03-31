@@ -182,12 +182,12 @@ let crossSellShown = false;
 
 // ===== Promoção Maluca =====
 const PROMO_CONFIG = {
-    active: false,
-    label: "🔥 OFERTA SANTO JUÍZO",
+    active: true,
+    label: "🔥 LOUCURA DE TERÇA",
     totalStock: 10,       // Estoque total compartilhado
-    storageKey: 'sb_santo_juizo_promo_v1',
+    storageKey: 'sb_santo_juizo_promo_terca_v1',
     discounts: {
-        8: { promoPrice: 39.90 } // Santo Juízo
+        8: { promoPrice: 38.90 } // Santo Juízo
     }
 };
 
@@ -213,13 +213,55 @@ function updatePromoBannerStock() {
     const remaining = getPromoRemaining();
     const stockEl = document.getElementById('cpb-stock-count');
     if (stockEl) {
+        // Animação de flash ao atualizar o número
+        stockEl.classList.remove('cpb-stock-flash');
+        void stockEl.offsetWidth; // Reflow para reiniciar animation
+        stockEl.classList.add('cpb-stock-flash');
         stockEl.textContent = String(remaining).padStart(2, '0');
         if (remaining <= 5) stockEl.closest('.cpb-stock-badge').classList.add('cpb-stock-critical');
     }
-    // Se zerou, re-renderiza o menu para remover as ribbons/promos
+    // Se zerou, dispara animação de esgotado e re-renderiza
     if (remaining <= 0) {
-        renderMenu();
+        triggerSoldOutAnimation();
+        setTimeout(() => renderMenu(), 2800); // Espera a animação terminar
     }
+}
+
+function triggerSoldOutAnimation() {
+    const banner = document.getElementById('crazy-promo-banner');
+    if (banner) {
+        banner.classList.add('promo-exploding');
+    }
+}
+
+// ===== Countdown Automático de Escassez =====
+function startPromoCountdown() {
+    if (!PROMO_CONFIG.active) return;
+
+    const INTERVAL_MS = 25 * 60 * 1000; // 25 minutos
+    const DRAIN_PER_TICK = 2; // Unidades drenadas por intervalo
+
+    function drain() {
+        const remaining = getPromoRemaining();
+        if (remaining <= 0) return; // Já acabou, para o countdown
+
+        // Drena até 2 unidades (sem passar de 0)
+        const toDrain = Math.min(DRAIN_PER_TICK, remaining);
+        for (let i = 0; i < toDrain; i++) {
+            incrementPromoSold();
+        }
+
+        console.log(`[PROMO COUNTDOWN] -${toDrain} unidades. Restam: ${getPromoRemaining()}`);
+
+        // Agenda próximo drain somente se ainda tiver estoque
+        if (getPromoRemaining() > 0) {
+            setTimeout(drain, INTERVAL_MS);
+        }
+    }
+
+    // Inicia o primeiro drain após 25 minutos
+    setTimeout(drain, INTERVAL_MS);
+    console.log('[PROMO COUNTDOWN] Iniciado. -2 unidades a cada 25 minutos.');
 }
 
 // ===== Menu Data =====
@@ -274,7 +316,7 @@ const menuData = {
         {
             id: 8,
             name: "Santo Juízo",
-            description: "Um verdadeiro tribunal de sabores: Hambúrguer Suculento, Frango Grelhado, Bacon Suculento, Ovo, Triplo de Queijo, Milho, Alface, Tomate e Maionese Especial.",
+            description: "Um verdadeiro tribunal de sabores: Hambúrguer Suculento, Frango, Bacon Suculento, Ovo, Triplo de Queijo, Milho, Alface, Tomate e Maionese Especial.",
             price: 44.00,
             badge: "MAIS VENDIDO 🏆",
             image: "santo_juizo.png"
@@ -482,6 +524,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 5000);
 
+    // Inicia countdown automático de escassez da promoção
+    startPromoCountdown();
+
     // Log initial group
     const group = getABTestGroup();
     console.log(`[AB TEST] User assigned to group: ${group}`);
@@ -543,6 +588,9 @@ function initSimulatedNotifications() {
 }
 
 function displaySocialProof(nome, bairro, produto) {
+    // Não exibe notificações quando a loja está fechada
+    if (!isStoreOpen()) return;
+
     const container = document.getElementById('social-proof-container');
     if (!container) return;
 
@@ -678,14 +726,14 @@ function renderPromoBanner() {
         </div>
     ` : `
         <div class="cpb-inner">
-            <div class="cpb-tag">OFERTA DE QUINTA-FEIRA</div>
+            <div class="cpb-tag">🔥 LOUCURA DE TERÇA-FEIRA</div>
             <h2 class="cpb-title">🔥 SANTO JUÍZO 🔥</h2>
-            <p class="cpb-subtitle">Experimente o nosso mais vendido com um desconto especial apenas hoje!</p>
+            <p class="cpb-subtitle">Promoção RELÂMPAGO só hoje! Apenas 10 unidades com preço especial de terça!</p>
             <div class="cpb-prices">
                 <div class="cpb-price-item">
                     <span class="cpb-item-name">Santo Juízo</span>
                     <span class="cpb-old-price">44,00</span>
-                    <span class="cpb-new-price">39,90</span>
+                    <span class="cpb-new-price">38,90</span>
                 </div>
             </div>
 

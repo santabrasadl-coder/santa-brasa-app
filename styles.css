@@ -2908,3 +2908,110 @@ body {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* ===== Flash ao atualizar nº de estoque ===== */
+@keyframes stock-flash {
+    0%   { transform: scale(1);    color: #e84a4a; text-shadow: none; }
+    30%  { transform: scale(1.4);  color: #ff2222; text-shadow: 0 0 20px rgba(255, 30, 30, 0.9); }
+    60%  { transform: scale(1.15); color: #ff5555; text-shadow: 0 0 10px rgba(255, 60, 60, 0.6); }
+    100% { transform: scale(1);    color: #e84a4a; text-shadow: none; }
+}
+
+.cpb-stock-flash {
+    animation: stock-flash 0.7s ease-out forwards !important;
+}
+
+/* ===== Badge de estoque ===== */
+.cpb-stock-badge {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    background: rgba(168, 46, 46, 0.12);
+    border: 1px solid rgba(168, 46, 46, 0.3);
+    border-radius: 12px;
+    padding: 0.5rem 1.2rem;
+}
+
+.cpb-stock-txt, .cpb-stock-of {
+    font-size: 0.85rem;
+    color: #c99;
+}
+
+.cpb-stock-big {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.8rem;
+    color: #e84a4a;
+    line-height: 1;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    display: inline-block;
+    transition: color 0.3s;
+}
+
+.cpb-stock-badge.cpb-stock-critical .cpb-stock-big {
+    color: #ff3131 !important;
+    animation: critical-pulse 0.8s ease-in-out infinite alternate;
+}
+
+/* ===== Animação ÉPICA de Esgotado ===== */
+@keyframes promo-explode-shake {
+    0%   { transform: translateX(0) scale(1); }
+    10%  { transform: translateX(-8px) scale(1.02); }
+    20%  { transform: translateX(8px)  scale(1.02); }
+    30%  { transform: translateX(-6px) scale(1.01); }
+    40%  { transform: translateX(6px)  scale(1.01); }
+    50%  { transform: translateX(-4px); }
+    60%  { transform: translateX(4px); }
+    70%  { transform: translateX(-2px); }
+    80%  { transform: translateX(2px); }
+    90%  { transform: translateX(0) scale(0.98); }
+    100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes promo-explode-glow {
+    0%   { box-shadow: 0 0 0px rgba(255, 30, 30, 0);   border-color: #751d1d; }
+    25%  { box-shadow: 0 0 60px rgba(255, 30, 30, 0.9); border-color: #ff2222; }
+    50%  { box-shadow: 0 0 100px rgba(255, 30, 30, 0.7); border-color: #ff5555; }
+    75%  { box-shadow: 0 0 40px rgba(255, 30, 30, 0.4); border-color: #a82e2e; }
+    100% { box-shadow: 0 0 0px rgba(255, 30, 30, 0);   border-color: #444; opacity: 0.6; }
+}
+
+.crazy-promo-banner.promo-exploding {
+    animation:
+        promo-explode-shake 0.6s ease-out,
+        promo-explode-glow  2.8s ease-out forwards !important;
+    pointer-events: none;
+}
+
+/* Texto ESGOTADO aparecendo por cima do banner quando explode */
+.crazy-promo-banner.promo-exploding::after {
+    content: '🔥 ESGOTADO! 🔥';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    color: #fff;
+    text-shadow: 0 0 30px rgba(255, 50, 50, 1), 0 0 60px rgba(255, 80, 80, 0.8);
+    letter-spacing: 5px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    border: 2px solid #ff3131;
+    z-index: 10;
+    white-space: nowrap;
+    animation: soldout-text-appear 0.4s 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes soldout-text-appear {
+    from { transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; }
+    to   { transform: translate(-50%, -50%) scale(1) rotate(0deg);  opacity: 1; }
+}
+
+/* Urgency row do banner */
+.cpb-urgency-row {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+}
+

@@ -313,14 +313,13 @@
     <div id="crossSellOverlay" class="cross-sell-overlay">
         <div class="cross-sell-modal">
             <img id="crossSellImage" src="" alt="Oferta Especial" class="cross-sell-image">
-            <h2 class="cross-sell-title">UM DOCE PARA TERMINAR? 🍰</h2>
-            <p class="cross-sell-text">Você adicionou um sanduíche! Que tal uma deliciosa <b>Fatia de Torta</b> para acompanhar por um preço especial?</p>
-            <div class="cross-sell-price">
-                <span class="old">R$ 18,00</span>
-                <span class="new">R$ 15,00</span>
+            <p class="cross-sell-text" style="font-size: 1.1rem; margin-top: 1.5rem; color: #fff;">Deseja adicionar uma deliciosa <b>Fatia de Torta</b> ao seu pedido?</p>
+            <div class="cross-sell-price" style="margin-bottom: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                <span class="old" style="color: #ff3131; text-decoration: line-through; font-size: 1.2rem; font-weight: 700;">R$ 18,00</span>
+                <span class="new" style="color: #00FF41; font-size: 3.2rem; font-weight: 900; text-shadow: 0 0 20px rgba(0, 255, 65, 0.4); line-height: 1;">R$ 15,00</span>
             </div>
             <div class="cross-sell-buttons">
-                <button class="btn-accept-offer" onclick="acceptCrossSell()">ADICIONAR AGORA!</button>
+                <button class="btn-accept-offer" onclick="acceptCrossSell()" style="background: #00FF41; color: #000; box-shadow: 0 0 20px rgba(0, 255, 65, 0.4); font-weight: 900;">SIM, EU QUERO! 🍰</button>
                 <button class="btn-decline-offer" onclick="closeCrossSell()">Não, obrigado</button>
             </div>
         </div>
