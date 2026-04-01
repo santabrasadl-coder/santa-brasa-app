@@ -684,12 +684,8 @@ function addDirectToCart(itemId) {
 // ===== Smart Cross-Sell Functions =====
 function showCrossSell() {
     const overlay = document.getElementById('crossSellOverlay');
-    const img = document.getElementById('crossSellImage');
     if (!overlay) return;
 
-    // Use real cake photo provided by user
-    if (img) img.src = "torta-promo.jpg";
-    
     overlay.style.display = 'flex';
     crossSellShown = true;
     
