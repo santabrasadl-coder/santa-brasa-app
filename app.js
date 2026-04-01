@@ -1280,19 +1280,30 @@ let isSubmittingOrder = false;
 
 async function getNextOrderNumber() {
     if (typeof firebase === 'undefined' || !firebase.apps || firebase.apps.length === 0) return "000";
+    
     try {
         const db = firebase.database();
         const counterRef = db.ref('settings/orderCounter');
-        const result = await counterRef.transaction((currentValue) => {
+        
+        // Timeout de 4 segundos para a transação
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("Timeout")), 4000)
+        );
+
+        const transactionPromise = counterRef.transaction((currentValue) => {
             return (currentValue || 0) + 1;
         });
+
+        const result = await Promise.race([transactionPromise, timeoutPromise]);
+        
         if (result.committed) {
             return String(result.snapshot.val()).padStart(3, '0');
         }
     } catch (e) {
-        console.error("Erro ao obter número do pedido:", e);
+        console.warn("Erro ou timeout ao obter número do pedido, usando fallback:", e.message);
     }
-    return Math.floor(Math.random() * 900) + 100; // Fallback aleatório
+    
+    return Math.floor(Math.random() * 900) + 100; // Fallback aleatório seguro
 }
 
 async function sendToWhatsApp() {
@@ -1323,103 +1334,57 @@ async function sendToWhatsApp() {
     
     // UI Feedback Imediato
     const btn = document.getElementById('checkoutButton');
-    btn.classList.add('loading');
-    btn.disabled = true;
+    if (btn) {
+        btn.classList.add('loading');
+        btn.innerHTML = '<div class="spinner"></div> Enviando...';
+        btn.disabled = true;
+    }
 
-    // Mostrar Modal de Transição (Evita bloqueio de popup e dá instrução)
+    // Mostrar Modal de Transição
     const modal = document.getElementById('whatsappModal');
     if (modal) modal.style.display = 'flex';
 
-    // Obter número do pedido (rápido)
-    const orderNum = await getNextOrderNumber();
-    saveUserData(name, address, phone);
-
-    const hasBurger = cart.some(item => COMBO_PROMO.burgerIds.includes(Number(item.id)));
-    let message = `🍔 *PEDIDO SANTA BRASA #${orderNum}* 🔥\n`;
-    
-    if (!isStoreOpen()) {
-        const sched = getSchedule();
-        message += `⚠️ *AGENDAMENTO (Abre às ${sched.openHour}h${String(sched.openMinute).padStart(2, '0')})*\n`;
-    }
-    message += `👤 *Cliente:* ${name}\n`;
-    if (phone) message += `📞 *Tel:* ${phone}\n`;
-    message += `🛒 *Tipo:* ${orderType === 'delivery' ? 'Entrega 🛵' : 'Retirada 🛍️'}\n`;
-    message += "━━━━━━━━━━━━━━━━━━\n\n";
-
-    cart.forEach((item) => {
-        let price = item.price;
-        let promoTag = "";
-        if (hasBurger && COMBO_PROMO.cakeIds.includes(Number(item.id))) {
-            price = COMBO_PROMO.promoPrice;
-            promoTag = " (PROMO COMBO ⚡)";
-        }
-        message += `▸ ${item.quantity}x ${item.name}${promoTag}\n`;
-        if (item.addons && item.addons.length > 0) {
-            item.addons.forEach(addon => { message += `   + ${addon.name}\n`; });
-        }
-        if (item.observation) { message += `   📝 _Obs: ${item.observation}_\n`; }
-        message += `   R$ ${(price * item.quantity).toFixed(2).replace('.', ',')}\n`;
-    });
-
-    const subtotal = cart.reduce((sum, item) => {
-        let price = item.price;
-        if (hasBurger && COMBO_PROMO.cakeIds.includes(Number(item.id))) { price = COMBO_PROMO.promoPrice; }
-        return sum + (price * item.quantity);
-    }, 0);
-    const fee = orderType === 'delivery' ? getDynamicDeliveryFee() : 0;
-    const total = subtotal + fee;
-
-    message += "\n━━━━━━━━━━━━━━━━━━\n";
-    message += `Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
-    if (fee > 0) message += `Taxa de Entrega: R$ ${fee.toFixed(2).replace('.', ',')}\n`;
-    message += `*TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*\n\n`;
-
-    if (orderType === 'delivery') {
-        message += "📍 *ENTREGA:*\n";
-        message += `${address}\n\n`;
-    } else {
-        message += "📍 *RETIRADA EM:* \n";
-        message += `Rua Marechal Deodoro, 398\n\n`;
-    }
-
-    message += "💰 *PAGAMENTO:*\n";
-    message += `${payment}`;
-    if (payment === 'Dinheiro') { message += `\n💵 Troco para: R$ ${change}`; }
-
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodedMessage}`;
-    const ua = navigator.userAgent || navigator.vendor || window.opera;
-    const isInApp = /FBAN|FBAV|Instagram|LinkedIn|Messenger/i.test(ua);
-    const isMobile = /Android|webOS|iPhone|iPad|Macintosh|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
     let redirectTriggered = false;
-    const finishCheckoutAndRedirect = () => {
+    let timeoutFallback = null;
+
+    const finishCheckoutAndRedirect = (whatsappUrl, orderNum, total, tempCartItems) => {
         if (redirectTriggered) return;
         redirectTriggered = true;
+        if (timeoutFallback) clearTimeout(timeoutFallback);
 
-        // Configura link de contingência se o automático falhar
+        // Configura link de contingência
         const fallbackLink = document.getElementById('whatsappFallbackLink');
         if (fallbackLink) fallbackLink.href = whatsappUrl;
         
-        // Exibe botão manual após 1.8s se a página continuar aqui (sinal que o redirecionamento travou)
+        // Exibe botão manual após 1.8s se a página continuar aqui
         setTimeout(() => {
             const manualContent = document.getElementById('manualRedirectContent');
             if (manualContent) manualContent.style.display = 'block';
         }, 1800);
 
         // Limpar Carrinho
-        const tempCart = [...cart];
-        cart = []; saveCart(); updateCartUI(); toggleCart();
+        cart = []; 
+        saveCart(); 
+        updateCartUI(); 
+        if (typeof toggleCart === 'function') toggleCart();
 
         // Meta Pixel & Log
         if (typeof trackPixelEvent === 'function') {
-            trackPixelEvent('Purchase', { value: total, currency: 'BRL', content_type: 'product', content_ids: tempCart.map(item => item.id), num_items: tempCart.length });
+            trackPixelEvent('Purchase', { 
+                value: total, 
+                currency: 'BRL', 
+                content_type: 'product', 
+                content_ids: tempCartItems.map(item => item.id), 
+                num_items: tempCartItems.length 
+            });
         }
         if (typeof logEvent === 'function') logEvent(`Pedido #${orderNum} - Redirecionando...`);
 
         // Redirecionamento Inteligente
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isMobile = /Android|webOS|iPhone|iPad|Macintosh|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
         if (isMobile) {
-            // Em navegadores de redes sociais (InApp), window.open costuma ser bloqueado. Location é melhor.
             window.location.assign(whatsappUrl);
         } else {
             const win = window.open(whatsappUrl, '_blank');
@@ -1429,8 +1394,76 @@ async function sendToWhatsApp() {
         }
     };
 
-    // --- SALVAR NO DASHBOARD (FIREBASE) COM TIMEOUT ACELERADO ---
     try {
+        // --- 1. Obter número do pedido (rápido ou fallback) ---
+        const orderNum = await getNextOrderNumber();
+        saveUserData(name, address, phone);
+
+        // --- 2. Construir Mensagem WhatsApp ---
+        const hasBurger = cart.some(item => COMBO_PROMO.burgerIds.includes(Number(item.id)));
+        let message = `🍔 *PEDIDO SANTA BRASA #${orderNum}* 🔥\n`;
+        
+        if (!isStoreOpen()) {
+            const sched = getSchedule();
+            message += `⚠️ *AGENDAMENTO (Abre às ${sched.openHour}h${String(sched.openMinute).padStart(2, '0')})*\n`;
+        }
+        message += `👤 *Cliente:* ${name}\n`;
+        if (phone) message += `📞 *Tel:* ${phone}\n`;
+        message += `🛒 *Tipo:* ${orderType === 'delivery' ? 'Entrega 🛵' : 'Retirada 🛍️'}\n`;
+        message += "━━━━━━━━━━━━━━━━━━\n\n";
+
+        cart.forEach((item) => {
+            let price = item.price;
+            let promoTag = "";
+            if (hasBurger && COMBO_PROMO.cakeIds.includes(Number(item.id))) {
+                price = COMBO_PROMO.promoPrice;
+                promoTag = " (PROMO COMBO ⚡)";
+            }
+            message += `▸ ${item.quantity}x ${item.name}${promoTag}\n`;
+            if (item.addons && item.addons.length > 0) {
+                item.addons.forEach(addon => { message += `   + ${addon.name}\n`; });
+            }
+            if (item.observation) { message += `   📝 _Obs: ${item.observation}_\n`; }
+            message += `   R$ ${(price * item.quantity).toFixed(2).replace('.', ',')}\n`;
+        });
+
+        const subtotal = cart.reduce((sum, item) => {
+            let price = item.price;
+            if (hasBurger && COMBO_PROMO.cakeIds.includes(Number(item.id))) { price = COMBO_PROMO.promoPrice; }
+            return sum + (price * item.quantity);
+        }, 0);
+        const fee = orderType === 'delivery' ? getDynamicDeliveryFee() : 0;
+        const total = subtotal + fee;
+
+        message += "\n━━━━━━━━━━━━━━━━━━\n";
+        message += `Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
+        if (fee > 0) message += `Taxa de Entrega: R$ ${fee.toFixed(2).replace('.', ',')}\n`;
+        message += `*TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*\n\n`;
+
+        if (orderType === 'delivery') {
+            message += "📍 *ENTREGA:*\n";
+            message += `${address}\n\n`;
+        } else {
+            message += "📍 *RETIRADA EM:* \n";
+            message += `Rua Marechal Deodoro, 398\n\n`;
+        }
+
+        message += "💰 *PAGAMENTO:*\n";
+        message += `${payment}`;
+        if (payment === 'Dinheiro') { message += `\n💵 Troco para: R$ ${change}`; }
+
+        const encodedMessage = encodeURIComponent(message);
+        const whatsappUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodedMessage}`;
+        const tempCartItems = [...cart];
+
+        // --- 3. SAFETY TIMEOUT (Proteção contra lentidão do Firebase) ---
+        // Se em 1.5 segundos não conseguirmos salvar no banco, pulamos direto para o WhatsApp
+        timeoutFallback = setTimeout(() => { 
+            console.warn("Safety Timeout Triggered - Redirecionando...");
+            finishCheckoutAndRedirect(whatsappUrl, orderNum, total, tempCartItems); 
+        }, 1500);
+
+        // --- 4. Salvar no Firebase (Opcional, não bloqueante se falhar) ---
         if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
             const db = firebase.database();
             const orderId = Date.now();
@@ -1439,7 +1472,7 @@ async function sendToWhatsApp() {
                 orderNumber: orderNum,
                 timestamp: new Date().toISOString(),
                 customer: { name, phone, address: orderType === 'delivery' ? address : 'RETIRADA' },
-                items: cart.map(item => ({
+                items: tempCartItems.map(item => ({
                     name: item.name, quantity: item.quantity, price: item.price,
                     addons: item.addons ? item.addons.map(a => a.name) : [],
                     observation: item.observation || ''
@@ -1449,8 +1482,8 @@ async function sendToWhatsApp() {
 
             const customerKey = name.toLowerCase().replace(/[.#$\[\]\s]/g, '_');
 
-            // Dispara salvamento mas não deixa o usuário esperando mais que 800ms
-            const savePromises = Promise.all([
+            // Tenta salvar e redirecionar assim que concluir
+            Promise.all([
                 db.ref('orders/' + orderId).set(orderData),
                 db.ref('customers/' + customerKey).transaction((current) => {
                     if (!current) return { name, phone: phone || '', address: orderType === 'delivery' ? address : '', totalSpent: total, orderCount: 1, lastOrder: orderData.timestamp };
@@ -1459,27 +1492,27 @@ async function sendToWhatsApp() {
                     current.lastOrder = orderData.timestamp;
                     return current;
                 })
-            ]);
-
-            // Redireciona em no máximo 1 segundo, mesmo que a internet esteja lenta
-            const timeoutFallback = setTimeout(() => { 
-                console.warn("CRM Slow - Prioritizing WhatsApp.");
-                finishCheckoutAndRedirect(); 
-            }, 800);
-
-            savePromises.then(() => {
-                clearTimeout(timeoutFallback);
-                finishCheckoutAndRedirect();
-            }).catch(() => {
-                clearTimeout(timeoutFallback);
-                finishCheckoutAndRedirect();
+            ]).then(() => {
+                finishCheckoutAndRedirect(whatsappUrl, orderNum, total, tempCartItems);
+            }).catch((err) => {
+                console.error("Firebase save failed:", err);
+                finishCheckoutAndRedirect(whatsappUrl, orderNum, total, tempCartItems);
             });
-
         } else {
-            finishCheckoutAndRedirect();
+            finishCheckoutAndRedirect(whatsappUrl, orderNum, total, tempCartItems);
         }
-    } catch (e) {
-        finishCheckoutAndRedirect();
+
+    } catch (error) {
+        console.error("Critical checkout error:", error);
+        // Em caso de erro crítico na construção da mensagem ou lógica, limpamos o estado para permitir nova tentativa
+        isSubmittingOrder = false;
+        if (btn) {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            btn.innerHTML = '<span class="whatsapp-icon">📱</span> Tentar novamente';
+        }
+        if (modal) modal.style.display = 'none';
+        alert("Ocorreu um erro ao processar seu pedido. Por favor, tente novamente.");
     }
 }
 

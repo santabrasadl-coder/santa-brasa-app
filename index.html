@@ -343,7 +343,7 @@
     <div id="whatsappModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
         <div style="background: #111; border: 1px solid #333; border-radius: 12px; padding: 2rem; max-width: 320px; text-align: center; width: 90%; box-shadow: 0 0 30px rgba(0, 255, 65, 0.2);">
             <div class="spinner" style="display: block !important; margin: 0 auto 1.5rem; width: 45px; height: 45px; border: 4px solid rgba(0,255,65,0.1); border-top-color: #00FF41; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; margin-bottom: 0.5rem; color: #fff; letter-spacing: 1px;">ENVIANDO PEDIDO...</h3>
+            <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; margin-bottom: 0.5rem; color: #fff; letter-spacing: 1px;">ENVIANDO...</h3>
             <p style="font-size: 0.95rem; color: #888; margin-bottom: 1.5rem; line-height: 1.4;">Aguarde, estamos conectando você ao WhatsApp da Santa Brasa.</p>
             
             <div id="manualRedirectContent" style="display: none; animation: fadeIn 0.5s ease;">
@@ -353,8 +353,38 @@
                     CLIQUE PARA CONTINUAR
                 </a>
             </div>
+
+            <!-- Botão de Sair/Cancelar se travar -->
+            <button onclick="closeWhatsappModal()" style="margin-top: 1.5rem; background: transparent; border: none; color: #555; cursor: pointer; font-size: 0.85rem; text-decoration: underline;">
+                Cancelar e voltar ao carrinho
+            </button>
         </div>
     </div>
+
+    <!-- Script de Suporte para Fechamento do Modal -->
+    <script>
+        function closeWhatsappModal() {
+            const modal = document.getElementById('whatsappModal');
+            if (modal) modal.style.display = 'none';
+            
+            // Reabilita o botão de checkout globalmente
+            if (typeof isSubmittingOrder !== 'undefined') {
+                isSubmittingOrder = false;
+                const btn = document.getElementById('checkoutButton');
+                if (btn) {
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    // Tenta restaurar o texto original baseado no status da loja
+                    if (typeof isStoreOpen === 'function' && !isStoreOpen()) {
+                        const sched = getSchedule();
+                        btn.innerHTML = `<span class="whatsapp-icon">📱</span> Agendar p/ às ${sched.openHour}h${String(sched.openMinute).padStart(2, '0')}`;
+                    } else {
+                        btn.innerHTML = '<span class="whatsapp-icon">📱</span> Pedir agora';
+                    }
+                }
+            }
+        }
+    </script>
 </body>
 
 </html>
