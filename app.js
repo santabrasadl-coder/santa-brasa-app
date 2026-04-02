@@ -180,15 +180,13 @@ const COMBO_PROMO = {
 
 let crossSellShown = false;
 
-// ===== Promoção Maluca =====
+// ===== Promoção Maluca (DESATIVADA conforme solicitado - Foco em Combos) =====
 const PROMO_CONFIG = {
-    active: true,
-    label: "🔥 LOUCURA DE TERÇA",
-    totalStock: 10,       // Estoque total compartilhado
+    active: false,
+    label: "🔥 QUINTA EXPLOSIVA",
+    totalStock: 10,
     storageKey: 'sb_terca_loucura_v3',
-    discounts: {
-        8: { promoPrice: 38.90 } // Santo Juízo
-    }
+    discounts: {} // Sem descontos diretos no Santo Juízo
 };
 
 function getPromoSold() {
@@ -266,6 +264,32 @@ function startPromoCountdown() {
 
 // ===== Menu Data =====
 const menuData = {
+    combos: [
+        {
+            id: 5001,
+            name: "Combo Econômico 💸",
+            description: "1x X-Salada + 1x Coca-Cola Lata 350ml + 1x Fatia de Bolo. <br><small style='color: var(--primary); font-weight: 600;'>🔥 Economia de R$ 8,00</small>",
+            price: 41.00,
+            badge: "O QUERIDINHO 🏆",
+            image: "santa_brasa_combo_cake.png"
+        },
+        {
+            id: 5002,
+            name: "Combo Casal Tradicional 👩‍❤️‍👨",
+            description: "2x X-Salada + 2x Coca-Cola Lata 350ml + 2x Fatia de Bolo. <br><small style='color: var(--primary); font-weight: 600;'>💎 Economia de R$ 13,10</small>",
+            price: 84.90,
+            badge: "MAIS VENDIDOO 🔥",
+            image: "santa_brasa_combo_cake.png"
+        },
+        {
+            id: 5003,
+            name: "Combo Casal Especial 👑",
+            description: "2x X-Egg Bacon + 2x Coca-Cola Lata 350ml + 2x Fatia de Bolo. <br><small style='color: var(--primary); font-weight: 600;'>✨ Economia de R$ 18,10</small>",
+            price: 99.90,
+            badge: "MAIOR VANTAGEM 💎",
+            image: "santa_brasa_combo_cake.png"
+        }
+    ],
     tradicionais: [
         {
             id: 1,

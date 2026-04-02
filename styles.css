@@ -23,6 +23,10 @@
     --radius-lg: 12px;
     --radius-full: 9999px;
     
+    /* Custom Gradients */
+    --gradient-gold: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    --gradient-premium: linear-gradient(135deg, #111111 0%, #222222 100%);
+    
     /* Shadows */
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.7);
@@ -275,6 +279,58 @@ body {
             0 0 80px #FF4141,
             0 0 120px #FF4141;
     }
+}
+
+/* ===== Combos Section Premium Styling ===== */
+.combos-section {
+    background: rgba(0, 255, 65, 0.03);
+    padding: 2rem 1rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(0, 255, 65, 0.1);
+    margin-bottom: 3rem;
+    box-shadow: inset 0 0 30px rgba(0, 255, 65, 0.05);
+}
+
+.combos-section .section-title {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    font-size: 2.2rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.combos-section .menu-item {
+    background: linear-gradient(145deg, #0a0a0a 0%, #151515 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.combos-section .menu-item:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: var(--primary);
+    box-shadow: 0 15px 45px rgba(0, 255, 65, 0.2);
+}
+
+.combos-section .item-name {
+    font-size: 1.6rem;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.combos-section .item-badge {
+    background: var(--gradient-gold);
+    color: #000;
+    font-weight: 900;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+}
+
+.combos-section .item-image-premium {
+    height: 220px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
 }
 
 /* ===== Neon White Effect ===== */
