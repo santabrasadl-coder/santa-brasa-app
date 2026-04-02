@@ -155,7 +155,7 @@ function updateStoreStatus() {
             openingInfoNeon.classList.add('closed');
         }
     }
-    updateCartUI();
+    updateCheckoutButtonStatus();
 }
 
 // Atualiza o status frequentemente para o cronômetro
@@ -1085,6 +1085,25 @@ function updateObservation(cartId, text) {
     saveCart();
 }
 
+/**
+ * Atualiza apenas o estado e texto do botão de checkout
+ * sem re-renderizar a lista de itens do carrinho.
+ * Evita perda de foco em campos de input/textarea.
+ */
+function updateCheckoutButtonStatus() {
+    const btn = document.getElementById('checkoutButton');
+    if (!btn || cart.length === 0) return;
+
+    if (!isStoreOpen()) {
+        const sched = getSchedule();
+        btn.disabled = false;
+        btn.innerHTML = `<span class="whatsapp-icon">📱</span> Agendar p/ às ${sched.openHour}h${String(sched.openMinute).padStart(2, '0')}`;
+    } else {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="whatsapp-icon">📱</span> Pedir agora';
+    }
+}
+
 // ===== Update Cart UI =====
 function updateCartUI() {
     // Update count badge
@@ -1140,23 +1159,16 @@ function updateCartUI() {
                 </div>
 
                 <div class="cart-item-obs-container">
-                    <input type="text" 
+                    <textarea 
                         class="cart-item-obs" 
                         placeholder="Alguma observação? (Ex: sem cebola)"
-                        value="${item.observation || ''}"
-                        oninput="updateObservation('${item.cartId}', this.value)">
+                        rows="2"
+                        oninput="updateObservation('${item.cartId}', this.value)">${item.observation || ''}</textarea>
                 </div>
             </div>
         `).join('');
-        // Update checkout button state
-        if (!isStoreOpen()) {
-            const sched = getSchedule();
-            checkoutButton.disabled = false;
-            checkoutButton.innerHTML = `<span class="whatsapp-icon">📱</span> Agendar p/ às ${sched.openHour}h${String(sched.openMinute).padStart(2, '0')}`;
-        } else {
-            checkoutButton.disabled = false;
-            checkoutButton.innerHTML = '<span class="whatsapp-icon">📱</span> Pedir agora';
-        }
+        
+        updateCheckoutButtonStatus();
     }
 
     // Update total with Smart Promo consideration
