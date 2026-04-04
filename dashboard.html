@@ -627,6 +627,7 @@
         <button class="nav-btn" onclick="showTab('tab-customers')">Clientes</button>
         <button class="nav-btn" onclick="showTab('tab-chat')">Chat Live <span id="total-unread" class="unread-badge"
                 style="display:none;">0</span></button>
+        <button class="nav-btn" onclick="showTab('tab-marketing')">Marketing & Promoções</button>
         <button class="nav-btn" onclick="showTab('tab-reports')">Relatórios</button>
     </nav>
 
@@ -790,6 +791,113 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 4: Marketing & Promotions -->
+    <div id="tab-marketing" class="tab-content">
+        <div class="crm-container" style="padding: 2rem;">
+            <h2 style="font-family: 'Bebas Neue', sans-serif; color: var(--primary); margin-bottom: 1.5rem; font-size: 2rem;">🚀 Gestão de Promoções Explosivas</h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <!-- Configurações de Escassez -->
+                <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 12px; border: 1px solid #333;">
+                    <h3 style="font-family: 'Bebas Neue'; margin-bottom: 1rem; color: var(--neon-green);">📦 Configuração de Escassez (Ghost Stock)</h3>
+                    
+                    <div style="margin-bottom: 1.2rem;">
+                        <label class="status-label-text" style="display: block; margin-bottom: 5px;">Produto em Destaque</label>
+                        <select id="promo-product-id" class="search-input" style="width: 100%;">
+                            <option value="8">Santo Juízo (Mais Vendido)</option>
+                            <option value="7">Santa Fúria (Premium)</option>
+                            <option value="5001">Combo Econômico</option>
+                            <option value="4">X-Bacon</option>
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
+                        <div>
+                            <label class="status-label-text" style="display: block; margin-bottom: 5px;">Estoque Inicial</label>
+                            <input type="number" id="promo-initial-stock" class="search-input" style="width: 100%;" value="10">
+                        </div>
+                        <div>
+                            <label class="status-label-text" style="display: block; margin-bottom: 5px;">Preço Promo (R$)</label>
+                            <input type="number" step="0.01" id="promo-price" class="search-input" style="width: 100%;" value="38.90">
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1.2rem;">
+                        <label class="status-label-text" style="display: block; margin-bottom: 5px;">Redução Automat. (minutos)</label>
+                        <input type="number" id="promo-decay-minutes" class="search-input" style="width: 100%;" value="25">
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="status-label-text">Ativar Promoção:</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="promo-active-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="status-label-text">Exibir Estoque no Banner:</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="promo-show-stock-toggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="status-label-text">Exibir Cronômetro no Banner:</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="promo-show-timer-toggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button class="send-btn" onclick="saveMarketingSettings()" style="width: 100%; padding: 1rem;">SALVAR CONFIGURAÇÕES</button>
+                </div>
+
+                <!-- Gestão de Preços dos Combos -->
+                <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 12px; border: 1px solid #333;">
+                    <h3 style="font-family: 'Bebas Neue'; margin-bottom: 1rem; color: var(--primary);">💎 Gestão de Preços: Combos</h3>
+                    
+                    <div style="margin-bottom: 1.2rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label class="status-label-text">Combo Econômico (ID 5001)</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="status-combo-5001" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <input type="number" step="0.01" id="price-combo-5001" class="search-input" style="width: 100%;" value="41.00">
+                    </div>
+
+                    <div style="margin-bottom: 1.2rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label class="status-label-text">Combo Casal Tradicional (ID 5002)</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="status-combo-5002" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <input type="number" step="0.01" id="price-combo-5002" class="search-input" style="width: 100%;" value="84.90">
+                    </div>
+
+                    <div style="margin-bottom: 1.2rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label class="status-label-text">Combo Casal Especial (ID 5003)</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="status-combo-5003" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <input type="number" step="0.01" id="price-combo-5003" class="search-input" style="width: 100%;" value="99.90">
+                    </div>
+
+                    <button class="send-btn" onclick="saveComboPriceSettings()" style="width: 100%; padding: 1rem; background: #222; border: 1px solid #444;">SALVAR PREÇOS DE COMBOS</button>
+                    <p style="margin-top: 1rem; font-size: 0.7rem; color: var(--text-dim); text-align: center;">Os preços acima atualizam apenas os valores no site, as descrições permanecem as mesmas.</p>
+                </div>
             </div>
         </div>
     </div>

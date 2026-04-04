@@ -204,6 +204,12 @@ function initDashboard() {
 
     // 8. Store Status Management
     initStoreStatus(db);
+
+    // 9. Marketing Management
+    initMarketingSettings(db);
+
+    // 10. Combo Prices Management
+    initComboPrices(db);
 }
 
 // ===== Store Status Management =====
@@ -823,9 +829,85 @@ function stopNotificationSound() {
     console.log("🔈 Som de notificação parado pelo usuário.");
 }
 
-function testNotificationSound() {
-    playNotificationSound();
-    // No alert here as it blocks the loop feeling and we have the stop button now
+// ===== Marketing & Promotions Management =====
+function initMarketingSettings(db) {
+    db.ref('settings/promotions').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            document.getElementById('promo-product-id').value = data.productId || '8';
+            document.getElementById('promo-initial-stock').value = data.initialStock || '10';
+            document.getElementById('promo-price').value = data.promoPrice || '38.90';
+            document.getElementById('promo-decay-minutes').value = data.decayMinutes || '25';
+            document.getElementById('promo-active-toggle').checked = data.active || false;
+            document.getElementById('promo-show-stock-toggle').checked = data.showStock !== false;
+            document.getElementById('promo-show-timer-toggle').checked = data.showTimer !== false;
+            
+            // Update Preview
+            const productSelect = document.getElementById('promo-product-id');
+            const selectedText = productSelect.options[productSelect.selectedIndex].text.split('(')[0].trim();
+            document.getElementById('preview-name').textContent = selectedText.toUpperCase();
+        }
+    });
+}
+
+function saveMarketingSettings() {
+    const db = firebase.database();
+    const settings = {
+        productId: document.getElementById('promo-product-id').value,
+        initialStock: parseInt(document.getElementById('promo-initial-stock').value),
+        promoPrice: parseFloat(document.getElementById('promo-price').value),
+        decayMinutes: parseInt(document.getElementById('promo-decay-minutes').value),
+        active: document.getElementById('promo-active-toggle').checked,
+        showStock: document.getElementById('promo-show-stock-toggle').checked,
+        showTimer: document.getElementById('promo-show-timer-toggle').checked,
+        lastUpdate: new Date().toISOString() 
+    };
+
+    db.ref('settings/promotions').set(settings)
+        .then(() => {
+            alert("✅ Configurações de Marketing salvas com sucesso!");
+            addLogRow(new Date().toLocaleTimeString('pt-BR'), "📢 Promoção '" + settings.productId + "' atualizada pelo admin.");
+        })
+        .catch(err => {
+            console.error("Erro ao salvar marketing:", err);
+            alert("Erro ao salvar configurações!");
+        });
+}
+
+function initComboPrices(db) {
+    db.ref('settings/comboPrices').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            Object.keys(data).forEach(id => {
+                const priceInput = document.getElementById(`price-combo-${id}`);
+                const statusInput = document.getElementById(`status-combo-${id}`);
+                if (priceInput) priceInput.value = data[id].price || '0.00';
+                if (statusInput) statusInput.checked = data[id].active !== false; // Default true
+            });
+        }
+    });
+}
+
+function saveComboPriceSettings() {
+    const db = firebase.database();
+    const combos = {};
+    
+    [5001, 5002, 5003].forEach(id => {
+        combos[id] = {
+            price: parseFloat(document.getElementById(`price-combo-${id}`).value),
+            active: document.getElementById(`status-combo-${id}`).checked
+        };
+    });
+
+    db.ref('settings/comboPrices').set(combos)
+        .then(() => {
+            alert("💎 Configurações dos Combos atualizadas com sucesso!");
+            addLogRow(new Date().toLocaleTimeString('pt-BR'), "💎 Status/Preços dos combos alterados pelo admin.");
+        })
+        .catch(err => {
+            console.error("Erro ao salvar combos:", err);
+            alert("Erro ao salvar configurações!");
+        });
 }
 
 function addLogRow(time, msg) {

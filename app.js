@@ -180,21 +180,35 @@ const COMBO_PROMO = {
 
 let crossSellShown = false;
 
-// ===== Promoção Maluca (DESATIVADA conforme solicitado - Foco em Combos) =====
+// ===== Promoção de Marketing Automática (Escassez Dinâmica via Dashboard) =====
 const PROMO_CONFIG = {
     active: false,
-    label: "🔥 QUINTA EXPLOSIVA",
+    label: "🔥 PROMOÇÃO RELÂMPAGO",
     totalStock: 10,
-    storageKey: 'sb_terca_loucura_v3',
-    discounts: {} // Sem descontos diretos no Santo Juízo
+    promoPrice: 38.90,
+    promoProductId: '8',
+    decayMinutes: 25,
+    lastUpdate: new Date().toISOString(),
+    showStock: true,
+    showTimer: true,
+    storageKey: 'sb_marketing_promo_v1',
+    discounts: {} 
 };
 
-function getPromoSold() {
-    return parseInt(localStorage.getItem(PROMO_CONFIG.storageKey) || '0', 10);
-}
-
 function getPromoRemaining() {
-    return Math.max(0, PROMO_CONFIG.totalStock - getPromoSold());
+    if (!PROMO_CONFIG.active) return 0;
+    
+    // Lógica de Escassez Fantasma (Ghost Stock) por tempo
+    const now = new Date();
+    const lastUpdate = new Date(PROMO_CONFIG.lastUpdate);
+    const diffMs = now - lastUpdate;
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    
+    // Redução: 1 unidade a cada X minutos passados
+    const ghostReduction = PROMO_CONFIG.decayMinutes > 0 ? Math.floor(diffMins / PROMO_CONFIG.decayMinutes) : 0;
+    
+    // Estoque Real Visualizado = Inicial - Redução Automática
+    return Math.max(0, PROMO_CONFIG.totalStock - ghostReduction);
 }
 
 function isPromoActive() {
@@ -561,7 +575,64 @@ document.addEventListener('DOMContentLoaded', () => {
     const group = getABTestGroup();
     console.log(`[AB TEST] User assigned to group: ${group}`);
     trackABEvent('visit');
+
+    // Sincroniza Promoções do Dashboard
+    initPromotionSync();
 });
+
+// ===== Promoção Sincronizada via Firebase =====
+function initPromotionSync() {
+    if (typeof firebase === 'undefined') return;
+    const db = firebase.database();
+    
+    db.ref('settings/promotions').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            console.log("📊 Configurações de Marketing Recebidas:", data);
+            PROMO_CONFIG.active = data.active || false;
+            PROMO_CONFIG.totalStock = data.initialStock || 10;
+            PROMO_CONFIG.decayMinutes = data.decayMinutes || 25;
+            PROMO_CONFIG.lastUpdate = data.lastUpdate || new Date().toISOString();
+            PROMO_CONFIG.promoProductId = data.productId || '8';
+            PROMO_CONFIG.promoPrice = data.promoPrice || 38.90;
+            PROMO_CONFIG.showStock = data.showStock !== false;
+            PROMO_CONFIG.showTimer = data.showTimer !== false;
+            
+            // Sincroniza o desconto para o produto em destaque no card do menu
+            PROMO_CONFIG.discounts = {};
+            if (PROMO_CONFIG.active && PROMO_CONFIG.promoPrice && PROMO_CONFIG.promoProductId) {
+                PROMO_CONFIG.discounts[PROMO_CONFIG.promoProductId] = {
+                    promoPrice: PROMO_CONFIG.promoPrice
+                };
+            }
+            
+            // Re-renderiza o menu caso o banner precise aparecer/sumir
+            renderMenu();
+        }
+    });
+
+    // Sincroniza Preços e Status dos Combos
+    db.ref('settings/comboPrices').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            console.log("💎 Novas configurações de combos recebidas:", data);
+            menuData.combos.forEach(combo => {
+                const config = data[combo.id];
+                if (config) {
+                    // Lida com o novo formato {price, active} ou o antigo apenas com o preço
+                    if (typeof config === 'object') {
+                        combo.price = parseFloat(config.price || combo.price);
+                        combo.soldOut = config.active === false;
+                    } else {
+                        combo.price = parseFloat(config);
+                        combo.soldOut = false; // Antigo sempre ativo
+                    }
+                }
+            });
+            renderMenu();
+        }
+    });
+}
 
 // ===== Social Proof (Prova Social Real-time) =====
 let isInitialOrderLoad = true;
@@ -731,7 +802,7 @@ window.acceptCrossSell = function() {
 function renderPromoBanner() {
     if (!PROMO_CONFIG.active) return;
 
-    const section = document.getElementById('tradicionais')?.closest('.menu-section');
+    const section = document.getElementById('combos')?.closest('.menu-section');
     if (!section) return;
 
     // Remove banner antigo para re-renderizar (caso estoque mude)
@@ -740,6 +811,15 @@ function renderPromoBanner() {
 
     const remaining = getPromoRemaining();
     const promoEnded = remaining <= 0;
+    
+    // Encontrar dados do produto dinâmico no menuData
+    let product = null;
+    Object.values(menuData).forEach(cat => {
+        const found = cat.find(i => i.id == PROMO_CONFIG.promoProductId);
+        if (found) product = found;
+    });
+
+    if (!product) return;
 
     const banner = document.createElement('div');
     banner.id = 'crazy-promo-banner';
@@ -747,36 +827,92 @@ function renderPromoBanner() {
     banner.innerHTML = promoEnded ? `
         <div class="cpb-inner">
             <div class="cpb-tag cpb-tag-ended">PROMOÇÃO ENCERRADA</div>
-            <h2 class="cpb-title cpb-title-ended">😢 Acabou! As 10 Unidades Foram!</h2>
+            <h2 class="cpb-title cpb-title-ended">😢 Acabou! As ${PROMO_CONFIG.totalStock} Unidades Foram!</h2>
             <p class="cpb-subtitle">Mas nossos lanches continuam incríveis. Volte em breve!</p>
         </div>
     ` : `
         <div class="cpb-inner">
-            <div class="cpb-tag">🔥 LOUCURA DE TERÇA-FEIRA</div>
-            <h2 class="cpb-title">🔥 SANTO JUÍZO 🔥</h2>
-            <p class="cpb-subtitle">Promoção RELÂMPAGO só hoje! Apenas 10 unidades com preço especial de terça!</p>
+            <div class="cpb-tag">🔥 LOUCURA DE AGORA</div>
+            <h2 class="cpb-title">🔥 ${product.name.toUpperCase()} 🔥</h2>
+            <p class="cpb-subtitle">Promoção RELÂMPAGO! ${PROMO_CONFIG.showStock ? `Apenas ${PROMO_CONFIG.totalStock} unidades com preço especial!` : ''}</p>
             <div class="cpb-prices">
                 <div class="cpb-price-item">
-                    <span class="cpb-item-name">Santo Juízo</span>
-                    <span class="cpb-old-price">44,00</span>
-                    <span class="cpb-new-price">38,90</span>
+                    <span class="cpb-item-name">${product.name}</span>
+                    <div style="display: flex; gap: 10px; align-items: baseline;">
+                        <span class="cpb-old-price" style="text-decoration: line-through; opacity: 0.6; font-size: 0.9rem;">R$ ${product.price.toFixed(2).replace('.', ',')}</span>
+                        <span class="cpb-new-price" style="color: #00ff7f; font-weight: bold; font-size: 1.6rem; text-shadow: 0 0 10px rgba(0,255,127,0.3);">R$ ${PROMO_CONFIG.promoPrice.toFixed(2).replace('.', ',')}</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Restam X de 10 + Countdown -->
-            <div class="cpb-urgency-row">
-                <div class="cpb-stock-badge ${remaining <= 5 ? 'cpb-stock-critical' : ''}">
-                    <span class="cpb-stock-txt">restam</span>
-                    <span class="cpb-stock-big" id="cpb-stock-count">${String(remaining).padStart(2, '0')}</span>
-                    <span class="cpb-stock-of">de 10</span>
+            <!-- Timer e Urgência -->
+            <div class="cpb-urgency-row" style="display: flex; align-items: center; justify-content: center; gap: 1.5rem; margin-top: 1rem;">
+                <!-- Restam X de Y (Condicional) -->
+                ${PROMO_CONFIG.showStock ? `
+                <div class="cpb-stock-badge ${remaining <= 3 ? 'cpb-stock-critical' : ''}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,49,49,0.15); border: 2px solid #ff3131; padding: 5px 15px; border-radius: 8px; min-width: 100px;">
+                    <span style="font-size: 0.7rem; color: #fff; text-transform: uppercase; font-weight: 700; opacity: 0.9;">APENAS</span>
+                    <span class="cpb-stock-big" id="cpb-stock-count" style="font-size: 1.8rem; line-height: 1; color: #ff3131; font-family: 'Bebas Neue';">${String(remaining).padStart(2, '0')}</span>
+                    <span style="font-size: 0.7rem; color: #fff; text-transform: uppercase; font-weight: 700; opacity: 0.9;">UNIDADES</span>
                 </div>
+                ` : ''}
+
+                <!-- Cronômetro (Condicional) -->
+                ${PROMO_CONFIG.showTimer ? `
+                <div class="cpb-timer-box" style="background: rgba(0,0,0,0.5); padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--primary); min-width: 120px;">
+                    <div style="font-size: 0.7rem; color: #fff; text-transform: uppercase; font-weight: bold;">ACABA EM:</div>
+                    <div id="promo-countdown-timer" style="font-family: 'Bebas Neue'; font-size: 1.6rem; color: var(--primary); letter-spacing: 2px;">--:--</div>
+                </div>
+                ` : ''}
             </div>
 
-            <div class="cpb-footer">Válido enquanto durarem os estoques • Peça já! 🚀</div>
+            ${PROMO_CONFIG.showStock ? `<div class="cpb-footer" style="font-weight: 800; color: #ff3131; font-size: 1rem; text-transform: uppercase;">🔥 Apenas ${String(remaining).padStart(2, '0')} sanduíches disponíveis!</div>` : ''}
         </div>
     `;
 
     section.insertAdjacentElement('beforebegin', banner);
+    
+    // Inicia o timer vivo caso não exista
+    if (!window.promoTimerInterval) {
+        window.promoTimerInterval = setInterval(updateLivePromoTimer, 1000);
+    }
+}
+
+function updateLivePromoTimer() {
+    const timerElem = document.getElementById('promo-countdown-timer');
+    if (!timerElem || !PROMO_CONFIG.active) return;
+
+    const now = new Date();
+    const lastUpdate = new Date(PROMO_CONFIG.lastUpdate);
+    const diffMs = now - lastUpdate;
+    const diffSecsTotal = Math.floor(diffMs / 1000);
+    const decaySecs = PROMO_CONFIG.decayMinutes * 60;
+
+    if (decaySecs <= 0) {
+        timerElem.textContent = "AGORA!";
+        return;
+    }
+
+    // Tempo restante para a próxima redução de estoque
+    const remainingInCycle = decaySecs - (diffSecsTotal % decaySecs);
+    
+    const mins = Math.floor(remainingInCycle / 60);
+    const secs = remainingInCycle % 60;
+    
+    timerElem.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    
+    // Efeito visual de tensão nos últimos 30 segundos
+    if (remainingInCycle <= 30) {
+        timerElem.style.color = "#ffcc00";
+        timerElem.classList.add('pulse-timer');
+    } else {
+        timerElem.style.color = "var(--primary)";
+        timerElem.classList.remove('pulse-timer');
+    }
+
+    // Se o ciclo fechou (zero), força um re-render do menu para atualizar o número do estoque
+    if (remainingInCycle === decaySecs) {
+        renderMenu();
+    }
 }
 
 
@@ -785,60 +921,71 @@ function renderMenu() {
         const container = document.getElementById(category);
         if (!container) return;
 
-        container.innerHTML = menuData[category].map(item => {
-            let clickAction = '';
-            // Determine which function to call based on category
-            if (category === 'bebidas' || category === 'sobremesas' || category === 'bolos') {
-                clickAction = `addDirectToCart(${item.id})`;
-            } else {
-                clickAction = `addToCart(${item.id})`;
-            }
+        const activeItems = menuData[category].filter(item => !(category === 'combos' && item.soldOut));
+        const section = container.closest('.menu-section');
+        
+        if (activeItems.length === 0) {
+            if (section) section.style.display = 'none';
+            container.innerHTML = '';
+        } else {
+            if (section) section.style.display = 'block';
+            container.innerHTML = activeItems.map(item => {
+                let clickAction = '';
+                // Determine which function to call based on category
+                if (item.soldOut) {
+                    clickAction = `showToast('Item esgotado temporariamente 😢')`;
+                } else if (category === 'bebidas' || category === 'sobremesas' || category === 'bolos') {
+                    clickAction = `addDirectToCart(${item.id})`;
+                } else {
+                    clickAction = `addToCart(${item.id})`;
+                }
 
-            // Verifica se o item está em promoção (e tem estoque)
-            const promoInfo = isPromoActive() && PROMO_CONFIG.discounts[item.id];
-            const displayPrice = promoInfo ? promoInfo.promoPrice : item.price;
+                // Verifica se o item está em promoção (e tem estoque)
+                const promoInfo = isPromoActive() && PROMO_CONFIG.discounts[item.id];
+                const displayPrice = promoInfo ? promoInfo.promoPrice : item.price;
 
-            const priceBlock = item.soldOut
-                ? '<span class="sold-out-status">ESGOTADO</span>'
-                : promoInfo
-                    ? `<div class="promo-price-block">
-                           <span class="promo-original-price">${item.price.toFixed(2).replace('.', ',')}</span>
-                           <span class="item-price promo-active-price">${displayPrice.toFixed(2).replace('.', ',')}</span>
-                       </div>`
-                    : `<span class="item-price">${item.price.toFixed(2).replace('.', ',')}</span>`;
+                const priceBlock = item.soldOut
+                    ? '<span class="sold-out-status">ESGOTADO</span>'
+                    : promoInfo
+                        ? `<div class="promo-price-block">
+                               <span class="promo-original-price">${item.price.toFixed(2).replace('.', ',')}</span>
+                               <span class="item-price promo-active-price">${displayPrice.toFixed(2).replace('.', ',')}</span>
+                           </div>`
+                        : `<span class="item-price">${item.price.toFixed(2).replace('.', ',')}</span>`;
 
-            return `
-            <div class="menu-item ${item.soldOut ? 'sold-out' : ''} ${item.image ? 'has-image' : ''} ${promoInfo ? 'item-on-promo' : ''} ${item.highlightGreen ? 'highlight-green-item' : ''}" data-id="${item.id}">
-                ${item.soldOut ? '<div class="sold-out-ribbon">ESGOTADO</div>' : ''}
-                ${promoInfo ? '<div class="promo-ribbon">🔥 PROMOÇÃO</div>' : ''}
-                
-                ${item.image ? `
-                <div class="item-visual" onclick="openAddonModal(${item.id})">
-                    <img src="${item.image}" alt="${item.name}" class="item-image-premium" loading="lazy">
-                </div>
-                ` : ''}
+                return `
+                <div class="menu-item ${item.soldOut ? 'sold-out' : ''} ${item.image ? 'has-image' : ''} ${promoInfo ? 'item-on-promo' : ''} ${item.highlightGreen ? 'highlight-green-item' : ''}" data-id="${item.id}">
+                    ${item.soldOut ? '<div class="sold-out-ribbon">ESGOTADO</div>' : ''}
+                    ${promoInfo ? '<div class="promo-ribbon">🔥 PROMOÇÃO</div>' : ''}
+                    
+                    ${item.image ? `
+                    <div class="item-visual" onclick="openAddonModal(${item.id})">
+                        <img src="${item.image}" alt="${item.name}" class="item-image-premium" loading="lazy">
+                    </div>
+                    ` : ''}
 
-                <div class="item-info">
-                    <h3 class="item-name">
-                        ${item.name}
-                        ${item.badge ? `<span class="item-badge">${item.badge}</span>` : ''}
-                        ${promoInfo ? `<span class="item-badge promo-badge-item">${PROMO_CONFIG.label}</span>` : ''}
-                    </h3>
-                    <p class="item-description">${item.description}</p>
-                    <div class="menu-item-actions">
-                        <div class="price-container">
-                            ${priceBlock}
+                    <div class="item-info">
+                        <h3 class="item-name">
+                            ${item.name}
+                            ${item.badge ? `<span class="item-badge">${item.badge}</span>` : ''}
+                            ${promoInfo ? `<span class="item-badge promo-badge-item">${PROMO_CONFIG.label}</span>` : ''}
+                        </h3>
+                        <p class="item-description">${item.description}</p>
+                        <div class="menu-item-actions">
+                            <div class="price-container">
+                                ${priceBlock}
+                            </div>
+                            ${!item.soldOut ? `
+                            <button class="add-button ${promoInfo ? 'add-button-promo' : ''}" onclick="${clickAction}" aria-label="Adicionar ${item.name}">
+                                +
+                            </button>
+                            ` : ''}
                         </div>
-                        ${!item.soldOut ? `
-                        <button class="add-button ${promoInfo ? 'add-button-promo' : ''}" onclick="${clickAction}" aria-label="Adicionar ${item.name}">
-                            +
-                        </button>
-                        ` : ''}
                     </div>
                 </div>
-            </div>
-            `;
-        }).join('');
+                `;
+            }).join('');
+        }
     });
 
     // Injeta o banner de promoção maluca

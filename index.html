@@ -193,7 +193,10 @@
     <aside class="cart-sidebar" id="cartSidebar">
         <!-- Header Fixo -->
         <div class="cart-header">
-            <h2>Seu Pedido</h2>
+            <div style="display: flex; flex-direction: column;">
+                <h2 style="margin-bottom: 2px;">Seu Pedido</h2>
+                <span style="font-size: 0.8rem; color: var(--primary); font-weight: 600; opacity: 0.9;">🕒 Entrega: 40m - 60m</span>
+            </div>
             <button class="close-cart" onclick="toggleCart()">✕</button>
         </div>
 
@@ -211,7 +214,7 @@
                     <div class="order-type-toggle">
                         <button type="button" id="typeDelivery" class="type-button active"
                             onclick="setOrderType('delivery')">
-                            Entrega (~30m)
+                            Entrega (40m - 60m)
                         </button>
                         <button type="button" id="typePickup" class="type-button" onclick="setOrderType('pickup')">
                             Retirada
