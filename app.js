@@ -171,10 +171,10 @@ const CRAZY_PROMO = {
 
 // SMART PROMO: Burger + Cake Combo
 const COMBO_PROMO = {
-    active: true,
+    active: false, // Desativado por padrão, gerenciar via Dashboard
     burgerIds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], // Todos os burgers
     cakeIds: [3001, 3002, 3003, 3004], // Todos os bolos
-    promoPrice: 15.00,
+    promoPrice: 13.00, // Preço sugestão de domingo
     defaultCakeId: 3001 // Bolo de Maracujá como padrão para o Cross-Sell
 };
 
@@ -182,11 +182,11 @@ let crossSellShown = false;
 
 // ===== Promoção de Marketing Automática (Escassez Dinâmica via Dashboard) =====
 const PROMO_CONFIG = {
-    active: false,
-    label: "🔥 PROMOÇÃO RELÂMPAGO",
-    totalStock: 10,
+    active: false, // Desativado por padrão, gerenciar via Dashboard
+    label: "🔥 OFERTA DE DOMINGO",
+    totalStock: 15,
     promoPrice: 38.90,
-    promoProductId: '8',
+    promoProductId: '8', // Santo Juízo
     decayMinutes: 25,
     lastUpdate: new Date().toISOString(),
     showStock: true,
@@ -608,6 +608,24 @@ function initPromotionSync() {
             
             // Re-renderiza o menu caso o banner precise aparecer/sumir
             renderMenu();
+        }
+    });
+
+    // Sincroniza Oferta de Bolo (Combo)
+    db.ref('settings/cakePromo').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            console.log("🍰 Oferta de Bolo Sincronizada:", data);
+            COMBO_PROMO.promoPrice = parseFloat(data.promoPrice || 13.00);
+            COMBO_PROMO.active = data.active !== false;
+            
+            // Atualiza o modal de cross-sell se estiver no DOM
+            const newPriceEl = document.querySelector('.cross-sell-modal .new');
+            if (newPriceEl) {
+                newPriceEl.textContent = `R$ ${COMBO_PROMO.promoPrice.toFixed(2).replace('.', ',')}`;
+            }
+            
+            updateCartUI(); // Recalcula se já houver algo no carrinho
         }
     });
 
@@ -1444,14 +1462,25 @@ function getDynamicDeliveryFee() {
     // Normalizar: minúsculas e remover acentos
     const address = addressInput.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-    // Lista de bairros com taxa de R$ 13,00
-    const specialBairros = [
-        "varzea da olaria", "garcias", "cidade nova", "aeroporto", "aeroporoto",
-        "santanense", "itaunense 1", "itaunense 2", "tres marias"
+    // Mapeamento de taxas por bairro (mais específicos primeiro)
+    const feeRules = [
+        { name: "piaguassu", fee: 15.00 },
+        { name: "itaunense 2", fee: 15.00 },
+        { name: "itaunese 2", fee: 15.00 },
+        { name: "itaunense", fee: 15.00 },
+        { name: "santo antonio", fee: 12.00 },
+        { name: "tres marias", fee: 12.00 },
+        // Outros bairros conhecidos com taxa de R$ 13,00
+        { name: "varzea da olaria", fee: 13.00 },
+        { name: "garcias", fee: 13.00 },
+        { name: "cidade nova", fee: 13.00 },
+        { name: "aeroporto", fee: 13.00 },
+        { name: "aeroporoto", fee: 13.00 },
+        { name: "santanense", fee: 13.00 }
     ];
 
-    const isSpecial = specialBairros.some(bairro => address.includes(bairro));
-    return isSpecial ? 13.00 : DELIVERY_FEE;
+    const match = feeRules.find(rule => address.includes(rule.name));
+    return match ? match.fee : DELIVERY_FEE;
 }
 
 // ===== Send to WhatsApp =====

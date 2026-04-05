@@ -210,6 +210,9 @@ function initDashboard() {
 
     // 10. Combo Prices Management
     initComboPrices(db);
+
+    // 11. Cake Promo Management
+    initCakePromoSettings(db);
 }
 
 // ===== Store Status Management =====
@@ -906,6 +909,43 @@ function saveComboPriceSettings() {
         })
         .catch(err => {
             console.error("Erro ao salvar combos:", err);
+            alert("Erro ao salvar configurações!");
+        });
+}
+
+function initCakePromoSettings(db) {
+    db.ref('settings/cakePromo').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            document.getElementById('cake-promo-price').value = data.promoPrice || '13.00';
+            document.getElementById('cake-promo-active').checked = data.active !== false;
+            
+            // Update Preview
+            document.getElementById('preview-cake-price').textContent = `Por R$ ${parseFloat(data.promoPrice).toFixed(2).replace('.', ',')}`;
+        }
+    });
+
+    // Listener para o input de preço para atualizar a prévia em tempo real
+    document.getElementById('cake-promo-price').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value) || 0;
+        document.getElementById('preview-cake-price').textContent = `Por R$ ${val.toFixed(2).replace('.', ',')}`;
+    });
+}
+
+function saveCakePromoSettings() {
+    const db = firebase.database();
+    const settings = {
+        promoPrice: parseFloat(document.getElementById('cake-promo-price').value),
+        active: document.getElementById('cake-promo-active').checked
+    };
+
+    db.ref('settings/cakePromo').set(settings)
+        .then(() => {
+            alert("🍰 Oferta de Bolo salva com sucesso!");
+            addLogRow(new Date().toLocaleTimeString('pt-BR'), "🍰 Preço da oferta de bolo alterado para R$ " + settings.promoPrice.toFixed(2));
+        })
+        .catch(err => {
+            console.error("Erro ao salvar oferta de bolo:", err);
             alert("Erro ao salvar configurações!");
         });
 }
