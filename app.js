@@ -183,7 +183,7 @@ let crossSellShown = false;
 // ===== Promoção de Marketing Automática (Escassez Dinâmica via Dashboard) =====
 const PROMO_CONFIG = {
     active: false, // Desativado por padrão, gerenciar via Dashboard
-    label: "🔥 OFERTA DE DOMINGO",
+    label: "🔥 PROMOÇÃO RELÂMPAGO",
     totalStock: 15,
     promoPrice: 38.90,
     promoProductId: '8', // Santo Juízo
@@ -597,6 +597,7 @@ function initPromotionSync() {
             PROMO_CONFIG.promoPrice = data.promoPrice || 38.90;
             PROMO_CONFIG.showStock = data.showStock !== false;
             PROMO_CONFIG.showTimer = data.showTimer !== false;
+            PROMO_CONFIG.label = data.label || "🔥 PROMOÇÃO RELÂMPAGO";
             
             // Sincroniza o desconto para o produto em destaque no card do menu
             PROMO_CONFIG.discounts = {};

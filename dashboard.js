@@ -844,6 +844,7 @@ function initMarketingSettings(db) {
             document.getElementById('promo-active-toggle').checked = data.active || false;
             document.getElementById('promo-show-stock-toggle').checked = data.showStock !== false;
             document.getElementById('promo-show-timer-toggle').checked = data.showTimer !== false;
+            document.getElementById('promo-label').value = data.label || "🔥 PROMOÇÃO RELÂMPAGO";
             
             // Update Preview
             const productSelect = document.getElementById('promo-product-id');
@@ -863,6 +864,7 @@ function saveMarketingSettings() {
         active: document.getElementById('promo-active-toggle').checked,
         showStock: document.getElementById('promo-show-stock-toggle').checked,
         showTimer: document.getElementById('promo-show-timer-toggle').checked,
+        label: document.getElementById('promo-label').value || "🔥 PROMOÇÃO RELÂMPAGO",
         lastUpdate: new Date().toISOString() 
     };
 
