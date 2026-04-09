@@ -306,7 +306,7 @@ const menuData = {
         {
             id: 5006,
             name: "Mega Combo Santo Juízo ⚖️",
-            description: "2x Santo Juízo + 2x Coca-Cola Lata 350ml + 2x Fatias de Bolo Dois Amores. <br><small style='color: #00FF41; font-weight: 800;'>🔥 OFERTA DE QUINTA: Economia de R$ 38,10</small>",
+            description: "2x Santo Juízo + 2x Coca-Cola Lata 350ml + 2x Fatias de Bolo Dois Amores. <br><small style='color: #00FF41; font-weight: 800;'>Economia de R$ 38,10</small>",
             price: 99.90,
             badge: "OFERTA LIMITADA ⏳",
             image: "mega_combo_thursday.png"

@@ -912,10 +912,10 @@ function updateEconomyPreview(id, price) {
 
     const basePrices = { 5001: 49, 5002: 98, 5003: 118, 5006: 138 };
     const labels = {
-        5001: "✨ Economia de R$",
-        5002: "✨ Economia de R$",
-        5003: "✨ Economia de R$",
-        5006: "🔥 OFERTA DE QUINTA: Economia de R$"
+        5001: "Economia de R$",
+        5002: "Economia de R$",
+        5003: "Economia de R$",
+        5006: "Economia de R$"
     };
 
     const base = basePrices[id];
@@ -935,10 +935,10 @@ function saveComboPriceSettings() {
     
     // Mapeamento de preços cheios e descrições base para cálculo de economia
     const comboMeta = {
-        5001: { base: 49.00, desc: "1x X-Salada + 1x Coca-Cola Lata 350ml + 1x Fatia de Bolo.", label: "✨ Economia de R$" },
-        5002: { base: 98.00, desc: "2x X-Salada + 2x Coca-Cola Lata 350ml + 2x Fatia de Bolo.", label: "✨ Economia de R$" },
-        5003: { base: 118.00, desc: "2x X-Egg Bacon + 2x Coca-Cola Lata 350ml + 2x Fatia de Bolo.", label: "✨ Economia de R$" },
-        5006: { base: 138.00, desc: "2x Santo Juízo + 2x Coca-Cola Lata 350ml + 2x Fatias de Bolo Dois Amores.", label: "🔥 OFERTA DE QUINTA: Economia de R$" }
+        5001: { base: 49.00, desc: "1x X-Salada + 1x Coca-Cola Lata 350ml + 1x Fatia de Bolo.", label: "Economia de R$" },
+        5002: { base: 98.00, desc: "2x X-Salada + 2x Coca-Cola Lata 350ml + 2x Fatia de Bolo.", label: "Economia de R$" },
+        5003: { base: 118.00, desc: "2x X-Egg Bacon + 2x Coca-Cola Lata 350ml + 2x Fatia de Bolo.", label: "Economia de R$" },
+        5006: { base: 138.00, desc: "2x Santo Juízo + 2x Coca-Cola Lata 350ml + 2x Fatias de Bolo Dois Amores.", label: "Economia de R$" }
     };
 
     [5001, 5002, 5003, 5006].forEach(id => {
