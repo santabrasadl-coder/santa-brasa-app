@@ -302,6 +302,14 @@ const menuData = {
             price: 99.90,
             badge: "MAIOR VANTAGEM 💎",
             image: "santa_brasa_combo_cake.png"
+        },
+        {
+            id: 5006,
+            name: "Mega Combo Santo Juízo ⚖️",
+            description: "2x Santo Juízo + 2x Coca-Cola Lata 350ml + 2x Fatias de Bolo Dois Amores. <br><small style='color: #00FF41; font-weight: 800;'>🔥 OFERTA DE QUINTA: Economia de R$ 38,10</small>",
+            price: 99.90,
+            badge: "OFERTA LIMITADA ⏳",
+            image: "mega_combo_thursday.png"
         }
     ],
     tradicionais: [
@@ -642,6 +650,7 @@ function initPromotionSync() {
                     if (typeof config === 'object') {
                         combo.price = parseFloat(config.price || combo.price);
                         combo.soldOut = config.active === false;
+                        if (config.description) combo.description = config.description; // Aplica a descrição com economia dinâmica
                     } else {
                         combo.price = parseFloat(config);
                         combo.soldOut = false; // Antigo sempre ativo
@@ -861,6 +870,11 @@ function renderPromoBanner() {
                         <span class="cpb-old-price" style="text-decoration: line-through; opacity: 0.6; font-size: 0.9rem;">R$ ${product.price.toFixed(2).replace('.', ',')}</span>
                         <span class="cpb-new-price" style="color: #00ff7f; font-weight: bold; font-size: 1.6rem; text-shadow: 0 0 10px rgba(0,255,127,0.3);">R$ ${PROMO_CONFIG.promoPrice.toFixed(2).replace('.', ',')}</span>
                     </div>
+                    ${product.price > PROMO_CONFIG.promoPrice ? `
+                    <div style="color: #00FF41; font-weight: 800; font-size: 0.9rem; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;">
+                        🤑 Economia de R$ ${(product.price - PROMO_CONFIG.promoPrice).toFixed(2).replace('.', ',')}
+                    </div>
+                    ` : ''}
                 </div>
             </div>
 

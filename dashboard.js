@@ -886,28 +886,84 @@ function initComboPrices(db) {
             Object.keys(data).forEach(id => {
                 const priceInput = document.getElementById(`price-combo-${id}`);
                 const statusInput = document.getElementById(`status-combo-${id}`);
-                if (priceInput) priceInput.value = data[id].price || '0.00';
-                if (statusInput) statusInput.checked = data[id].active !== false; // Default true
+                if (priceInput) {
+                    priceInput.value = data[id].price || '0.00';
+                    updateEconomyPreview(id, data[id].price); // Mostra prévia ao carregar
+                }
+                if (statusInput) statusInput.checked = data[id].active !== false;
             });
         }
     });
+
+    // Adiciona listeners para atualização em tempo real no dashboard
+    [5001, 5002, 5003, 5006].forEach(id => {
+        const input = document.getElementById(`price-combo-${id}`);
+        if (input) {
+            input.addEventListener('input', (e) => {
+                updateEconomyPreview(id, e.target.value);
+            });
+        }
+    });
+}
+
+function updateEconomyPreview(id, price) {
+    const preview = document.getElementById(`preview-economy-${id}`);
+    if (!preview) return;
+
+    const basePrices = { 5001: 49, 5002: 98, 5003: 118, 5006: 138 };
+    const labels = {
+        5001: "✨ Economia de R$",
+        5002: "✨ Economia de R$",
+        5003: "✨ Economia de R$",
+        5006: "🔥 OFERTA DE QUINTA: Economia de R$"
+    };
+
+    const base = basePrices[id];
+    const current = parseFloat(price) || 0;
+
+    if (current < base) {
+        const economy = (base - current).toFixed(2).replace('.', ',');
+        preview.textContent = `${labels[id]} ${economy}`;
+    } else {
+        preview.textContent = "";
+    }
 }
 
 function saveComboPriceSettings() {
     const db = firebase.database();
     const combos = {};
     
-    [5001, 5002, 5003].forEach(id => {
+    // Mapeamento de preços cheios e descrições base para cálculo de economia
+    const comboMeta = {
+        5001: { base: 49.00, desc: "1x X-Salada + 1x Coca-Cola Lata 350ml + 1x Fatia de Bolo.", label: "✨ Economia de R$" },
+        5002: { base: 98.00, desc: "2x X-Salada + 2x Coca-Cola Lata 350ml + 2x Fatia de Bolo.", label: "✨ Economia de R$" },
+        5003: { base: 118.00, desc: "2x X-Egg Bacon + 2x Coca-Cola Lata 350ml + 2x Fatia de Bolo.", label: "✨ Economia de R$" },
+        5006: { base: 138.00, desc: "2x Santo Juízo + 2x Coca-Cola Lata 350ml + 2x Fatias de Bolo Dois Amores.", label: "🔥 OFERTA DE QUINTA: Economia de R$" }
+    };
+
+    [5001, 5002, 5003, 5006].forEach(id => {
+        const newPrice = parseFloat(document.getElementById(`price-combo-${id}`).value);
+        const isActive = document.getElementById(`status-combo-${id}`).checked;
+        const meta = comboMeta[id];
+        
+        let description = meta.desc;
+        if (newPrice < meta.base) {
+            const economy = (meta.base - newPrice).toFixed(2).replace('.', ',');
+            const style = id === 5006 ? 'color: #00FF41; font-weight: 800;' : 'color: var(--primary); font-weight: 600;';
+            description += ` <br><small style='${style}'>${meta.label} ${economy}</small>`;
+        }
+
         combos[id] = {
-            price: parseFloat(document.getElementById(`price-combo-${id}`).value),
-            active: document.getElementById(`status-combo-${id}`).checked
+            price: newPrice,
+            active: isActive,
+            description: description // Agora enviamos a descrição atualizada com a economia correta
         };
     });
 
     db.ref('settings/comboPrices').set(combos)
         .then(() => {
-            alert("💎 Configurações dos Combos atualizadas com sucesso!");
-            addLogRow(new Date().toLocaleTimeString('pt-BR'), "💎 Status/Preços dos combos alterados pelo admin.");
+            alert("💎 Configurações dos Combos (e Economia) atualizadas com sucesso!");
+            addLogRow(new Date().toLocaleTimeString('pt-BR'), "💎 Preços e cálculos de economia dos combos atualizados.");
         })
         .catch(err => {
             console.error("Erro ao salvar combos:", err);
