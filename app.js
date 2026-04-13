@@ -393,6 +393,16 @@ const menuData = {
     ],
     bolos: [
         {
+            id: 3005,
+            name: "Torta - Floresta Negra",
+            description: "Uma experiência intensa e sofisticada. Massa Cacau Black ultra molhadinha, recheio cremoso de Ninho com geleia artesanal de morango, finalizada com cobertura de chocolate meio amargo e a clássica cereja.",
+            price: 22.00,
+            badge: "EM BREVE ⏳",
+            highlightPurple: true,
+            soldOut: true,
+            hideRibbon: true
+        },
+        {
             id: 3001,
             name: "Bolo de Maracujá",
             description: "Fatia generosa e super molhadinha",
@@ -987,8 +997,8 @@ function renderMenu() {
                         : `<span class="item-price">${item.price.toFixed(2).replace('.', ',')}</span>`;
 
                 return `
-                <div class="menu-item ${item.soldOut ? 'sold-out' : ''} ${item.image ? 'has-image' : ''} ${promoInfo ? 'item-on-promo' : ''} ${item.highlightGreen ? 'highlight-green-item' : ''}" data-id="${item.id}">
-                    ${item.soldOut ? '<div class="sold-out-ribbon">ESGOTADO</div>' : ''}
+                <div class="menu-item ${item.soldOut ? 'sold-out' : ''} ${item.image ? 'has-image' : ''} ${promoInfo ? 'item-on-promo' : ''} ${item.highlightGreen ? 'highlight-green-item' : ''} ${item.highlightPurple ? 'highlight-purple-item' : ''}" data-id="${item.id}">
+                    ${item.soldOut && !item.hideRibbon ? '<div class="sold-out-ribbon">ESGOTADO</div>' : ''}
                     ${promoInfo ? '<div class="promo-ribbon">🔥 PROMOÇÃO</div>' : ''}
                     
                     ${item.image ? `

@@ -130,13 +130,13 @@ function initDashboard() {
         addLogRow(log.time, log.msg);
     });
 
-    // 5. CRM: Pedidos Passados
+    // 5. CRM: Pedidos Passados (carrega histórico)
     db.ref('orders').orderByChild('timestamp').limitToLast(100).on('value', (snapshot) => {
         const orders = [];
         snapshot.forEach(child => {
             const order = child.val();
             if (order) {
-                order.firebaseKey = child.key; // Chave real no banco
+                order.firebaseKey = child.key;
                 orders.unshift(order); 
             }
         });
@@ -145,20 +145,6 @@ function initDashboard() {
             console.warn("⚠️ Nenhum pedido encontrado no banco de dados.");
         } else {
             console.log(`✅ ${orders.length} pedidos carregados.`);
-        }
-
-        // NOVO: Lógica de Notificação Robusta (Não perde pedidos enquanto fechado)
-        const newestOrder = orders[0];
-        const lastId = localStorage.getItem('last_alerted_order_id');
-
-        if (newestOrder) {
-            // Se já tínhamos um registro e o novo é DIFERENTE, significa que é novo (ou chegou enquanto fechado)
-            if (lastId && newestOrder.firebaseKey !== lastId) {
-                console.log("🔔 Novo pedido detectado:", newestOrder.firebaseKey);
-                playNotificationSound();
-            }
-            // Atualiza sempre para o mais recente
-            localStorage.setItem('last_alerted_order_id', newestOrder.firebaseKey);
         }
 
         try {
@@ -177,6 +163,39 @@ function initDashboard() {
     }, (error) => {
         console.error("❌ Erro de Permissão (Orders):", error);
         addLogRow(new Date().toLocaleTimeString('pt-BR'), "⚠️ Bloqueio de leitura de pedidos (Permissão).");
+    });
+
+    // 5b. LISTENER DE NOVOS PEDIDOS EM TEMPO REAL (usa child_added para disparo único e confiável)
+    let isFirstOrderBatch = true;
+    db.ref('orders').limitToLast(1).on('child_added', (snapshot) => {
+        // Ignora o primeiro disparo ao conectar (que traz o pedido mais recente existente)
+        if (isFirstOrderBatch) {
+            isFirstOrderBatch = false;
+            const lastKey = snapshot.key;
+            localStorage.setItem('last_alerted_order_id', lastKey);
+            return;
+        }
+
+        const order = snapshot.val();
+        const lastId = localStorage.getItem('last_alerted_order_id');
+
+        if (snapshot.key !== lastId) {
+            console.log("🔔 NOVO PEDIDO DETECTADO:", snapshot.key, order);
+            localStorage.setItem('last_alerted_order_id', snapshot.key);
+
+            // Alerta sonoro e visual
+            playNotificationSound();
+
+            // Notificação do Sistema Operacional
+            if (Notification.permission === 'granted') {
+                new Notification('🔔 Novo Pedido na Santa Brasa!', {
+                    body: `${order.name || 'Cliente'} fez um pedido de ${order.total || ''}`,
+                    icon: 'logo.png'
+                });
+            }
+
+            addLogRow(new Date().toLocaleTimeString('pt-BR'), `🛒 NOVO PEDIDO de ${order.name || 'Cliente'} - ${order.total || 'Verificar'}`);
+        }
     });
 
     // Teste de Diagnóstico: Gravar um log
@@ -213,6 +232,38 @@ function initDashboard() {
 
     // 11. Cake Promo Management
     initCakePromoSettings(db);
+}
+
+// ===== Notificação de Novo Pedido =====
+function playNotificationSound() {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+
+        // Sequência de 3 beeps (dó-mi-sol)
+        const notes = [523, 659, 784];
+        notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            const startTime = ctx.currentTime + i * 0.18;
+            gain.gain.setValueAtTime(0.4, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.15);
+            osc.start(startTime);
+            osc.stop(startTime + 0.15);
+        });
+    } catch (e) {
+        console.warn('Som não pôde ser reproduzido:', e);
+    }
+}
+
+// Pede permissão de Notificação do SO logo ao carregar
+if (Notification && Notification.permission === 'default') {
+    Notification.requestPermission();
 }
 
 // ===== Store Status Management =====

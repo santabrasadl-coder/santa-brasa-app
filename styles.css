@@ -1486,6 +1486,32 @@ body {
     }
 }
 
+/* ===== Purple Highlight Item (Floresta Negra Novidade) ===== */
+.highlight-purple-item {
+    background: linear-gradient(135deg, rgba(191, 0, 255, 0.05) 0%, #111 100%) !important;
+    border: 2px solid #bf00ff !important;
+    box-shadow: 0 0 20px rgba(191, 0, 255, 0.2) !important;
+    animation: purple-pulse-border 2s infinite alternate !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.highlight-purple-item .item-name {
+    color: #df00ff !important;
+    text-shadow: 0 0 10px rgba(223, 0, 255, 0.6) !important;
+}
+
+@keyframes purple-pulse-border {
+    from {
+        box-shadow: 0 0 10px rgba(191, 0, 255, 0.1);
+        border-color: #bf00ff;
+    }
+    to {
+        box-shadow: 0 0 30px rgba(191, 0, 255, 0.6);
+        border-color: #df00ff;
+    }
+}
+
 .flash-item .add-button {
     background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.5) !important;
