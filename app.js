@@ -377,8 +377,7 @@ const menuData = {
             id: 10,
             name: "Dom Contra",
             description: "Carne nobre, sabor marcante: Pão, Contrafilé, Bacon, Ovo, Dobro de Queijo, Salada e Molho Especial.",
-            price: 54.00,
-            soldOut: true
+            price: 54.00
         }
     ],
     sobremesas: [

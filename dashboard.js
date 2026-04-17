@@ -1119,3 +1119,46 @@ function formatDate(date) {
 function checkAccess() {
     return true; // Removido verificação de senha para facilitar o acesso e evitar bugs
 }
+
+// ===== Calculadora CMVS e Precificação =====
+function calculateCMV() {
+    const ingredients = parseFloat(document.getElementById('cmv-ingredients').value) || 0;
+    const packaging = parseFloat(document.getElementById('cmv-packaging').value) || 0;
+    const feesPercent = parseFloat(document.getElementById('cmv-fees').value) || 0;
+    const marginPercent = parseFloat(document.getElementById('cmv-margin').value) || 0;
+
+    const totalCost = ingredients + packaging;
+    
+    // Formula Markup Reverso
+    const combinedPercentage = feesPercent + marginPercent;
+    
+    let suggestedPrice = 0;
+    let netProfit = 0;
+    let cmvPercent = 0;
+
+    if (combinedPercentage >= 100) {
+        document.getElementById('cmv-suggested-price').innerText = "ERRO!";
+        document.getElementById('cmv-suggested-price').style.color = "var(--primary)";
+        document.getElementById('cmv-net-profit').innerText = "Margem inviável";
+        document.getElementById('cmv-percentage').innerText = "-";
+        return;
+    }
+
+    if (totalCost > 0) {
+        suggestedPrice = totalCost / (1 - (combinedPercentage / 100));
+        const feeValue = suggestedPrice * (feesPercent / 100);
+        netProfit = suggestedPrice - totalCost - feeValue;
+        cmvPercent = (totalCost / suggestedPrice) * 100;
+        
+        document.getElementById('cmv-suggested-price').style.color = "var(--neon-green)";
+        document.getElementById('cmv-suggested-price').innerText = `R$ ${suggestedPrice.toFixed(2).replace('.', ',')}`;
+        document.getElementById('cmv-net-profit').innerText = `R$ ${netProfit.toFixed(2).replace('.', ',')}`;
+        document.getElementById('cmv-percentage').innerText = `${cmvPercent.toFixed(1)}%`;
+    } else {
+        document.getElementById('cmv-suggested-price').style.color = "var(--neon-green)";
+        document.getElementById('cmv-suggested-price').innerText = "R$ 0,00";
+        document.getElementById('cmv-net-profit').innerText = "R$ 0,00";
+        document.getElementById('cmv-percentage').innerText = "0%";
+    }
+}
+window.calculateCMV = calculateCMV;

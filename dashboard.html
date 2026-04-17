@@ -797,7 +797,56 @@
 
     <!-- Tab 4: Marketing & Promotions -->
     <div id="tab-marketing" class="tab-content">
-        <div class="crm-container" style="padding: 2rem;">
+        <!-- Calculadora CMVS -->
+        <div class="crm-container" style="padding: 2rem; margin: 2rem; margin-top: 0; background: linear-gradient(145deg, #1A1A1A 0%, #0D0D0D 100%); border: 1px solid #333; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: rgba(0, 255, 65, 0.1); filter: blur(50px); border-radius: 50%;"></div>
+            <h2 style="font-family: 'Bebas Neue', sans-serif; color: var(--neon-green); margin-bottom: 1.5rem; font-size: 2rem; text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);">📈 Calculadora de CMV e Precificação Inteligente</h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 300px; gap: 2rem;">
+                <!-- Formulário de Custos -->
+                <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 12px; border: 1px solid #2a2a2a;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 0.5rem;">
+                        <div>
+                            <label class="status-label-text" style="display: block; margin-bottom: 8px; color: var(--text-dim);">Custo Ingredientes (R$)</label>
+                            <input type="number" step="0.01" id="cmv-ingredients" class="search-input" style="width: 100%; border-color: #444; font-size: 1.1rem;" placeholder="Ex: 12.50" oninput="calculateCMV()">
+                        </div>
+                        <div>
+                            <label class="status-label-text" style="display: block; margin-bottom: 8px; color: var(--text-dim);">Custo Embalagem (R$)</label>
+                            <input type="number" step="0.01" id="cmv-packaging" class="search-input" style="width: 100%; border-color: #444; font-size: 1.1rem;" placeholder="Ex: 2.00" oninput="calculateCMV()">
+                        </div>
+                        <div>
+                            <label class="status-label-text" style="display: block; margin-bottom: 8px; color: var(--text-dim);">Taxas Maquininha/App (%)</label>
+                            <input type="number" step="0.1" id="cmv-fees" class="search-input" style="width: 100%; border-color: #444; font-size: 1.1rem;" placeholder="Ex: 3.5" oninput="calculateCMV()">
+                        </div>
+                        <div>
+                            <label class="status-label-text" style="display: block; margin-bottom: 8px; color: var(--primary);">Margem de Lucro Desejada (%)</label>
+                            <input type="number" step="0.1" id="cmv-margin" class="search-input" style="width: 100%; border-color: var(--primary); font-size: 1.1rem; box-shadow: 0 0 10px rgba(255,49,49,0.1);" placeholder="Ex: 30" oninput="calculateCMV()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Painel de Resultados -->
+                <div style="background: rgba(0, 0, 0, 0.4); padding: 1.5rem; border-radius: 12px; border: 1px dashed var(--neon-green); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: all 0.3s ease;" id="cmv-result-panel">
+                    <div style="font-size: 0.9rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Preço Sugerido de Venda</div>
+                    <div id="cmv-suggested-price" style="font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; color: var(--neon-green); text-shadow: 0 0 15px rgba(0,255,65,0.4); line-height: 1;">R$ 0,00</div>
+                    
+                    <div style="width: 100%; height: 1px; background: #333; margin: 15px 0;"></div>
+                    
+                    <div style="display: flex; width: 100%; justify-content: space-between; align-items: center;">
+                        <div style="text-align: left;">
+                            <div style="font-size: 0.75rem; color: var(--text-dim);">SEU LUCRO LÍQUIDO</div>
+                            <div id="cmv-net-profit" style="font-size: 1.3rem; color: #fff; font-weight: bold;">R$ 0,00</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.75rem; color: var(--text-dim);">CMV FINAL</div>
+                            <div id="cmv-percentage" style="font-size: 1.3rem; color: #fff; font-weight: bold;">0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="crm-container" style="padding: 2rem; margin: 0 2rem 2rem 2rem;">
             <h2 style="font-family: 'Bebas Neue', sans-serif; color: var(--primary); margin-bottom: 1.5rem; font-size: 2rem;">🚀 Gestão de Promoções Explosivas</h2>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
