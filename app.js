@@ -996,15 +996,11 @@ function renderMenu() {
                         : `<span class="item-price">${item.price.toFixed(2).replace('.', ',')}</span>`;
 
                 return `
-                <div class="menu-item ${item.soldOut ? 'sold-out' : ''} ${item.image ? 'has-image' : ''} ${promoInfo ? 'item-on-promo' : ''} ${item.highlightGreen ? 'highlight-green-item' : ''} ${item.highlightPurple ? 'highlight-purple-item' : ''}" data-id="${item.id}">
+                <div class="menu-item ${item.soldOut ? 'sold-out' : ''} ${promoInfo ? 'item-on-promo' : ''} ${item.highlightGreen ? 'highlight-green-item' : ''} ${item.highlightPurple ? 'highlight-purple-item' : ''}" data-id="${item.id}">
                     ${item.soldOut && !item.hideRibbon ? '<div class="sold-out-ribbon">ESGOTADO</div>' : ''}
                     ${promoInfo ? '<div class="promo-ribbon">🔥 PROMOÇÃO</div>' : ''}
                     
-                    ${item.image ? `
-                    <div class="item-visual" onclick="openAddonModal(${item.id})">
-                        <img src="${item.image}" alt="${item.name}" class="item-image-premium" loading="lazy">
-                    </div>
-                    ` : ''}
+
 
                     <div class="item-info">
                         <h3 class="item-name">
