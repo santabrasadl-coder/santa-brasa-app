@@ -22,6 +22,10 @@
     --radius-md: 8px;
     --radius-lg: 12px;
     --radius-full: 9999px;
+
+    /* Novas cores para estratégia sem imagens */
+    --gold: #FFD700;
+    --gold-glow: rgba(255, 215, 0, 0.4);
     
     /* Custom Gradients */
     --gradient-gold: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
@@ -477,6 +481,36 @@ body {
 }
 
 
+}
+
+/* ===== Trust Bar (Frictionless) ===== */
+.trust-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0.75rem;
+    gap: 2rem; /* Aumentado para dar respiro na centralização */
+    flex-wrap: wrap;
+}
+
+.trust-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.trust-icon {
+    font-size: 1rem;
+}
+
 /* ===== Main Content ===== */
 .main-content {
     padding: 1.5rem 1rem;
@@ -882,9 +916,10 @@ body {
 
 .item-price {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.8rem;
+    font-size: 2.2rem; /* Aumentado para compensar falta de imagem */
     color: var(--success);
     white-space: nowrap;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
 }
 
 /* Redução da Dor de Pagar: remover R$ visualmente drástico */
@@ -2558,7 +2593,7 @@ body {
     display: none;
 }
 
-/* ===== PROMOÇÃO MALUCA ===== */
+/* ===== PROMOÇÃO DINÂMICA ===== */
 
 /* Banner principal */
 .crazy-promo-banner {
@@ -3076,10 +3111,70 @@ body {
     to   { transform: translate(-50%, -50%) scale(1) rotate(0deg);  opacity: 1; }
 }
 
-/* Urgency row do banner */
-.cpb-urgency-row {
+/* ===== Status Marketing Card ===== */
+.status-marketing-card {
+    background: linear-gradient(135deg, #111 0%, #0a0a0a 100%);
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
     display: flex;
-    justify-content: center;
-    margin-top: 0.5rem;
+    flex-direction: column;
+    gap: 1.25rem;
+    text-align: left;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
+
+.smc-content {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.smc-emoji {
+    font-size: 1.5rem;
+    background: rgba(0, 255, 65, 0.1);
+    padding: 0.5rem;
+    border-radius: 50%;
+}
+
+.smc-content p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+}
+
+.smc-btn {
+    background: var(--success);
+    color: #000;
+    text-decoration: none;
+    padding: 0.8rem;
+    border-radius: var(--radius-md);
+    font-weight: 800;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 255, 65, 0.3);
+}
+
+.smc-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 255, 65, 0.5);
+    background: #00e676;
+}
+
+/* Ajustes Responsive Mobile */
+@media (max-width: 480px) {
+    .trust-item {
+        font-size: 0.65rem;
+    }
+    .item-price {
+        font-size: 1.8rem;
+    }
+    .status-marketing-card {
+        padding: 1rem;
+    }
+}
+
 

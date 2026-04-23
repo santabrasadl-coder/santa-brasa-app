@@ -161,7 +161,7 @@ function updateStoreStatus() {
 // Atualiza o status frequentemente para o cronômetro
 setInterval(updateStoreStatus, 1000);
 
-// CRAZY PROMO: Santo Juízo por 24.90 (Limite 10 unidades)
+// PROMOÇÃO ESPECIAL: Santo Juízo por 35.20 (20% OFF)
 const CRAZY_PROMO = {
     active: true,
     id: 10,
@@ -183,7 +183,7 @@ let crossSellShown = false;
 // ===== Promoção de Marketing Automática (Escassez Dinâmica via Dashboard) =====
 const PROMO_CONFIG = {
     active: false, // Desativado por padrão, gerenciar via Dashboard
-    label: "🔥 PROMOÇÃO RELÂMPAGO",
+    label: "🔥 20% OFF SÓ AGORA!",
     totalStock: 15,
     promoPrice: 38.90,
     promoProductId: '8', // Santo Juízo
@@ -192,7 +192,9 @@ const PROMO_CONFIG = {
     showStock: true,
     showTimer: true,
     storageKey: 'sb_marketing_promo_v1',
-    discounts: {} 
+    discounts: {},
+    globalDiscountActive: false,
+    globalDiscountPercent: 15
 };
 
 function getPromoRemaining() {
@@ -282,10 +284,9 @@ const menuData = {
         {
             id: 5001,
             name: "Combo Econômico 💸",
-            description: "1x X-Salada + 1x Coca-Cola Lata 350ml + 1x Fatia de Bolo. <br><small style='color: var(--primary); font-weight: 600;'>🔥 Economia de R$ 8,00</small>",
+            description: "1x X-Salada (o clássico) + 1x Coca-Cola geladinha + 1x Fatia de Bolo artesanal. <br><small style='color: var(--primary); font-weight: 600;'>🔥 Economia Real de R$ 8,00</small>",
             price: 41.00,
-            badge: "O QUERIDINHO 🏆",
-            image: "santa_brasa_combo_cake.png"
+            badge: "O QUERIDINHO 🏆"
         },
         {
             id: 5002,
@@ -298,10 +299,9 @@ const menuData = {
         {
             id: 5003,
             name: "Combo Casal Especial 👑",
-            description: "2x X-Egg Bacon + 2x Coca-Cola Lata 350ml + 2x Fatia de Bolo. <br><small style='color: var(--primary); font-weight: 600;'>✨ Economia de R$ 18,10</small>",
+            description: "2x X-Egg Bacon (o favorito) + 2x Cocas geladas + 2x Fatias de Bolo. <br><small style='color: var(--primary); font-weight: 600;'>✨ Economia VIP de R$ 18,10</small>",
             price: 99.90,
-            badge: "MAIOR VANTAGEM 💎",
-            image: "santa_brasa_combo_cake.png"
+            badge: "MAIOR VANTAGEM 💎"
         },
         {
             id: 5006,
@@ -310,13 +310,20 @@ const menuData = {
             price: 99.90,
             badge: "OFERTA LIMITADA ⏳",
             image: "mega_combo_thursday.png"
+        },
+        {
+            id: 5007,
+            name: "Combo Exclusivo Zap 📱",
+            description: "1x Santo Juízo (O Supremo) + 1x Coca-Cola gelada + 1x Fatia de Bolo Dois Amores. <br><small style='color: #00FF41; font-weight: 800;'>🔥 EXCLUSIVO STATUS: 20% de Desconto Real!</small>",
+            price: 55.20,
+            badge: "SÓ NO WHATS 💬"
         }
     ],
     tradicionais: [
         {
             id: 1,
             name: "X-Salada",
-            description: "Pão, Hambúrguer Artesanal, Queijo, Alface, Tomate e Maionese Especial.",
+            description: "Pão brioche selado na manteiga, hambúrguer artesanal suculento, queijo derretido, alface fresca, tomate e nossa maionese especial.",
             price: 24.00
         },
         {
@@ -340,7 +347,7 @@ const menuData = {
         {
             id: 5,
             name: "Laçador",
-            description: "Pão, Hambúrguer Artesanal, Bacon, Milho, Dobro de Queijo, Alface, Tomate e Maionese Artesanal.",
+            description: "Pão brioche, hambúrguer artesanal, bacon crocante, milho, dobro de queijo muçarela, alface e nossa maionese artesanal da casa.",
             price: 34.00
         },
         {
@@ -354,18 +361,16 @@ const menuData = {
         {
             id: 7,
             name: "Santa Fúria",
-            description: "Quando a fome perde a paciência: Dois Hambúrgueres Artesanais, Ovo, Tomate, Frango Desfiado, Bacon, Triplo de Queijo, Milho, Alface e Maionese Especial.<br><small style='color: var(--primary); font-size: 0.85rem; font-weight: 600; display: block; margin-top: 5px;'>👉 Pode servir até duas pessoas</small>",
+            description: "Quando a fome perde a paciência: Dois Burgers artesanais suculentos, ovo, tomate, frango desfiado temperado, bacon premium, triplo de queijo muçarela, milho, alface e maionese especial.<br><small style='color: var(--primary); font-size: 0.85rem; font-weight: 600; display: block; margin-top: 5px;'>👉 Satisfação extrema (pode servir até dois)</small>",
             price: 48.00,
-            badge: "O MAIOR! 🔥",
-            image: "santa_furia.png"
+            badge: "O MAIOR! 🔥"
         },
         {
             id: 8,
             name: "Santo Juízo",
-            description: "Um verdadeiro tribunal de sabores: Hambúrguer Suculento, Frango, Bacon Suculento, Ovo, Triplo de Queijo, Milho, Alface, Tomate e Maionese Especial.",
+            description: "Um verdadeiro espetáculo de sabores: Blend artesanal suculento, frango desfiado, bacon premium, ovo, triplo de queijo muçarela, milho, alface, tomate e maionese especial.",
             price: 44.00,
-            badge: "MAIS VENDIDO 🏆",
-            image: "santo_juizo.png"
+            badge: "MAIS VENDIDO 🏆"
         },
         {
             id: 9,
@@ -563,6 +568,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadCart();
     loadUserData(); // Carrega dados salvos do cliente
     updateCartUI();
+
+    // Init VIP System
+    initVIPMode();
 
     // Listener para atualizar taxa de entrega em tempo real
     const addrInput = document.getElementById('clientAddress');
@@ -835,6 +843,41 @@ window.acceptCrossSell = function() {
     addDirectToCart(COMBO_PROMO.defaultCakeId);
 }
 
+function initVIPMode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('vip') === 'true') {
+        const main = document.querySelector('.main-content');
+        if (!main) return;
+        
+        const vipComboId = 9001;
+        if (!findItemById(vipComboId)) {
+            if (!menuData.especiais) menuData.especiais = [];
+            menuData.especiais.push({
+                id: vipComboId,
+                name: "👑 Combo VIP da Brasa (Secreto)",
+                description: "O segredo foi revelado: 1x Santo Juízo + 1x Coca-Cola Lata com acesso exclusivo VIP.",
+                price: 49.00
+            });
+        }
+
+        const bannerHtml = `
+            <div class="vip-banner-container" style="margin-bottom: 2rem; background: linear-gradient(135deg, #111, #000); border: 2px solid #FFD700; border-radius: 12px; padding: 2rem; text-align: center; box-shadow: 0 0 20px rgba(255,215,0,0.2);">
+                <div class="vip-badge" style="background: #FFD700; color: #000; display: inline-block; padding: 4px 12px; font-weight: bold; border-radius: 20px; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 1rem;">ACESSO OURO LIBERADO</div>
+                <h2 style="color: #fff; font-family: 'Bebas Neue'; font-size: 2.2rem; letter-spacing: 1px; margin-bottom: 10px;">Menu Secreto Desbloqueado 🤫</h2>
+                <p style="color: #aaa; margin-bottom: 1.5rem; font-size: 0.95rem;">Você é um dos nossos melhores clientes. Garantimos este combo exclusivo que não está no cardápio público.</p>
+                
+                <div style="background: #1a1a1a; padding: 1.5rem; border-radius: 8px; border: 1px solid #333;">
+                    <h3 style="color: #FFD700; margin-bottom: 5px;">👑 Combo Ouro da Brasa</h3>
+                    <p style="color: #ddd; font-size: 0.85rem; margin-bottom: 15px;">1x Santo Juízo + 1x Coca-Cola Lata 350ml</p>
+                    <div style="font-size: 1.8rem; color: #00FF41; font-weight: bold; margin-bottom: 15px;">R$ 49,00</div>
+                    <button onclick="addToCart(${vipComboId})" style="background: #00FF41; color: #000; font-weight: bold; padding: 12px 24px; border: none; border-radius: 30px; cursor: pointer; text-transform: uppercase;">Garantir O Segredo</button>
+                </div>
+            </div>
+        `;
+        main.insertAdjacentHTML('afterbegin', bannerHtml);
+    }
+}
+
 // ===== Render Promo Banner =====
 function renderPromoBanner() {
     if (!PROMO_CONFIG.active) return;
@@ -869,7 +912,7 @@ function renderPromoBanner() {
         </div>
     ` : `
         <div class="cpb-inner">
-            <div class="cpb-tag">🔥 LOUCURA DE AGORA</div>
+            <div class="cpb-tag">${PROMO_CONFIG.label}</div>
             <h2 class="cpb-title">🔥 ${product.name.toUpperCase()} 🔥</h2>
             <p class="cpb-subtitle">Promoção RELÂMPAGO! ${PROMO_CONFIG.showStock ? `Apenas ${PROMO_CONFIG.totalStock} unidades com preço especial!` : ''}</p>
             <div class="cpb-prices">
@@ -1368,7 +1411,13 @@ function updateCartUI() {
     }, 0);
 
     const fee = orderType === 'delivery' ? getDynamicDeliveryFee() : 0;
-    const total = subtotal + fee;
+    
+    let discountAmount = 0;
+    if (PROMO_CONFIG.globalDiscountActive) {
+        discountAmount = subtotal * (PROMO_CONFIG.globalDiscountPercent / 100);
+    }
+    
+    const total = subtotal - discountAmount + fee;
 
     cartTotal.innerHTML = ''; // Clear safely
     const totalDiv = document.createElement('div');
@@ -1390,6 +1439,16 @@ function updateCartUI() {
         deliver.style.fontFamily = "'Poppins'";
         deliver.textContent = `Entrega: ${fee.toFixed(2).replace('.', ',')}`;
         totalDiv.appendChild(deliver);
+    }
+
+    if (discountAmount > 0) {
+        const disc = document.createElement('span');
+        disc.style.fontSize = '0.9rem';
+        disc.style.color = 'var(--neon-green)';
+        disc.style.fontWeight = 'bold';
+        disc.style.fontFamily = "'Poppins'";
+        disc.textContent = `Desconto (${PROMO_CONFIG.globalDiscountPercent}%): - R$ ${discountAmount.toFixed(2).replace('.', ',')}`;
+        totalDiv.appendChild(disc);
     }
 
     const final = document.createElement('span');
@@ -1607,6 +1666,7 @@ async function sendToWhatsApp() {
             });
         }
         if (typeof logEvent === 'function') logEvent(`Pedido #${orderNum} - Redirecionando...`);
+        if (typeof dbIncrement === 'function') dbIncrement("total_orders_clicked");
 
         // Redirecionamento Inteligente
         const ua = navigator.userAgent || navigator.vendor || window.opera;
@@ -1661,10 +1721,17 @@ async function sendToWhatsApp() {
             return sum + (price * item.quantity);
         }, 0);
         const fee = orderType === 'delivery' ? getDynamicDeliveryFee() : 0;
-        const total = subtotal + fee;
+        
+        let discountAmount = 0;
+        if (PROMO_CONFIG.globalDiscountActive) {
+            discountAmount = subtotal * (PROMO_CONFIG.globalDiscountPercent / 100);
+        }
+        
+        const total = subtotal - discountAmount + fee;
 
         message += "\n━━━━━━━━━━━━━━━━━━\n";
         message += `Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
+        if (discountAmount > 0) message += `🔥 Desconto (${PROMO_CONFIG.globalDiscountPercent}%): - R$ ${discountAmount.toFixed(2).replace('.', ',')}\n`;
         if (fee > 0) message += `Taxa de Entrega: R$ ${fee.toFixed(2).replace('.', ',')}\n`;
         message += `*TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*\n\n`;
 
@@ -1808,6 +1875,28 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
                 }
 
                 dbIncrement("total_visits");
+                
+                // Sincronização de Promoções em Tempo Real
+                db.ref('settings/promotions').on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        PROMO_CONFIG.active = data.active || false;
+                        PROMO_CONFIG.label = data.label || "🔥 20% OFF SÓ AGORA!";
+                        PROMO_CONFIG.totalStock = data.initialStock || 15;
+                        PROMO_CONFIG.promoPrice = data.promoPrice || 38.90;
+                        PROMO_CONFIG.promoProductId = data.productId || '8';
+                        PROMO_CONFIG.decayMinutes = data.decayMinutes || 25;
+                        PROMO_CONFIG.lastUpdate = data.lastUpdate || new Date().toISOString();
+                        PROMO_CONFIG.showStock = data.showStock !== false;
+                        PROMO_CONFIG.showTimer = data.showTimer !== false;
+                        PROMO_CONFIG.globalDiscountActive = data.globalDiscountActive || false;
+                        PROMO_CONFIG.globalDiscountPercent = data.globalDiscountPercent || 15;
+                        
+                        console.log("🔄 Configurações de Marketing sincronizadas.");
+                        renderMenu(); // Re-renderiza para aplicar mudanças visuais
+                    }
+                });
+
                 console.log("📊 Incremento de visita e log de presença enviados.");
             } else {
                 console.warn("⚠️ Tracker Desconectado do Firebase.");

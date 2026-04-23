@@ -625,8 +625,6 @@
         <button class="nav-btn" onclick="showTab('tab-finance')">Financeiro</button>
         <button class="nav-btn" onclick="showTab('tab-orders')">Pedidos Passados</button>
         <button class="nav-btn" onclick="showTab('tab-customers')">Clientes</button>
-        <button class="nav-btn" onclick="showTab('tab-chat')">Chat Live <span id="total-unread" class="unread-badge"
-                style="display:none;">0</span></button>
         <button class="nav-btn" onclick="showTab('tab-marketing')">Marketing & Promoções</button>
         <button class="nav-btn" onclick="showTab('tab-reports')">Relatórios</button>
     </nav>
@@ -847,7 +845,7 @@
         </div>
 
         <div class="crm-container" style="padding: 2rem; margin: 0 2rem 2rem 2rem;">
-            <h2 style="font-family: 'Bebas Neue', sans-serif; color: var(--primary); margin-bottom: 1.5rem; font-size: 2rem;">🚀 Gestão de Promoções Explosivas</h2>
+            <h2 style="font-family: 'Bebas Neue', sans-serif; color: var(--primary); margin-bottom: 1.5rem; font-size: 2rem;">🚀 Gestão de Promoções Exclusivas</h2>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                 <!-- Configurações de Escassez -->
@@ -857,6 +855,7 @@
                     <div style="margin-bottom: 1.2rem;">
                         <label class="status-label-text" style="display: block; margin-bottom: 5px;">Produto em Destaque</label>
                         <select id="promo-product-id" class="search-input" style="width: 100%;">
+                            <option value="5007">Combo Exclusivo Zap (ID 5007) 📱</option>
                             <option value="5006">Mega Combo Santo Juízo (ID 5006) ⚖️</option>
                             <option value="8">Santo Juízo (Mais Vendido)</option>
                             <option value="7">Santa Fúria (Premium)</option>
@@ -883,7 +882,7 @@
 
                     <div style="margin-bottom: 1.2rem;">
                         <label class="status-label-text" style="display: block; margin-bottom: 5px;">Texto da Tag (Label)</label>
-                        <input type="text" id="promo-label" class="search-input" style="width: 100%;" placeholder="Ex: 🔥 PROMOÇÃO RELÂMPAGO">
+                        <input type="text" id="promo-label" class="search-input" style="width: 100%;" placeholder="Ex: 🔥 20% OFF SÓ AGORA!">
                     </div>
 
                     <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem;">
@@ -905,6 +904,13 @@
                             <span class="status-label-text">Exibir Cronômetro no Banner:</span>
                             <label class="toggle-switch">
                                 <input type="checkbox" id="promo-show-timer-toggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333;">
+                            <span class="status-label-text" style="color: var(--neon-green); font-weight: bold;">💎 ATIVAR 15% OFF GLOBAL:</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="promo-global-discount-toggle">
                                 <span class="toggle-slider"></span>
                             </label>
                         </div>
@@ -963,6 +969,18 @@
                         </div>
                         <input type="number" step="0.01" id="price-combo-5003" class="search-input" style="width: 100%;" value="99.90">
                         <small id="preview-economy-5003" style="display: block; margin-top: 5px; color: var(--primary); font-size: 0.75rem; font-weight: bold;"></small>
+                    </div>
+
+                    <div style="margin-bottom: 1.2rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label class="status-label-text" style="color: #00FF41;">Combo Exclusivo Zap 📱 (ID 5007)</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="status-combo-5007" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <input type="number" step="0.01" id="price-combo-5007" class="search-input" style="width: 100%; border-color: #00FF41;" value="55.20">
+                        <small id="preview-economy-5007" style="display: block; margin-top: 5px; color: #00FF41; font-size: 0.75rem; font-weight: bold;"></small>
                     </div>
 
                     <button class="send-btn" onclick="saveComboPriceSettings()" style="width: 100%; padding: 1rem; background: #222; border: 1px solid #444;">SALVAR PREÇOS DE COMBOS</button>

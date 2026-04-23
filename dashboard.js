@@ -218,8 +218,7 @@ function initDashboard() {
         renderCustomersTable(customers);
     });
 
-    // 7. Chat Real-time
-    initChatDashboard(db);
+    // Chat removido a pedido
 
     // 8. Store Status Management
     initStoreStatus(db);
@@ -895,7 +894,8 @@ function initMarketingSettings(db) {
             document.getElementById('promo-active-toggle').checked = data.active || false;
             document.getElementById('promo-show-stock-toggle').checked = data.showStock !== false;
             document.getElementById('promo-show-timer-toggle').checked = data.showTimer !== false;
-            document.getElementById('promo-label').value = data.label || "🔥 PROMOÇÃO RELÂMPAGO";
+            document.getElementById('promo-label').value = data.label || "🔥 20% OFF SÓ AGORA!";
+            document.getElementById('promo-global-discount-toggle').checked = data.globalDiscountActive || false;
             
             // Update Preview
             const productSelect = document.getElementById('promo-product-id');
@@ -915,9 +915,10 @@ function saveMarketingSettings() {
         active: document.getElementById('promo-active-toggle').checked,
         showStock: document.getElementById('promo-show-stock-toggle').checked,
         showTimer: document.getElementById('promo-show-timer-toggle').checked,
-        label: document.getElementById('promo-label').value || "🔥 PROMOÇÃO RELÂMPAGO",
-        lastUpdate: new Date().toISOString() 
-    };
+        label: document.getElementById('promo-label').value || "🔥 20% OFF SÓ AGORA!",
+        globalDiscountActive: document.getElementById('promo-global-discount-toggle').checked,
+        globalDiscountPercent: 15,
+        lastUpdate: new Date().toISOString()    };
 
     db.ref('settings/promotions').set(settings)
         .then(() => {
@@ -947,7 +948,7 @@ function initComboPrices(db) {
     });
 
     // Adiciona listeners para atualização em tempo real no dashboard
-    [5001, 5002, 5003, 5006].forEach(id => {
+    [5001, 5002, 5003, 5006, 5007].forEach(id => {
         const input = document.getElementById(`price-combo-${id}`);
         if (input) {
             input.addEventListener('input', (e) => {

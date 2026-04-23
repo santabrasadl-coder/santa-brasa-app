@@ -80,7 +80,18 @@
             <p class="location-tagline">📍 Itaúna-MG</p>
             <p id="openingInfoNeon" class="opening-info-neon"></p>
         </div>
-        <div class="fire-decoration"></div>
+    
+    <!-- Trust Highlights (Frictionless strategy) -->
+    <div class="trust-bar" style="display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 0.9rem; color: #ccc; margin-top: 10px; margin-bottom: 20px; width: 100%; text-align: center;">
+        <div class="trust-item" style="display: flex; align-items: center; gap: 6px;">
+            <span class="trust-icon" style="font-size: 1.2rem; filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));">🚀</span>
+            <span style="font-weight: 500; font-family: 'Poppins', sans-serif;">Entrega Super Rápida</span>
+        </div>
+        <div class="trust-item" style="display: flex; align-items: center; gap: 6px;">
+            <span class="trust-icon" style="font-size: 1.2rem; filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));">🥩</span>
+            <span style="font-weight: 500; font-family: 'Poppins', sans-serif;">Blend 100% Artesanal</span>
+        </div>
+    </div>
     </header>
 
     <!-- Main Content -->
@@ -157,7 +168,7 @@
     <!-- Bottom Action Bar (Replaces old cart/chat buttons) -->
     <div class="bottom-action-bar">
         <a href="https://wa.me/5537999982046" target="_blank" class="bar-item whatsapp">
-            <span>📱 WhatsApp</span>
+            <span>📱 Peça no Whats</span>
         </a>
         <button class="bar-item cart" onclick="toggleCart()">
             <span>🛒 Carrinho</span>
@@ -253,7 +264,7 @@
                         <label>Forma de Pagamento:</label>
                         <select id="paymentMethod" onchange="toggleChangeInput()">
                             <option value="" disabled selected>Selecione...</option>
-                            <option value="Pix">Pix (Rápido e Seguro)</option>
+                            <option value="Pix">Pix</option>
                             <option value="Cartão de Crédito">Cartão de Crédito</option>
                             <option value="Cartão de Débito">Cartão de Débito</option>
                             <option value="Dinheiro">Dinheiro</option>
@@ -346,10 +357,15 @@
     <!-- SEO Local Content -->
     <footer
         style="margin-top: 50px; padding: 20px; text-align: center; color: var(--text-secondary); font-size: 0.8rem; border-top: 1px solid #333; max-width: 800px; margin-left: auto; margin-right: auto;">
-        <p>A <strong>Santa Brasa Itaúna</strong> é o lugar de quem busca o melhor <strong>hambúrguer artesanal de
-                Itaúna-MG</strong>.
-            Ingredientes selecionados e sabor que incendeia seu paladar.
-            Peça agora seu <strong>sanduíche premium</strong> na <strong>Santa Brasa</strong>!</p>
+        <!-- Status Marketing Tip -->
+        <div class="status-marketing-card">
+            <div class="smc-content">
+                <span class="smc-emoji">💡</span>
+                <p><strong>Dica de Ouro:</strong> Salve nosso contato e acompanhe nossos <strong>Status</strong>. Postamos ofertas exclusivas e relâmpago todos os dias!</p>
+            </div>
+            <a href="https://wa.me/5537999982046" target="_blank" class="smc-btn">Salvar Contato</a>
+        </div>
+
         <p>&copy; 2026 Santa Brasa - Hamburgueria Artesanal Itaúna-MG</p>
     </footer>
     <!-- Modal de Redirecionamento (Blindagem WhatsApp) -->
