@@ -169,13 +169,13 @@ const CRAZY_PROMO = {
     limit: 10
 };
 
-// SMART PROMO: Burger + Cake Combo
+// SMART PROMO: Retired
 const COMBO_PROMO = {
-    active: false, // Desativado por padrão, gerenciar via Dashboard
-    burgerIds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], // Todos os burgers
-    cakeIds: [3001, 3002, 3003, 3004], // Todos os bolos
-    promoPrice: 13.00, // Preço sugestão de domingo
-    defaultCakeId: 3001 // Bolo de Maracujá como padrão para o Cross-Sell
+    active: false,
+    burgerIds: [],
+    cakeIds: [],
+    promoPrice: 0,
+    defaultCakeId: 0
 };
 
 let crossSellShown = false;
@@ -637,23 +637,7 @@ function initPromotionSync() {
         }
     });
 
-    // Sincroniza Oferta de Bolo (Combo)
-    db.ref('settings/cakePromo').on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            console.log("🍰 Oferta de Bolo Sincronizada:", data);
-            COMBO_PROMO.promoPrice = parseFloat(data.promoPrice || 13.00);
-            COMBO_PROMO.active = data.active !== false;
-            
-            // Atualiza o modal de cross-sell se estiver no DOM
-            const newPriceEl = document.querySelector('.cross-sell-modal .new');
-            if (newPriceEl) {
-                newPriceEl.textContent = `R$ ${COMBO_PROMO.promoPrice.toFixed(2).replace('.', ',')}`;
-            }
-            
-            updateCartUI(); // Recalcula se já houver algo no carrinho
-        }
-    });
+
 
     // Sincroniza Preços e Status dos Combos
     db.ref('settings/comboPrices').on('value', (snapshot) => {
@@ -812,36 +796,10 @@ function addDirectToCart(itemId) {
         currency: 'BRL'
     });
 
-    // Cross-sell trigger: If burger added, show cake modal
-    if (!crossSellShown && COMBO_PROMO.active && COMBO_PROMO.burgerIds.includes(Number(itemId))) {
-        const hasCake = cart.some(item => COMBO_PROMO.cakeIds.includes(Number(item.id)));
-        if (!hasCake) {
-            setTimeout(showCrossSell, 800);
-        }
-    }
+
 }
 
-// ===== Smart Cross-Sell Functions =====
-function showCrossSell() {
-    const overlay = document.getElementById('crossSellOverlay');
-    if (!overlay) return;
 
-    overlay.style.display = 'flex';
-    crossSellShown = true;
-    
-    // Track event
-    if (typeof logEvent === 'function') logEvent("Smart Offer: Cross-sell de torta exibido");
-}
-
-window.closeCrossSell = function() {
-    const overlay = document.getElementById('crossSellOverlay');
-    if (overlay) overlay.style.display = 'none';
-}
-
-window.acceptCrossSell = function() {
-    closeCrossSell();
-    addDirectToCart(COMBO_PROMO.defaultCakeId);
-}
 
 function initVIPMode() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1360,11 +1318,7 @@ function updateCartUI() {
                 <div class="cart-item-header">
                     <div class="cart-item-name">${item.name}</div>
                     <div class="cart-item-price-tag">
-                        ${(hasBurger && COMBO_PROMO.cakeIds.includes(Number(item.id))) 
-                            ? `<span style="text-decoration: line-through; color: var(--text-dim); font-size: 0.8em; margin-right: 5px;">${(item.price * item.quantity).toFixed(2).replace('.', ',')}</span>`
-                            : ''
-                        }
-                        ${((hasBurger && COMBO_PROMO.cakeIds.includes(Number(item.id)) ? COMBO_PROMO.promoPrice : item.price) * item.quantity).toFixed(2).replace('.', ',')}
+                        ${(item.price * item.quantity).toFixed(2).replace('.', ',')}
                     </div>
                 </div>
 
@@ -1402,19 +1356,23 @@ function updateCartUI() {
     // Update total with Smart Promo consideration
     
     const subtotal = cart.reduce((sum, item) => {
-        let price = item.price;
-        // Apply promo if applicable
-        if (hasBurger && COMBO_PROMO.cakeIds.includes(Number(item.id))) {
-            price = COMBO_PROMO.promoPrice;
-        }
-        return sum + (price * item.quantity);
+        return sum + (item.price * item.quantity);
     }, 0);
 
     const fee = orderType === 'delivery' ? getDynamicDeliveryFee() : 0;
     
+    let discountableSubtotal = 0;
+    cart.forEach(item => {
+        // IDs de Combos (5001-5007) e o item da Promoção Dinâmica são excluídos do desconto global
+        const isPromotion = (Number(item.id) >= 5000 && Number(item.id) <= 5100) || String(item.id) === String(PROMO_CONFIG.promoProductId);
+        if (!isPromotion) {
+            discountableSubtotal += (item.price * item.quantity);
+        }
+    });
+
     let discountAmount = 0;
     if (PROMO_CONFIG.globalDiscountActive) {
-        discountAmount = subtotal * (PROMO_CONFIG.globalDiscountPercent / 100);
+        discountAmount = discountableSubtotal * (PROMO_CONFIG.globalDiscountPercent / 100);
     }
     
     const total = subtotal - discountAmount + fee;
@@ -1701,30 +1659,30 @@ async function sendToWhatsApp() {
         message += "━━━━━━━━━━━━━━━━━━\n\n";
 
         cart.forEach((item) => {
-            let price = item.price;
-            let promoTag = "";
-            if (hasBurger && COMBO_PROMO.cakeIds.includes(Number(item.id))) {
-                price = COMBO_PROMO.promoPrice;
-                promoTag = " (PROMO COMBO ⚡)";
-            }
-            message += `▸ ${item.quantity}x ${item.name}${promoTag}\n`;
+            message += `▸ ${item.quantity}x ${item.name}\n`;
             if (item.addons && item.addons.length > 0) {
                 item.addons.forEach(addon => { message += `   + ${addon.name}\n`; });
             }
             if (item.observation) { message += `   📝 _Obs: ${item.observation}_\n`; }
-            message += `   R$ ${(price * item.quantity).toFixed(2).replace('.', ',')}\n`;
+            message += `   R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}\n`;
         });
 
         const subtotal = cart.reduce((sum, item) => {
-            let price = item.price;
-            if (hasBurger && COMBO_PROMO.cakeIds.includes(Number(item.id))) { price = COMBO_PROMO.promoPrice; }
-            return sum + (price * item.quantity);
+            return sum + (item.price * item.quantity);
         }, 0);
         const fee = orderType === 'delivery' ? getDynamicDeliveryFee() : 0;
         
+        let discountableSubtotal = 0;
+        cart.forEach(item => {
+            const isPromotion = (Number(item.id) >= 5000 && Number(item.id) <= 5100) || String(item.id) === String(PROMO_CONFIG.promoProductId);
+            if (!isPromotion) {
+                discountableSubtotal += (item.price * item.quantity);
+            }
+        });
+
         let discountAmount = 0;
         if (PROMO_CONFIG.globalDiscountActive) {
-            discountAmount = subtotal * (PROMO_CONFIG.globalDiscountPercent / 100);
+            discountAmount = discountableSubtotal * (PROMO_CONFIG.globalDiscountPercent / 100);
         }
         
         const total = subtotal - discountAmount + fee;
