@@ -658,16 +658,17 @@ function initPromotionSync() {
         if (data) {
             console.log("💎 Novas configurações de combos recebidas:", data);
             menuData.combos.forEach(combo => {
-                const config = data[combo.id];
+                const config = data[combo.id] || data[String(combo.id)];
                 if (config) {
                     // Lida com o novo formato {price, active} ou o antigo apenas com o preço
                     if (typeof config === 'object') {
                         combo.price = parseFloat(config.price || combo.price);
-                        combo.soldOut = config.active === false;
-                        if (config.description) combo.description = config.description; // Aplica a descrição com economia dinâmica
+                        // Força soldOut como true apenas se active for explicitamente false
+                        combo.soldOut = (config.active === false || config.active === "false");
+                        if (config.description) combo.description = config.description;
                     } else {
                         combo.price = parseFloat(config);
-                        combo.soldOut = false; // Antigo sempre ativo
+                        combo.soldOut = false;
                     }
                 }
             });
@@ -871,6 +872,11 @@ function renderPromoBanner() {
     });
 
     if (!product) return;
+
+    // NOVO: Se o produto da promoção estiver "soldOut" (desativado), o banner não deve aparecer
+    if (product.soldOut) {
+        return;
+    }
 
     const banner = document.createElement('div');
     banner.id = 'crazy-promo-banner';
