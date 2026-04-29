@@ -631,10 +631,10 @@ function initPromotionSync() {
             
             // Sincronização de Desconto Global e Cupons
             PROMO_CONFIG.globalDiscountActive = data.globalDiscountActive || false;
-            PROMO_CONFIG.globalDiscountPercent = data.globalDiscountPercent || 15;
+            PROMO_CONFIG.globalDiscountPercent = parseFloat(data.globalDiscountPercent) || 15;
             PROMO_CONFIG.couponActive = data.couponActive || false;
             PROMO_CONFIG.couponCode = data.couponCode || '';
-            PROMO_CONFIG.couponPercent = data.couponPercent || 0;
+            PROMO_CONFIG.couponPercent = parseFloat(data.couponPercent) || 0;
             
             // Sincroniza o desconto para o produto em destaque no card do menu
             PROMO_CONFIG.discounts = {};
@@ -1376,8 +1376,8 @@ function updateCartUI() {
     
     let discountableSubtotal = 0;
     cart.forEach(item => {
-        // IDs de Combos (5001-5007) e o item da Promoção Dinâmica são excluídos do desconto global
-        const isPromotion = (Number(item.id) >= 5000 && Number(item.id) <= 5100) || String(item.id) === String(PROMO_CONFIG.promoProductId);
+        // IDs de Combos (5001-5007) e o item da Promoção Dinâmica (se ativa) são excluídos do desconto
+        const isPromotion = (Number(item.id) >= 5000 && Number(item.id) <= 5100) || (PROMO_CONFIG.active && String(item.id) === String(PROMO_CONFIG.promoProductId));
         if (!isPromotion) {
             discountableSubtotal += (item.price * item.quantity);
         }
@@ -1388,7 +1388,13 @@ function updateCartUI() {
         discountAmount = discountableSubtotal * (PROMO_CONFIG.globalDiscountPercent / 100);
     }
     
-    const total = subtotal - discountAmount + fee;
+    let couponDiscountAmount = 0;
+    if (appliedCoupon) {
+        // O cupom aplica sobre o valor que restou após o desconto global, apenas para itens permitidos
+        couponDiscountAmount = (discountableSubtotal - discountAmount) * (appliedCoupon.percent / 100);
+    }
+    
+    const total = subtotal - discountAmount - couponDiscountAmount + fee;
 
     cartTotal.innerHTML = ''; // Clear safely
     const totalDiv = document.createElement('div');
@@ -1422,9 +1428,7 @@ function updateCartUI() {
         totalDiv.appendChild(disc);
     }
 
-    let couponDiscountAmount = 0;
     if (appliedCoupon) {
-        couponDiscountAmount = (subtotal - discountAmount) * (appliedCoupon.percent / 100);
         const coup = document.createElement('span');
         coup.style.fontSize = '0.9rem';
         coup.style.color = 'var(--neon-green)';
@@ -1434,8 +1438,6 @@ function updateCartUI() {
         totalDiv.appendChild(coup);
     }
     
-    const total = subtotal - discountAmount - couponDiscountAmount + fee;
-
     const final = document.createElement('span');
     final.textContent = `${total.toFixed(2).replace('.', ',')}`;
     totalDiv.appendChild(final);
@@ -1667,8 +1669,14 @@ async function sendToWhatsApp() {
             if (manualContent) manualContent.style.display = 'block';
         }, 1800);
 
-        // Limpar Carrinho
+        // Limpar Carrinho e Cupom
         cart = []; 
+        appliedCoupon = null;
+        const couponInput = document.getElementById('couponCodeInput');
+        if (couponInput) couponInput.value = '';
+        const couponStatus = document.getElementById('couponStatus');
+        if (couponStatus) couponStatus.textContent = '';
+        
         saveCart(); 
         updateCartUI(); 
         if (typeof toggleCart === 'function') toggleCart();
@@ -1734,7 +1742,7 @@ async function sendToWhatsApp() {
         
         let discountableSubtotal = 0;
         cart.forEach(item => {
-            const isPromotion = (Number(item.id) >= 5000 && Number(item.id) <= 5100) || String(item.id) === String(PROMO_CONFIG.promoProductId);
+            const isPromotion = (Number(item.id) >= 5000 && Number(item.id) <= 5100) || (PROMO_CONFIG.active && String(item.id) === String(PROMO_CONFIG.promoProductId));
             if (!isPromotion) {
                 discountableSubtotal += (item.price * item.quantity);
             }
@@ -1745,15 +1753,16 @@ async function sendToWhatsApp() {
             discountAmount = discountableSubtotal * (PROMO_CONFIG.globalDiscountPercent / 100);
         }
         
-        const total = subtotal - discountAmount + fee;
+        let couponDiscountAmount = 0;
+        if (appliedCoupon) {
+            couponDiscountAmount = (discountableSubtotal - discountAmount) * (appliedCoupon.percent / 100);
+        }
 
         message += "\n━━━━━━━━━━━━━━━━━━\n";
         message += `Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
         if (discountAmount > 0) message += `🔥 Desconto Global (${PROMO_CONFIG.globalDiscountPercent}%): - R$ ${discountAmount.toFixed(2).replace('.', ',')}\n`;
         
-        let couponDiscountAmount = 0;
         if (appliedCoupon) {
-            couponDiscountAmount = (subtotal - discountAmount) * (appliedCoupon.percent / 100);
             message += `🎫 Cupom ${appliedCoupon.code} (${appliedCoupon.percent}%): - R$ ${couponDiscountAmount.toFixed(2).replace('.', ',')}\n`;
         }
 

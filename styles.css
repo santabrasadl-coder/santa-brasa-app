@@ -3178,3 +3178,56 @@ body {
 }
 
 
+/* ===== Coupon Section Styles ===== */
+.coupon-section {
+    background: rgba(255, 215, 0, 0.03) !important;
+    border: 1px solid rgba(255, 215, 0, 0.1) !important;
+    margin-top: 15px !important;
+}
+
+.coupon-section .checkout-title {
+    color: var(--gold) !important;
+    font-size: 1rem !important;
+    margin-bottom: 12px !important;
+}
+
+#couponCodeInput {
+    background: #000;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+#couponCodeInput:focus {
+    border-color: var(--gold);
+    outline: none;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+
+.apply-coupon-btn {
+    transition: all 0.3s ease !important;
+    min-width: 90px;
+    font-size: 0.85rem !important;
+}
+
+.apply-coupon-btn:hover {
+    transform: scale(1.05);
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+.apply-coupon-btn:active {
+    transform: scale(0.95);
+}
+
+#couponStatus {
+    font-weight: 500;
+    letter-spacing: 0.2px;
+}

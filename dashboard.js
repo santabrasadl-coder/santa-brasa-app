@@ -923,10 +923,10 @@ function saveMarketingSettings() {
         showTimer: document.getElementById('promo-show-timer-toggle').checked,
         label: document.getElementById('promo-label').value || "🔥 20% OFF SÓ AGORA!",
         globalDiscountActive: document.getElementById('promo-global-discount-toggle').checked,
-        globalDiscountPercent: parseInt(document.getElementById('promo-global-discount-percent').value) || 15,
+        globalDiscountPercent: parseFloat(document.getElementById('promo-global-discount-percent').value) || 15,
         couponActive: document.getElementById('promo-coupon-active').checked,
         couponCode: (document.getElementById('promo-coupon-code').value || '').toUpperCase().trim(),
-        couponPercent: parseInt(document.getElementById('promo-coupon-percent').value) || 10,
+        couponPercent: parseFloat(document.getElementById('promo-coupon-percent').value) || 10,
         lastUpdate: new Date().toISOString()    };
 
     db.ref('settings/promotions').set(settings)
