@@ -3195,7 +3195,8 @@ body {
     background: #000;
     border: 1px solid #333;
     color: #fff;
-    padding: 10px 12px;
+    padding: 0 12px;
+    height: 42px;
     border-radius: 8px;
     font-family: 'Poppins', sans-serif;
     font-weight: 600;
@@ -3231,3 +3232,22 @@ body {
     font-weight: 500;
     letter-spacing: 0.2px;
 }
+
+.apply-coupon-btn {
+    background: var(--primary) !important;
+    color: #000 !important;
+    height: 42px !important;
+    border-radius: 8px !important;
+    font-family: 'Bebas Neue', sans-serif !important;
+    padding: 0 20px !important;
+    border: none !important;
+    cursor: pointer !important;
+    font-size: 1.1rem !important;
+    transition: all 0.3s ease !important;
+}
+
+.apply-coupon-btn:hover {
+    background: #fff !important;
+    transform: scale(1.05) !important;
+}
+
