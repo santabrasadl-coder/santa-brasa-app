@@ -194,8 +194,13 @@ const PROMO_CONFIG = {
     storageKey: 'sb_marketing_promo_v1',
     discounts: {},
     globalDiscountActive: false,
-    globalDiscountPercent: 15
+    globalDiscountPercent: 15,
+    couponActive: false,
+    couponCode: '',
+    couponPercent: 0
 };
+
+let appliedCoupon = null; // Armazena o cupom validado no lado do cliente
 
 function getPromoRemaining() {
     if (!PROMO_CONFIG.active) return 0;
@@ -624,6 +629,13 @@ function initPromotionSync() {
             PROMO_CONFIG.showTimer = data.showTimer !== false;
             PROMO_CONFIG.label = data.label || "🔥 PROMOÇÃO RELÂMPAGO";
             
+            // Sincronização de Desconto Global e Cupons
+            PROMO_CONFIG.globalDiscountActive = data.globalDiscountActive || false;
+            PROMO_CONFIG.globalDiscountPercent = data.globalDiscountPercent || 15;
+            PROMO_CONFIG.couponActive = data.couponActive || false;
+            PROMO_CONFIG.couponCode = data.couponCode || '';
+            PROMO_CONFIG.couponPercent = data.couponPercent || 0;
+            
             // Sincroniza o desconto para o produto em destaque no card do menu
             PROMO_CONFIG.discounts = {};
             if (PROMO_CONFIG.active && PROMO_CONFIG.promoPrice && PROMO_CONFIG.promoProductId) {
@@ -632,8 +644,9 @@ function initPromotionSync() {
                 };
             }
             
-            // Re-renderiza o menu caso o banner precise aparecer/sumir
+            // Re-renderiza o menu caso o banner precise aparecer/sumir ou os preços mudarem
             renderMenu();
+            updateCartUI(); // Atualiza carrinho caso o desconto global tenha mudado
         }
     });
 
@@ -838,14 +851,14 @@ function initVIPMode() {
 
 // ===== Render Promo Banner =====
 function renderPromoBanner() {
+    // Remove banner antigo sempre para evitar banners persistentes ao desligar
+    const existing = document.getElementById('crazy-promo-banner');
+    if (existing) existing.remove();
+
     if (!PROMO_CONFIG.active) return;
 
     const section = document.getElementById('combos')?.closest('.menu-section');
     if (!section) return;
-
-    // Remove banner antigo para re-renderizar (caso estoque mude)
-    const existing = document.getElementById('crazy-promo-banner');
-    if (existing) existing.remove();
 
     const remaining = getPromoRemaining();
     const promoEnded = remaining <= 0;
@@ -1405,15 +1418,62 @@ function updateCartUI() {
         disc.style.color = 'var(--neon-green)';
         disc.style.fontWeight = 'bold';
         disc.style.fontFamily = "'Poppins'";
-        disc.textContent = `Desconto (${PROMO_CONFIG.globalDiscountPercent}%): - R$ ${discountAmount.toFixed(2).replace('.', ',')}`;
+        disc.textContent = `Desconto Global (${PROMO_CONFIG.globalDiscountPercent}%): - R$ ${discountAmount.toFixed(2).replace('.', ',')}`;
         totalDiv.appendChild(disc);
     }
+
+    let couponDiscountAmount = 0;
+    if (appliedCoupon) {
+        couponDiscountAmount = (subtotal - discountAmount) * (appliedCoupon.percent / 100);
+        const coup = document.createElement('span');
+        coup.style.fontSize = '0.9rem';
+        coup.style.color = 'var(--neon-green)';
+        coup.style.fontWeight = 'bold';
+        coup.style.fontFamily = "'Poppins'";
+        coup.textContent = `Cupom ${appliedCoupon.code} (${appliedCoupon.percent}%): - R$ ${couponDiscountAmount.toFixed(2).replace('.', ',')}`;
+        totalDiv.appendChild(coup);
+    }
+    
+    const total = subtotal - discountAmount - couponDiscountAmount + fee;
 
     const final = document.createElement('span');
     final.textContent = `${total.toFixed(2).replace('.', ',')}`;
     totalDiv.appendChild(final);
 
     cartTotal.appendChild(totalDiv);
+}
+
+function applyCoupon() {
+    const input = document.getElementById('couponCodeInput');
+    const status = document.getElementById('couponStatus');
+    const code = (input.value || '').toUpperCase().trim();
+
+    if (!PROMO_CONFIG.couponActive) {
+        status.textContent = "❌ Não há cupons ativos no momento.";
+        status.style.color = "#ff3131";
+        appliedCoupon = null;
+        updateCartUI();
+        return;
+    }
+
+    if (!code) {
+        status.textContent = "";
+        appliedCoupon = null;
+        updateCartUI();
+        return;
+    }
+
+    if (code === PROMO_CONFIG.couponCode) {
+        appliedCoupon = { code: code, percent: PROMO_CONFIG.couponPercent };
+        status.textContent = `✅ Cupom ${code} aplicado! ${PROMO_CONFIG.couponPercent}% de desconto.`;
+        status.style.color = "var(--neon-green)";
+        showToast(`Cupom ${code} aplicado!`);
+    } else {
+        appliedCoupon = null;
+        status.textContent = "❌ Cupom inválido.";
+        status.style.color = "#ff3131";
+    }
+    updateCartUI();
 }
 
 // ===== Toggle Cart =====
@@ -1689,8 +1749,17 @@ async function sendToWhatsApp() {
 
         message += "\n━━━━━━━━━━━━━━━━━━\n";
         message += `Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
-        if (discountAmount > 0) message += `🔥 Desconto (${PROMO_CONFIG.globalDiscountPercent}%): - R$ ${discountAmount.toFixed(2).replace('.', ',')}\n`;
+        if (discountAmount > 0) message += `🔥 Desconto Global (${PROMO_CONFIG.globalDiscountPercent}%): - R$ ${discountAmount.toFixed(2).replace('.', ',')}\n`;
+        
+        let couponDiscountAmount = 0;
+        if (appliedCoupon) {
+            couponDiscountAmount = (subtotal - discountAmount) * (appliedCoupon.percent / 100);
+            message += `🎫 Cupom ${appliedCoupon.code} (${appliedCoupon.percent}%): - R$ ${couponDiscountAmount.toFixed(2).replace('.', ',')}\n`;
+        }
+
         if (fee > 0) message += `Taxa de Entrega: R$ ${fee.toFixed(2).replace('.', ',')}\n`;
+        
+        const total = subtotal - discountAmount - couponDiscountAmount + fee;
         message += `*TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*\n\n`;
 
         if (orderType === 'delivery') {

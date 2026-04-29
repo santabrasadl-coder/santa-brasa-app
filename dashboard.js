@@ -230,7 +230,7 @@ function initDashboard() {
     initComboPrices(db);
 
     // 11. Cake Promo Management
-    initCakePromoSettings(db);
+
 }
 
 // ===== Notificação de Novo Pedido =====
@@ -896,6 +896,12 @@ function initMarketingSettings(db) {
             document.getElementById('promo-show-timer-toggle').checked = data.showTimer !== false;
             document.getElementById('promo-label').value = data.label || "🔥 20% OFF SÓ AGORA!";
             document.getElementById('promo-global-discount-toggle').checked = data.globalDiscountActive || false;
+            document.getElementById('promo-global-discount-percent').value = data.globalDiscountPercent || 15;
+            
+            // Novos campos de Cupom
+            document.getElementById('promo-coupon-active').checked = data.couponActive || false;
+            document.getElementById('promo-coupon-code').value = data.couponCode || '';
+            document.getElementById('promo-coupon-percent').value = data.couponPercent || 10;
             
             // Update Preview
             const productSelect = document.getElementById('promo-product-id');
@@ -917,7 +923,10 @@ function saveMarketingSettings() {
         showTimer: document.getElementById('promo-show-timer-toggle').checked,
         label: document.getElementById('promo-label').value || "🔥 20% OFF SÓ AGORA!",
         globalDiscountActive: document.getElementById('promo-global-discount-toggle').checked,
-        globalDiscountPercent: 15,
+        globalDiscountPercent: parseInt(document.getElementById('promo-global-discount-percent').value) || 15,
+        couponActive: document.getElementById('promo-coupon-active').checked,
+        couponCode: (document.getElementById('promo-coupon-code').value || '').toUpperCase().trim(),
+        couponPercent: parseInt(document.getElementById('promo-coupon-percent').value) || 10,
         lastUpdate: new Date().toISOString()    };
 
     db.ref('settings/promotions').set(settings)
@@ -1023,42 +1032,7 @@ function saveComboPriceSettings() {
         });
 }
 
-function initCakePromoSettings(db) {
-    db.ref('settings/cakePromo').on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            document.getElementById('cake-promo-price').value = data.promoPrice || '13.00';
-            document.getElementById('cake-promo-active').checked = data.active !== false;
-            
-            // Update Preview
-            document.getElementById('preview-cake-price').textContent = `Por R$ ${parseFloat(data.promoPrice).toFixed(2).replace('.', ',')}`;
-        }
-    });
 
-    // Listener para o input de preço para atualizar a prévia em tempo real
-    document.getElementById('cake-promo-price').addEventListener('input', (e) => {
-        const val = parseFloat(e.target.value) || 0;
-        document.getElementById('preview-cake-price').textContent = `Por R$ ${val.toFixed(2).replace('.', ',')}`;
-    });
-}
-
-function saveCakePromoSettings() {
-    const db = firebase.database();
-    const settings = {
-        promoPrice: parseFloat(document.getElementById('cake-promo-price').value),
-        active: document.getElementById('cake-promo-active').checked
-    };
-
-    db.ref('settings/cakePromo').set(settings)
-        .then(() => {
-            alert("🍰 Oferta de Bolo salva com sucesso!");
-            addLogRow(new Date().toLocaleTimeString('pt-BR'), "🍰 Preço da oferta de bolo alterado para R$ " + settings.promoPrice.toFixed(2));
-        })
-        .catch(err => {
-            console.error("Erro ao salvar oferta de bolo:", err);
-            alert("Erro ao salvar configurações!");
-        });
-}
 
 function addLogRow(time, msg) {
     const list = document.getElementById('activity-log');

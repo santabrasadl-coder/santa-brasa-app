@@ -907,12 +907,39 @@
                                 <span class="toggle-slider"></span>
                             </label>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333;">
-                            <span class="status-label-text" style="color: var(--neon-green); font-weight: bold;">💎 ATIVAR 15% OFF GLOBAL:</span>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="promo-global-discount-toggle">
-                                <span class="toggle-slider"></span>
-                            </label>
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="status-label-text" style="color: var(--neon-green); font-weight: bold;">💎 ATIVAR DESCONTO GLOBAL:</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="promo-global-discount-toggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="status-label-text">Porcentagem do Desconto (%):</span>
+                                <input type="number" id="promo-global-discount-percent" class="search-input" style="width: 80px; border-color: var(--neon-green);" value="15">
+                            </div>
+                        </div>
+
+                        <!-- GESTÃO DE CUPOM DE DESCONTO -->
+                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="status-label-text" style="color: #FFD700; font-weight: bold;">🎫 CUPOM DE DESCONTO:</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="promo-coupon-active">
+                                    <span class="toggle-slider" style="background-color: #444;"></span>
+                                </label>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 100px; gap: 10px;">
+                                <div>
+                                    <label class="status-label-text" style="font-size: 0.75rem; color: var(--text-dim);">Código do Cupom:</label>
+                                    <input type="text" id="promo-coupon-code" class="search-input" style="width: 100%; border-color: #FFD700;" placeholder="Ex: WHATS10">
+                                </div>
+                                <div>
+                                    <label class="status-label-text" style="font-size: 0.75rem; color: var(--text-dim);">Desconto (%):</label>
+                                    <input type="number" id="promo-coupon-percent" class="search-input" style="width: 100%; border-color: #FFD700;" value="10">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -985,42 +1012,6 @@
 
                     <button class="send-btn" onclick="saveComboPriceSettings()" style="width: 100%; padding: 1rem; background: #222; border: 1px solid #444;">SALVAR PREÇOS DE COMBOS</button>
                     <p style="margin-top: 1rem; font-size: 0.7rem; color: var(--text-dim); text-align: center;">Os preços acima atualizam apenas os valores no site, as descrições permanecem as mesmas.</p>
-                </div>
-
-                <!-- Nova Oferta de Bolo (Combo) -->
-                <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 12px; border: 1px solid #333; grid-column: span 2;">
-                    <h3 style="font-family: 'Bebas Neue'; margin-bottom: 1rem; color: #FFD700;">🍰 Oferta de Bolo (Cross-Sell no Combo)</h3>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
-                        <div>
-                            <div style="margin-bottom: 1.2rem;">
-                                <label class="status-label-text" style="display: block; margin-bottom: 5px;">Preço Promocional do Bolo (R$)</label>
-                                <input type="number" step="0.01" id="cake-promo-price" class="search-input" style="width: 100%;" value="13.00">
-                                <small style="display: block; margin-top: 5px; color: var(--text-dim); font-size: 0.75rem;">Este preço será aplicado automaticamente quando houver um burger no carrinho.</small>
-                            </div>
-        
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1.2rem;">
-                                <span class="status-label-text">Ativar Oferta Inteligente:</span>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="cake-promo-active" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 8px; border: 1px dashed #555;">
-                            <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 10px; text-transform: uppercase; font-weight: bold;">Prévia da Oferta:</p>
-                            <div style="display: flex; align-items: center; gap: 15px;">
-                                <div style="font-size: 2rem;">🍰</div>
-                                <div>
-                                    <div style="color: #ff3131; text-decoration: line-through; font-size: 0.8rem;">De R$ 18,00</div>
-                                    <div id="preview-cake-price" style="color: #00FF41; font-weight: 900; font-size: 1.5rem;">Por R$ 13,00</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button class="send-btn" onclick="saveCakePromoSettings()" style="width: 100%; padding: 1rem; background: #FFD700; color: #000; font-weight: 800; margin-top: 1rem;">SALVAR OFERTA DE BOLO</button>
                 </div>
             </div>
         </div>

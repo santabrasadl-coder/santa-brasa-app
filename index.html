@@ -277,6 +277,15 @@
                     </div>
                 </div>
 
+                <div class="cart-section-card coupon-section">
+                    <h3 class="checkout-title">🎫 Cupom de Desconto</h3>
+                    <div class="coupon-input-group" style="display: flex; gap: 8px;">
+                        <input type="text" id="couponCodeInput" placeholder="Digite seu cupom" style="flex: 1; text-transform: uppercase;">
+                        <button type="button" onclick="applyCoupon()" class="apply-coupon-btn" style="background: var(--primary); color: white; border: none; padding: 0 15px; border-radius: 8px; font-family: 'Bebas Neue'; letter-spacing: 1px; cursor: pointer;">APLICAR</button>
+                    </div>
+                    <div id="couponStatus" style="font-size: 0.75rem; margin-top: 5px; min-height: 1rem;"></div>
+                </div>
+
                 <!-- Bot Protection Honeypot -->
                 <div style="display:none !important;" aria-hidden="true">
                     <input type="text" id="hp_field" name="hp_field" tabindex="-1" autocomplete="off">
@@ -334,20 +343,7 @@
         <span class="toast-message" id="toastMessage">Item adicionado!</span>
     </div>
     <!-- Firebase SDK (Common/Database) -->
-    <!-- Cross-Sell Offer Modal -->
-    <div id="crossSellOverlay" class="cross-sell-overlay">
-        <div class="cross-sell-modal">
-            <p class="cross-sell-text" style="font-size: 1.1rem; margin-top: 1.5rem; color: #fff;">Deseja adicionar uma deliciosa <b>Fatia de Torta</b> ao seu pedido?</p>
-            <div class="cross-sell-price" style="margin-bottom: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 2px;">
-                <span class="old" style="color: #ff3131; text-decoration: line-through; font-size: 1.2rem; font-weight: 700;">R$ 18,00</span>
-                <span class="new" style="color: #00FF41; font-size: 3.2rem; font-weight: 900; text-shadow: 0 0 20px rgba(0, 255, 65, 0.4); line-height: 1;">R$ 13,00</span>
-            </div>
-            <div class="cross-sell-buttons">
-                <button class="btn-accept-offer" onclick="acceptCrossSell()" style="background: #00FF41; color: #000; box-shadow: 0 0 20px rgba(0, 255, 65, 0.4); font-weight: 900;">SIM, EU QUERO! 🍰</button>
-                <button class="btn-decline-offer" onclick="closeCrossSell()">Não, obrigado</button>
-            </div>
-        </div>
-    </div>
+
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
