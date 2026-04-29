@@ -971,12 +971,13 @@ function updateEconomyPreview(id, price) {
     const preview = document.getElementById(`preview-economy-${id}`);
     if (!preview) return;
 
-    const basePrices = { 5001: 49, 5002: 98, 5003: 118, 5006: 138 };
+    const basePrices = { 5001: 49, 5002: 98, 5003: 118, 5006: 138, 5007: 69 };
     const labels = {
         5001: "Economia de R$",
         5002: "Economia de R$",
         5003: "Economia de R$",
-        5006: "Economia de R$"
+        5006: "Economia de R$",
+        5007: "Economia de R$"
     };
 
     const base = basePrices[id];
@@ -999,10 +1000,11 @@ function saveComboPriceSettings() {
         5001: { base: 49.00, desc: "1x X-Salada + 1x Coca-Cola Lata 350ml + 1x Fatia de Bolo.", label: "Economia de R$" },
         5002: { base: 98.00, desc: "2x X-Salada + 2x Coca-Cola Lata 350ml + 2x Fatia de Bolo.", label: "Economia de R$" },
         5003: { base: 118.00, desc: "2x X-Egg Bacon + 2x Coca-Cola Lata 350ml + 2x Fatia de Bolo.", label: "Economia de R$" },
-        5006: { base: 138.00, desc: "2x Santo Juízo + 2x Coca-Cola Lata 350ml + 2x Fatias de Bolo Dois Amores.", label: "Economia de R$" }
+        5006: { base: 138.00, desc: "2x Santo Juízo + 2x Coca-Cola Lata 350ml + 2x Fatias de Bolo Dois Amores.", label: "Economia de R$" },
+        5007: { base: 69.00, desc: "1x Santo Juízo (O Supremo) + 1x Coca-Cola gelada + 1x Fatia de Bolo Dois Amores.", label: "🔥 EXCLUSIVO STATUS: Economia de R$" }
     };
 
-    [5001, 5002, 5003, 5006].forEach(id => {
+    [5001, 5002, 5003, 5006, 5007].forEach(id => {
         const newPrice = parseFloat(document.getElementById(`price-combo-${id}`).value);
         const isActive = document.getElementById(`status-combo-${id}`).checked;
         const meta = comboMeta[id];
@@ -1010,7 +1012,7 @@ function saveComboPriceSettings() {
         let description = meta.desc;
         if (newPrice < meta.base) {
             const economy = (meta.base - newPrice).toFixed(2).replace('.', ',');
-            const style = id === 5006 ? 'color: #00FF41; font-weight: 800;' : 'color: var(--primary); font-weight: 600;';
+            const style = (id === 5006 || id === 5007) ? 'color: #00FF41; font-weight: 800;' : 'color: var(--primary); font-weight: 600;';
             description += ` <br><small style='${style}'>${meta.label} ${economy}</small>`;
         }
 
