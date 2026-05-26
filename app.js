@@ -1,14 +1,14 @@
 function getSchedule(date = new Date()) {
     const day = date.getDay(); // 0(Dom), 1(Seg), ..., 6(Sáb)
-    // Meio de semana: Mon-Thu (1, 2, 3, 4) -> 18h-23h
-    // Final de semana: Fri-Sun (5, 6, 0) -> 18h-03h
-    const isWeekend = (day === 0 || day === 5 || day === 6);
+    // Meio de semana: Dom-Qui (0, 1, 2, 3, 4) -> 18h-22h30
+    // Final de semana: Sex-Sáb (5, 6) -> 18h-03h
+    const isWeekend = (day === 5 || day === 6);
 
     return {
         openHour: 18,
         openMinute: 0,
-        closeHour: isWeekend ? 3 : 23,
-        closeMinute: 0
+        closeHour: isWeekend ? 3 : 22,
+        closeMinute: isWeekend ? 0 : 30
     };
 }
 
@@ -41,7 +41,7 @@ function isStoreOpen() {
         // Crossover (fecha amanhã) - Ex: Abre 18h, Fecha 3h
         openToday = currentTotalMinutes >= todayOpen;
     } else {
-        // Normal - Ex: Abre 18h, Fecha 23h
+        // Normal - Ex: Abre 18h, Fecha 22h30
         openToday = currentTotalMinutes >= todayOpen && currentTotalMinutes < todayClose;
     }
 
@@ -328,7 +328,7 @@ const menuData = {
         {
             id: 1,
             name: "X-Salada",
-            description: "Pão brioche selado na manteiga, hambúrguer artesanal suculento, queijo derretido, alface fresca, tomate e nossa maionese especial.",
+            description: "Pão, hambúrguer artesanal suculento, queijo derretido, alface fresca, tomate e nossa maionese especial.",
             price: 24.00
         },
         {
@@ -352,7 +352,7 @@ const menuData = {
         {
             id: 5,
             name: "Laçador",
-            description: "Pão brioche, hambúrguer artesanal, bacon crocante, milho, dobro de queijo muçarela, alface e nossa maionese artesanal da casa.",
+            description: "Pão, hambúrguer artesanal, bacon crocante, milho, dobro de queijo muçarela, alface e nossa maionese artesanal da casa.",
             price: 34.00
         },
         {
@@ -439,7 +439,8 @@ const menuData = {
             description: "Fatia generosa. Irresistível creme de Ninho Original combinado com autêntico Chocolate Nobre 50% cacau.",
             price: 18.00,
             highlightGreen: true,
-            badge: "NOVIDADE ✨"
+            badge: "NOVIDADE ✨",
+            soldOut: true
         }
     ],
     bebidas: [

@@ -108,26 +108,48 @@ function initDashboard() {
         addLogRow(new Date().toLocaleTimeString('pt-BR'), "⚠️ Erro ao ler visitantes online (Permissão).");
     });
 
-    // 2. Total de Visitas Históricas
-    db.ref('metrics/totals/total_visits').on('value', (snapshot) => {
-        animateValue('count-total', snapshot.val() || 0);
-    });
-
-    // 3. Cliques em Pedidos Históricos
-    db.ref('metrics/totals/total_orders_clicked').on('value', (snapshot) => {
-        animateValue('count-orders', snapshot.val() || 0);
-    });
-
-    // 2b. Métricas de Hoje (Opcional: manter no console ou adicionar se tiver label)
+    // 2. Visitas de Hoje e Conversão
     const today = new Date().toISOString().split('T')[0];
+    let todayVisits = 0;
+    let todayOrders = 0;
+
+    function updateTodayConversion() {
+        const conversion = todayVisits > 0 ? ((todayOrders / todayVisits) * 100).toFixed(1) : '0.0';
+        const el = document.getElementById('count-today-conversion');
+        if (el) el.textContent = `${conversion}%`;
+    }
+
     db.ref(`metrics/${today}/total_visits`).on('value', (snapshot) => {
-        console.log("Visitas hoje:", snapshot.val() || 0);
+        todayVisits = snapshot.val() || 0;
+        animateValue('count-today-visits', todayVisits);
+        updateTodayConversion();
+    });
+
+    // 3. Cliques de Hoje
+    db.ref(`metrics/${today}/total_orders_clicked`).on('value', (snapshot) => {
+        todayOrders = snapshot.val() || 0;
+        animateValue('count-today-orders', todayOrders);
+        updateTodayConversion();
     });
 
     // 4. Logs de Atividade
     db.ref('logs').limitToLast(15).on('child_added', (snapshot) => {
         const log = snapshot.val();
         addLogRow(log.time, log.msg);
+    });
+
+    db.ref('logs').on('value', (snapshot) => {
+        if (!snapshot.exists()) {
+            const list = document.getElementById('activity-log');
+            if (list) {
+                list.innerHTML = `
+                    <li class="log-item">
+                        <span class="log-time">${new Date().toLocaleTimeString('pt-BR')}</span>
+                        <span class="log-msg">Nenhuma atividade recente registrada.</span>
+                    </li>
+                `;
+            }
+        }
     });
 
     // 5. CRM: Pedidos Passados (carrega histórico)
@@ -685,6 +707,34 @@ function confirmResetDailyMetrics() {
     }
 }
 
+function confirmClearRecentActivities() {
+    if (confirm("Deseja realmente limpar todas as atividades recentes?")) {
+        const db = firebase.database();
+        db.ref('logs').remove()
+            .then(() => {
+                alert("Atividades recentes limpas com sucesso!");
+            })
+            .catch(error => {
+                console.error("Erro ao limpar atividades:", error);
+                alert("Erro ao limpar atividades: " + error.message);
+            });
+    }
+}
+
+function confirmResetTotalVisits() {
+    if (confirm("Tem certeza que deseja zerar o contador de VISITAS TOTAIS? Esta ação não pode ser desfeita e redefinirá o histórico de visitas totais.")) {
+        const db = firebase.database();
+        db.ref('metrics/totals/total_visits').set(0)
+            .then(() => {
+                alert("Visitas totais zeradas com sucesso!");
+            })
+            .catch(error => {
+                console.error("Erro ao zerar visitas totais:", error);
+                alert("Erro ao zerar visitas totais: " + error.message);
+            });
+    }
+}
+
 function confirmDeleteCustomer(customerKey, customerName) {
     if (confirm(`Tem certeza que deseja excluir o cliente ${customerName}?`)) {
         firebase.database().ref('customers/' + customerKey).remove()
@@ -752,6 +802,11 @@ function loadMetricsHistory() {
         let monthVisits = 0;
         let monthClicks = 0;
 
+        // Totais Acumulados Geral (do Firebase)
+        const totalVisitsGeral = data.totals?.total_visits || 0;
+        const totalClicksGeral = data.totals?.total_orders_clicked || 0;
+        const conversionGeral = totalVisitsGeral > 0 ? ((totalClicksGeral / totalVisitsGeral) * 100).toFixed(1) : '0.0';
+
         // Iterar sobre as datas (YYYY-MM-DD)
         Object.keys(data).forEach(dateKey => {
             if (dateKey === 'totals') return; // Pular compatibilidade
@@ -778,6 +833,16 @@ function loadMetricsHistory() {
         // Atualizar Totais no UI
         animateValue('monthly-visits', monthVisits);
         animateValue('monthly-clicks', monthClicks);
+
+        // Novos elementos para o Histórico Geral
+        const elVisitsGeral = document.getElementById('total-visits-accumulated');
+        if (elVisitsGeral) animateValue('total-visits-accumulated', totalVisitsGeral);
+
+        const elClicksGeral = document.getElementById('total-orders-accumulated');
+        if (elClicksGeral) animateValue('total-orders-accumulated', totalClicksGeral);
+
+        const elConvGeral = document.getElementById('average-conversion-accumulated');
+        if (elConvGeral) elConvGeral.textContent = `${conversionGeral}%`;
 
         // Renderizar Tabela
         renderReportsTable(history);
@@ -1039,6 +1104,18 @@ function saveComboPriceSettings() {
 function addLogRow(time, msg) {
     const list = document.getElementById('activity-log');
     if (!list) return;
+
+    // Limpar marcadores de posição se existirem
+    if (list.children.length === 1) {
+        const firstMsgEl = list.children[0].querySelector('.log-msg');
+        if (firstMsgEl) {
+            const firstMsg = firstMsgEl.textContent || '';
+            if (firstMsg.includes("Nenhuma atividade recente registrada") || 
+                firstMsg.includes("Iniciando sistema de monitoramento")) {
+                list.innerHTML = '';
+            }
+        }
+    }
 
     const li = document.createElement('li');
     li.className = 'log-item';

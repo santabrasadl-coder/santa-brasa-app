@@ -709,12 +709,16 @@
                 <div style="font-size: 0.7rem; color: var(--neon-green)">● AO VIVO</div>
             </div>
             <div class="stat-card">
-                <span class="stat-label">Total de Visitas</span>
-                <span class="stat-value" id="count-total">0</span>
+                <span class="stat-label">Visitas de Hoje</span>
+                <span class="stat-value" id="count-today-visits">0</span>
             </div>
             <div class="stat-card">
-                <span class="stat-label">Cliques Pedidos</span>
-                <span class="stat-value" id="count-orders">0</span>
+                <span class="stat-label">Cliques de Hoje</span>
+                <span class="stat-value" id="count-today-orders">0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Conversão de Hoje</span>
+                <span class="stat-value" id="count-today-conversion">0%</span>
             </div>
         </div>
 
@@ -722,8 +726,12 @@
             <div
                 style="padding: 1rem; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="font-family: 'Bebas Neue', sans-serif; color: var(--primary);">Atividade Recente</h3>
-                <button class="reset-btn" onclick="forceDeleteOrder()" style="border-color: #ff3131; color: #ff3131; margin-right: 10px;">Exclusão Forçada (ID)</button>
-                <button class="reset-btn" onclick="confirmResetDailyMetrics()">Zerar Hoje</button>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <button class="reset-btn" onclick="forceDeleteOrder()" style="border-color: #ff3131; color: #ff3131;">Exclusão Forçada (ID)</button>
+                    <button class="reset-btn" onclick="confirmClearRecentActivities()">Limpar Atividades</button>
+                    <button class="reset-btn" onclick="confirmResetTotalVisits()">Zerar Visitas Totais</button>
+                    <button class="reset-btn" onclick="confirmResetDailyMetrics()">Zerar Hoje</button>
+                </div>
             </div>
             <ul class="log-list" id="activity-log">
                 <li class="log-item">
@@ -1028,6 +1036,18 @@
             <div class="stat-card" style="border-top: 4px solid var(--primary);">
                 <span class="stat-label">Total Cliques (Mês)</span>
                 <span class="stat-value" id="monthly-clicks">0</span>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #00E5FF;">
+                <span class="stat-label">Visitas Totais (Acumulado Geral)</span>
+                <span class="stat-value" id="total-visits-accumulated">0</span>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #FFD700;">
+                <span class="stat-label">Cliques Totais (Acumulado Geral)</span>
+                <span class="stat-value" id="total-orders-accumulated">0</span>
+            </div>
+            <div class="stat-card" style="border-top: 4px solid #8b5cf6;">
+                <span class="stat-label">Conversão Média Geral</span>
+                <span class="stat-value" id="average-conversion-accumulated">0%</span>
             </div>
         </div>
 

@@ -27,7 +27,7 @@ Aqui estão 3 opções de mensagens atraentes focadas na promoção de **20% de 
 
 > "🍔 **Bateu aquela vontade de um Santa Brasa suculento?**
 > 
-> Imagina aquele pão brioche selado na manteiga, blend artesanal no ponto certo e queijo derretendo... Agora imagina tudo isso com **20% DE DESCONTO!** 😱
+> Imagina aquele pão, blend artesanal no ponto certo e queijo derretendo... Agora imagina tudo isso com **20% DE DESCONTO!** 😱
 > 
 > Hoje é o dia de se presentear com o melhor burger de Itaúna pagando muito menos.
 > 
