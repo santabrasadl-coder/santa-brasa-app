@@ -3244,6 +3244,10 @@ body {
     cursor: pointer !important;
     font-size: 1.1rem !important;
     transition: all 0.3s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
 }
 
 .apply-coupon-btn:hover {
