@@ -3233,13 +3233,25 @@ body {
     letter-spacing: 0.2px;
 }
 
+.coupon-input-group {
+    display: flex !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+    width: 100% !important;
+}
+
+.coupon-input-group #couponCodeInput {
+    flex: 1 1 0% !important;
+    min-width: 0 !important; /* Permite encolher no mobile */
+}
+
 .apply-coupon-btn {
     background: var(--primary) !important;
     color: #000 !important;
     height: 42px !important;
     border-radius: 8px !important;
     font-family: 'Bebas Neue', sans-serif !important;
-    padding: 0 20px !important;
+    padding: 0 16px !important;
     border: none !important;
     cursor: pointer !important;
     font-size: 1.1rem !important;
@@ -3248,6 +3260,8 @@ body {
     align-items: center !important;
     justify-content: center !important;
     line-height: 1 !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
 }
 
 .apply-coupon-btn:hover {
