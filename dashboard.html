@@ -51,6 +51,7 @@
         /* Tabs Navigation */
         .nav-tabs {
             display: flex;
+            flex-wrap: wrap;
             gap: 1rem;
             margin-bottom: 2rem;
             border-bottom: 1px solid #333;
@@ -606,9 +607,6 @@
                 <span class="live-dot" style="background-color: #ff4141; box-shadow: 0 0 10px #ff4141;"></span>
                 <span id="status-text" style="color: #ff4141;">Aguardando Firebase...</span>
             </div>
-            <div id="audio-unlock-hint" style="font-size: 0.7rem; color: #FFD700; max-width: 150px; line-height: 1.2;">
-                👈 Clique no botão de som para garantir que o alerta funcione!
-            </div>
         </div>
         <audio id="notificationSound" preload="auto" loop>
             <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
@@ -625,8 +623,8 @@
         <button class="nav-btn" onclick="showTab('tab-finance')">Financeiro</button>
         <button class="nav-btn" onclick="showTab('tab-orders')">Pedidos Passados</button>
         <button class="nav-btn" onclick="showTab('tab-customers')">Clientes</button>
-        <button class="nav-btn" onclick="showTab('tab-marketing')">Marketing & Promoções</button>
         <button class="nav-btn" onclick="showTab('tab-reports')">Relatórios</button>
+        <button class="nav-btn" onclick="showTab('tab-marketing')" style="color: var(--primary);">🎯 Marketing & Promoções</button>
     </nav>
 
     <!-- Tab Finance: Sales Analysis -->
@@ -709,16 +707,12 @@
                 <div style="font-size: 0.7rem; color: var(--neon-green)">● AO VIVO</div>
             </div>
             <div class="stat-card">
-                <span class="stat-label">Visitas de Hoje</span>
-                <span class="stat-value" id="count-today-visits">0</span>
+                <span class="stat-label">Total de Visitas</span>
+                <span class="stat-value" id="count-total">0</span>
             </div>
             <div class="stat-card">
-                <span class="stat-label">Cliques de Hoje</span>
-                <span class="stat-value" id="count-today-orders">0</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Conversão de Hoje</span>
-                <span class="stat-value" id="count-today-conversion">0%</span>
+                <span class="stat-label">Cliques Pedidos</span>
+                <span class="stat-value" id="count-orders">0</span>
             </div>
         </div>
 
@@ -726,12 +720,7 @@
             <div
                 style="padding: 1rem; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="font-family: 'Bebas Neue', sans-serif; color: var(--primary);">Atividade Recente</h3>
-                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                    <button class="reset-btn" onclick="forceDeleteOrder()" style="border-color: #ff3131; color: #ff3131;">Exclusão Forçada (ID)</button>
-                    <button class="reset-btn" onclick="confirmClearRecentActivities()">Limpar Atividades</button>
-                    <button class="reset-btn" onclick="confirmResetTotalVisits()">Zerar Visitas Totais</button>
-                    <button class="reset-btn" onclick="confirmResetDailyMetrics()">Zerar Hoje</button>
-                </div>
+                <button class="reset-btn" onclick="confirmResetDailyMetrics()">Zerar Hoje</button>
             </div>
             <ul class="log-list" id="activity-log">
                 <li class="log-item">
@@ -745,11 +734,15 @@
     <!-- Tab 2: Orders History -->
     <div id="tab-orders" class="tab-content">
         <div class="crm-container">
+            <div style="padding: 1rem; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-family: 'Bebas Neue', sans-serif; color: var(--primary);">Histórico de Pedidos</h3>
+                <button id="refresh-orders-btn" class="reset-btn">🔄 Atualizar Pedidos</button>
+            </div>
+            <div id="loading-spinner" style="display:none; text-align:center; padding: 0.75rem; color: var(--neon-green); font-size: 0.9rem;">🔄 Carregando pedidos...</div>
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
-                            <th>#</th>
                             <th>Data/Hora</th>
                             <th>Cliente</th>
                             <th>Tipo</th>
@@ -763,7 +756,7 @@
                     <tbody id="orders-table-body">
                         <!-- Pedidos serão inseridos aqui -->
                         <tr>
-                            <td colspan="6" style="text-align:center;">Carregando pedidos...</td>
+                            <td colspan="8" style="text-align:center;">Carregando pedidos...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -801,230 +794,6 @@
         </div>
     </div>
 
-    <!-- Tab 4: Marketing & Promotions -->
-    <div id="tab-marketing" class="tab-content">
-        <!-- Calculadora CMVS -->
-        <div class="crm-container" style="padding: 2rem; margin: 2rem; margin-top: 0; background: linear-gradient(145deg, #1A1A1A 0%, #0D0D0D 100%); border: 1px solid #333; position: relative; overflow: hidden;">
-            <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: rgba(0, 255, 65, 0.1); filter: blur(50px); border-radius: 50%;"></div>
-            <h2 style="font-family: 'Bebas Neue', sans-serif; color: var(--neon-green); margin-bottom: 1.5rem; font-size: 2rem; text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);">📈 Calculadora de CMV e Precificação Inteligente</h2>
-            
-            <div style="display: grid; grid-template-columns: 1fr 300px; gap: 2rem;">
-                <!-- Formulário de Custos -->
-                <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 12px; border: 1px solid #2a2a2a;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 0.5rem;">
-                        <div>
-                            <label class="status-label-text" style="display: block; margin-bottom: 8px; color: var(--text-dim);">Custo Ingredientes (R$)</label>
-                            <input type="number" step="0.01" id="cmv-ingredients" class="search-input" style="width: 100%; border-color: #444; font-size: 1.1rem;" placeholder="Ex: 12.50" oninput="calculateCMV()">
-                        </div>
-                        <div>
-                            <label class="status-label-text" style="display: block; margin-bottom: 8px; color: var(--text-dim);">Custo Embalagem (R$)</label>
-                            <input type="number" step="0.01" id="cmv-packaging" class="search-input" style="width: 100%; border-color: #444; font-size: 1.1rem;" placeholder="Ex: 2.00" oninput="calculateCMV()">
-                        </div>
-                        <div>
-                            <label class="status-label-text" style="display: block; margin-bottom: 8px; color: var(--text-dim);">Taxas Maquininha/App (%)</label>
-                            <input type="number" step="0.1" id="cmv-fees" class="search-input" style="width: 100%; border-color: #444; font-size: 1.1rem;" placeholder="Ex: 3.5" oninput="calculateCMV()">
-                        </div>
-                        <div>
-                            <label class="status-label-text" style="display: block; margin-bottom: 8px; color: var(--primary);">Margem de Lucro Desejada (%)</label>
-                            <input type="number" step="0.1" id="cmv-margin" class="search-input" style="width: 100%; border-color: var(--primary); font-size: 1.1rem; box-shadow: 0 0 10px rgba(255,49,49,0.1);" placeholder="Ex: 30" oninput="calculateCMV()">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Painel de Resultados -->
-                <div style="background: rgba(0, 0, 0, 0.4); padding: 1.5rem; border-radius: 12px; border: 1px dashed var(--neon-green); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: all 0.3s ease;" id="cmv-result-panel">
-                    <div style="font-size: 0.9rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Preço Sugerido de Venda</div>
-                    <div id="cmv-suggested-price" style="font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; color: var(--neon-green); text-shadow: 0 0 15px rgba(0,255,65,0.4); line-height: 1;">R$ 0,00</div>
-                    
-                    <div style="width: 100%; height: 1px; background: #333; margin: 15px 0;"></div>
-                    
-                    <div style="display: flex; width: 100%; justify-content: space-between; align-items: center;">
-                        <div style="text-align: left;">
-                            <div style="font-size: 0.75rem; color: var(--text-dim);">SEU LUCRO LÍQUIDO</div>
-                            <div id="cmv-net-profit" style="font-size: 1.3rem; color: #fff; font-weight: bold;">R$ 0,00</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 0.75rem; color: var(--text-dim);">CMV FINAL</div>
-                            <div id="cmv-percentage" style="font-size: 1.3rem; color: #fff; font-weight: bold;">0%</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="crm-container" style="padding: 2rem; margin: 0 2rem 2rem 2rem;">
-            <h2 style="font-family: 'Bebas Neue', sans-serif; color: var(--primary); margin-bottom: 1.5rem; font-size: 2rem;">🚀 Gestão de Promoções Exclusivas</h2>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                <!-- Configurações de Escassez -->
-                <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 12px; border: 1px solid #333;">
-                    <h3 style="font-family: 'Bebas Neue'; margin-bottom: 1rem; color: var(--neon-green);">📦 Configuração de Escassez (Ghost Stock)</h3>
-                    
-                    <div style="margin-bottom: 1.2rem;">
-                        <label class="status-label-text" style="display: block; margin-bottom: 5px;">Produto em Destaque</label>
-                        <select id="promo-product-id" class="search-input" style="width: 100%;">
-                            <option value="5007">Combo Exclusivo Zap (ID 5007) 📱</option>
-                            <option value="5006">Mega Combo Santo Juízo (ID 5006) ⚖️</option>
-                            <option value="8">Santo Juízo (Mais Vendido)</option>
-                            <option value="7">Santa Fúria (Premium)</option>
-                            <option value="5001">Combo Econômico</option>
-                            <option value="4">X-Bacon</option>
-                        </select>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
-                        <div>
-                            <label class="status-label-text" style="display: block; margin-bottom: 5px;">Estoque Inicial</label>
-                            <input type="number" id="promo-initial-stock" class="search-input" style="width: 100%;" value="10">
-                        </div>
-                        <div>
-                            <label class="status-label-text" style="display: block; margin-bottom: 5px;">Preço Promo (R$)</label>
-                            <input type="number" step="0.01" id="promo-price" class="search-input" style="width: 100%;" value="38.90">
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 1.2rem;">
-                        <label class="status-label-text" style="display: block; margin-bottom: 5px;">Redução Automat. (minutos)</label>
-                        <input type="number" id="promo-decay-minutes" class="search-input" style="width: 100%;" value="25">
-                    </div>
-
-                    <div style="margin-bottom: 1.2rem;">
-                        <label class="status-label-text" style="display: block; margin-bottom: 5px;">Texto da Tag (Label)</label>
-                        <input type="text" id="promo-label" class="search-input" style="width: 100%;" placeholder="Ex: 🔥 20% OFF SÓ AGORA!">
-                    </div>
-
-                    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span class="status-label-text">Ativar Promoção:</span>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="promo-active-toggle">
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span class="status-label-text">Exibir Estoque no Banner:</span>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="promo-show-stock-toggle" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span class="status-label-text">Exibir Cronômetro no Banner:</span>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="promo-show-timer-toggle" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span class="status-label-text" style="color: var(--neon-green); font-weight: bold;">💎 ATIVAR DESCONTO GLOBAL:</span>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="promo-global-discount-toggle">
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span class="status-label-text">Porcentagem do Desconto (%):</span>
-                                <input type="number" id="promo-global-discount-percent" class="search-input" style="width: 80px; border-color: var(--neon-green);" value="15">
-                            </div>
-                        </div>
-
-                        <!-- GESTÃO DE CUPOM DE DESCONTO -->
-                        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span class="status-label-text" style="color: #FFD700; font-weight: bold;">🎫 CUPOM DE DESCONTO:</span>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="promo-coupon-active">
-                                    <span class="toggle-slider" style="background-color: #444;"></span>
-                                </label>
-                            </div>
-                            <div style="display: grid; grid-template-columns: 1fr 100px; gap: 10px;">
-                                <div>
-                                    <label class="status-label-text" style="font-size: 0.75rem; color: var(--text-dim);">Código do Cupom:</label>
-                                    <input type="text" id="promo-coupon-code" class="search-input" style="width: 100%; border-color: #FFD700;" placeholder="Ex: WHATS10">
-                                </div>
-                                <div>
-                                    <label class="status-label-text" style="font-size: 0.75rem; color: var(--text-dim);">Desconto (%):</label>
-                                    <input type="number" id="promo-coupon-percent" class="search-input" style="width: 100%; border-color: #FFD700;" value="10">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button class="send-btn" onclick="saveMarketingSettings()" style="width: 100%; padding: 1rem;">SALVAR CONFIGURAÇÕES</button>
-                </div>
-
-                <!-- Gestão de Preços dos Combos -->
-                <div style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 12px; border: 1px solid #333;">
-                    <h3 style="font-family: 'Bebas Neue'; margin-bottom: 1rem; color: var(--primary);">💎 Gestão de Preços: Combos</h3>
-                    
-                    <div style="margin-bottom: 1.2rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                            <label class="status-label-text">Combo Econômico (ID 5001)</label>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="status-combo-5001" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <input type="number" step="0.01" id="price-combo-5001" class="search-input" style="width: 100%;" value="41.00">
-                        <small id="preview-economy-5001" style="display: block; margin-top: 5px; color: var(--primary); font-size: 0.75rem; font-weight: bold;"></small>
-                    </div>
-
-                    <div style="margin-bottom: 1.2rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                            <label class="status-label-text">Combo Casal Tradicional (ID 5002)</label>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="status-combo-5002" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <input type="number" step="0.01" id="price-combo-5002" class="search-input" style="width: 100%;" value="84.90">
-                        <small id="preview-economy-5002" style="display: block; margin-top: 5px; color: var(--primary); font-size: 0.75rem; font-weight: bold;"></small>
-                    </div>
-
-                    <div style="margin-bottom: 1.2rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                            <label class="status-label-text" style="color: var(--neon-green)">Mega Combo Santo Juízo (ID 5006) ⚖️</label>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="status-combo-5006" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <input type="number" step="0.01" id="price-combo-5006" class="search-input" style="width: 100%; border-color: var(--neon-green);" value="99.90">
-                        <small id="preview-economy-5006" style="display: block; margin-top: 5px; color: var(--neon-green); font-size: 0.8rem; font-weight: 900;"></small>
-                    </div>
-
-                    <div style="margin-bottom: 1.2rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                            <label class="status-label-text">Combo Casal Especial (ID 5003)</label>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="status-combo-5003" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <input type="number" step="0.01" id="price-combo-5003" class="search-input" style="width: 100%;" value="99.90">
-                        <small id="preview-economy-5003" style="display: block; margin-top: 5px; color: var(--primary); font-size: 0.75rem; font-weight: bold;"></small>
-                    </div>
-
-                    <div style="margin-bottom: 1.2rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                            <label class="status-label-text" style="color: #00FF41;">Combo Exclusivo Zap 📱 (ID 5007)</label>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="status-combo-5007" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <input type="number" step="0.01" id="price-combo-5007" class="search-input" style="width: 100%; border-color: #00FF41;" value="55.20">
-                        <small id="preview-economy-5007" style="display: block; margin-top: 5px; color: #00FF41; font-size: 0.75rem; font-weight: bold;"></small>
-                    </div>
-
-                    <button class="send-btn" onclick="saveComboPriceSettings()" style="width: 100%; padding: 1rem; background: #222; border: 1px solid #444;">SALVAR PREÇOS DE COMBOS</button>
-                    <p style="margin-top: 1rem; font-size: 0.7rem; color: var(--text-dim); text-align: center;">Os preços acima atualizam apenas os valores no site, as descrições permanecem as mesmas.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Tab 5: Reports History -->
     <div id="tab-reports" class="tab-content"
         style="background: var(--surface); border: 1px solid #333; border-radius: 12px; padding: 2rem; min-height: calc(100vh - 250px);">
@@ -1037,17 +806,9 @@
                 <span class="stat-label">Total Cliques (Mês)</span>
                 <span class="stat-value" id="monthly-clicks">0</span>
             </div>
-            <div class="stat-card" style="border-top: 4px solid #00E5FF;">
-                <span class="stat-label">Visitas Totais (Acumulado Geral)</span>
-                <span class="stat-value" id="total-visits-accumulated">0</span>
-            </div>
-            <div class="stat-card" style="border-top: 4px solid #FFD700;">
-                <span class="stat-label">Cliques Totais (Acumulado Geral)</span>
-                <span class="stat-value" id="total-orders-accumulated">0</span>
-            </div>
-            <div class="stat-card" style="border-top: 4px solid #8b5cf6;">
-                <span class="stat-label">Conversão Média Geral</span>
-                <span class="stat-value" id="average-conversion-accumulated">0%</span>
+            <div class="stat-card" style="border-top: 4px solid var(--primary);">
+                <span class="stat-label">Vendas últimos 7 dias</span>
+                <span class="stat-value" id="sales-last-7">R$ 0,00</span>
             </div>
         </div>
 
@@ -1076,35 +837,361 @@
         </div>
     </div>
 
-    <!-- Tab 4: Chat Live -->
-    <div id="tab-chat" class="tab-content">
-        <div class="chat-board">
-            <!-- Sessions Pane -->
-            <div class="chat-sessions-pane">
-                <div class="pane-header">
-                    Conversas Ativas
+
+    <!-- Tab: Marketing & Promotions -->
+    <div id="tab-marketing" class="tab-content">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+            
+            <!-- Column 1: Configuração de Promoções -->
+            <div class="crm-container" style="padding: 1.5rem; background: rgba(0,0,0,0.3); border: 1px solid #333;">
+                <h3 style="font-family: 'Bebas Neue'; color: var(--neon-green); font-size: 1.8rem; margin-bottom: 1rem;">🚀 Gestão de Promoções Exclusivas</h3>
+                
+                <div style="margin-bottom: 1.2rem;">
+                    <label style="display:block; color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px;">Produto em Destaque</label>
+                    <select id="promo-product-id" class="search-input" style="width: 100%;">
+                        <option value="5009">Combo Compre 1 Leve 2 Tradicional 🍔🍔 (ID 5009)</option>
+                        <option value="5008">Combo Relâmpago ⚡ (ID 5008)</option>
+                        <option value="5007">Combo Exclusivo Zap (ID 5007) 📱</option>
+                        <option value="5006">Mega Combo Santo Juízo (ID 5006) ⚖️</option>
+                        <option value="8">Santo Juízo (Mais Vendido)</option>
+                        <option value="7">Santa Fúria (Premium)</option>
+                        <option value="5001">Combo Econômico (ID 5001)</option>
+                    </select>
                 </div>
-                <div class="sessions-list" id="chat-sessions-list">
-                    <!-- Session items will be loaded here -->
-                    <div style="padding: 2rem; text-align: center; color: var(--text-dim);">
-                        Carregando chats...
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
+                    <div>
+                        <label style="display:block; color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px;">Estoque Inicial</label>
+                        <input type="number" id="promo-initial-stock" class="search-input" style="width: 100%;" value="10">
+                    </div>
+                    <div>
+                        <label style="display:block; color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px;">Preço Promo (R$)</label>
+                        <input type="number" step="0.01" id="promo-price" class="search-input" style="width: 100%;" value="41.00">
                     </div>
                 </div>
+
+                <div style="margin-bottom: 1.2rem;">
+                    <label style="display:block; color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px;">Redução Automat. (minutos)</label>
+                    <input type="number" id="promo-decay-minutes" class="search-input" style="width: 100%;" value="25">
+                </div>
+
+                <div style="margin-bottom: 1.2rem;">
+                    <label style="display:block; color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px;">Texto da Tag (Label)</label>
+                    <input type="text" id="promo-label" class="search-input" style="width: 100%;" placeholder="Ex: 🔥 COMPRE 1 LEVE 2 - LIMITADO!" value="🔥 COMPRE 1 LEVE 2 - LIMITADO!">
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span style="color: var(--text-dim); font-size: 0.85rem;">Ativar Promoção:</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="promo-active-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span style="color: var(--text-dim); font-size: 0.85rem;">Exibir Estoque no Banner:</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="promo-show-stock-toggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span style="color: var(--text-dim); font-size: 0.85rem;">Exibir Cronômetro no Banner:</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="promo-show-timer-toggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span style="color: var(--neon-green); font-size: 0.85rem; font-weight: bold;">💎 ATIVAR DESCONTO GLOBAL:</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="promo-global-discount-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span style="color: var(--text-dim); font-size: 0.85rem;">Desconto Global (%):</span>
+                            <input type="number" id="promo-global-discount-percent" class="search-input" style="width: 70px; border-color: var(--neon-green); padding: 4px;" value="15">
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span style="color: #FFD700; font-size: 0.85rem; font-weight: bold;">🎫 CUPOM DE DESCONTO:</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="promo-coupon-active">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 100px; gap: 10px;">
+                            <div>
+                                <label style="display:block; color: var(--text-dim); font-size: 0.75rem;">Código:</label>
+                                <input type="text" id="promo-coupon-code" class="search-input" style="width: 100%; border-color: #FFD700; padding: 4px;" placeholder="Ex: WHATS10">
+                            </div>
+                            <div>
+                                <label style="display:block; color: var(--text-dim); font-size: 0.75rem;">Desconto (%):</label>
+                                <input type="number" id="promo-coupon-percent" class="search-input" style="width: 100%; border-color: #FFD700; padding: 4px;" value="10">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="send-btn" onclick="saveMarketingSettings()" style="width: 100%; padding: 12px; font-family: 'Bebas Neue'; font-size: 1.2rem; letter-spacing: 1px;">SALVAR CONFIGURAÇÕES</button>
             </div>
 
-            <!-- Main Chat Pane -->
-            <div class="chat-main-pane" id="active-chat-pane">
-                <div class="no-chat-selected">
-                    <div class="no-chat-icon">💬</div>
-                    <p>Selecione uma conversa para começar</p>
+            <!-- Column 2: Gestão de Preços: Combos -->
+            <div class="crm-container" style="padding: 1.5rem; background: rgba(0,0,0,0.3); border: 1px solid #333;">
+                <h3 style="font-family: 'Bebas Neue'; color: var(--primary); font-size: 1.8rem; margin-bottom: 1rem;">💎 Gestão de Preços: Combos</h3>
+                
+                <div style="max-height: 480px; overflow-y: auto; padding-right: 5px; margin-bottom: 1.2rem;">
+                    <!-- Combo 5009 -->
+                    <div style="margin-bottom: 1.2rem; padding-bottom: 1rem; border-bottom: 1px solid #333;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label style="font-size: 0.85rem; color: #fff; font-weight: bold; color: var(--neon-green);">Compre 1 Leve 2 (ID 5009)</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="status-combo-5009" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <input type="number" step="0.01" id="price-combo-5009" class="search-input" style="width: 100%; border-color: var(--neon-green); padding: 6px;" value="41.00">
+                        <small id="preview-economy-5009" style="display: block; margin-top: 5px; color: var(--neon-green); font-size: 0.75rem; font-weight: bold;"></small>
+                    </div>
+
+                    <!-- Combo 5001 -->
+                    <div style="margin-bottom: 1.2rem; padding-bottom: 1rem; border-bottom: 1px solid #333;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label style="font-size: 0.85rem; color: #fff;">Combo Econômico (ID 5001)</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="status-combo-5001" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <input type="number" step="0.01" id="price-combo-5001" class="search-input" style="width: 100%; padding: 6px;" value="41.00">
+                        <small id="preview-economy-5001" style="display: block; margin-top: 5px; color: var(--primary); font-size: 0.75rem; font-weight: bold;"></small>
+                    </div>
+
+                    <!-- Combo 5002 -->
+                    <div style="margin-bottom: 1.2rem; padding-bottom: 1rem; border-bottom: 1px solid #333;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label style="font-size: 0.85rem; color: #fff;">Combo Casal Tradicional (ID 5002)</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="status-combo-5002" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <input type="number" step="0.01" id="price-combo-5002" class="search-input" style="width: 100%; padding: 6px;" value="84.90">
+                        <small id="preview-economy-5002" style="display: block; margin-top: 5px; color: var(--primary); font-size: 0.75rem; font-weight: bold;"></small>
+                    </div>
+
+                    <!-- Combo 5006 -->
+                    <div style="margin-bottom: 1.2rem; padding-bottom: 1rem; border-bottom: 1px solid #333;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label style="font-size: 0.85rem; color: #fff;">Mega Combo Santo Juízo (ID 5006)</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="status-combo-5006" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <input type="number" step="0.01" id="price-combo-5006" class="search-input" style="width: 100%; padding: 6px;" value="99.90">
+                        <small id="preview-economy-5006" style="display: block; margin-top: 5px; color: var(--neon-green); font-size: 0.75rem; font-weight: bold;"></small>
+                    </div>
+
+                    <!-- Combo 5003 -->
+                    <div style="margin-bottom: 1.2rem; padding-bottom: 1rem; border-bottom: 1px solid #333;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label style="font-size: 0.85rem; color: #fff;">Combo Casal Especial (ID 5003)</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="status-combo-5003" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <input type="number" step="0.01" id="price-combo-5003" class="search-input" style="width: 100%; padding: 6px;" value="99.90">
+                        <small id="preview-economy-5003" style="display: block; margin-top: 5px; color: var(--primary); font-size: 0.75rem; font-weight: bold;"></small>
+                    </div>
+
+                    <!-- Combo 5007 -->
+                    <div style="margin-bottom: 1.2rem; padding-bottom: 1rem; border-bottom: 1px solid #333;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label style="font-size: 0.85rem; color: #fff;">Combo Exclusivo Zap (ID 5007)</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="status-combo-5007" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <input type="number" step="0.01" id="price-combo-5007" class="search-input" style="width: 100%; padding: 6px;" value="55.20">
+                        <small id="preview-economy-5007" style="display: block; margin-top: 5px; color: var(--neon-green); font-size: 0.75rem; font-weight: bold;"></small>
+                    </div>
+
+                    <!-- Combo 5008 -->
+                    <div style="margin-bottom: 1.2rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label style="font-size: 0.85rem; color: #fff;">Combo Relâmpago (ID 5008)</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="status-combo-5008" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <input type="number" step="0.01" id="price-combo-5008" class="search-input" style="width: 100%; padding: 6px;" value="54.90">
+                        <small id="preview-economy-5008" style="display: block; margin-top: 5px; color: var(--primary); font-size: 0.75rem; font-weight: bold;"></small>
+                    </div>
                 </div>
+
+                <button class="send-btn" onclick="saveComboPriceSettings()" style="width: 100%; padding: 12px; font-family: 'Bebas Neue'; font-size: 1.2rem; letter-spacing: 1px; background: #222; border: 1px solid #444;">SALVAR PREÇOS DE COMBOS</button>
             </div>
+
+            <!-- Column 3: Calculadora & Estratégias -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                
+                <div class="crm-container" style="padding: 1.5rem; background: rgba(0,0,0,0.3); border: 1px solid #333;">
+                    <h3 style="font-family: 'Bebas Neue'; color: var(--neon-green); font-size: 1.8rem; margin-bottom: 1rem;">Calculadora de Margens</h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <label style="display:block; color: var(--text-dim); font-size: 0.75rem; margin-bottom: 5px;">Ingredientes (R$)</label>
+                            <input type="text" id="calc-ingredients" class="search-input" style="width: 100%; padding: 6px;" placeholder="Ex: 8,50" oninput="calculatePrice()">
+                        </div>
+                        <div>
+                            <label style="display:block; color: var(--text-dim); font-size: 0.75rem; margin-bottom: 5px;">Embalagem (R$)</label>
+                            <input type="text" id="calc-packaging" class="search-input" style="width: 100%; padding: 6px;" placeholder="Ex: 1,50" oninput="calculatePrice()">
+                        </div>
+                        <div>
+                            <label style="display:block; color: var(--text-dim); font-size: 0.75rem; margin-bottom: 5px;">Taxas (%)</label>
+                            <input type="text" id="calc-fees" class="search-input" style="width: 100%; padding: 6px;" value="3,5" oninput="calculatePrice()">
+                        </div>
+                        <div>
+                            <label style="display:block; color: var(--neon-green); font-size: 0.75rem; font-weight: bold; margin-bottom: 5px;">Margem (%)</label>
+                            <input type="text" id="calc-margin" class="search-input" style="width: 100%; border-color: var(--neon-green); padding: 6px;" value="25" oninput="calculatePrice()">
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(0, 255, 65, 0.05); padding: 1rem; border-radius: 8px; border: 1px dashed var(--neon-green);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <span style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Preço Sugerido:</span>
+                            <span id="calc-result-price" style="color: var(--neon-green); font-size: 1.5rem; font-weight: bold; font-family: 'Bebas Neue';">R$ 0,00</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Lucro Líquido:</span>
+                            <span id="calc-result-profit" style="color: #fff; font-size: 1.1rem; font-weight: bold;">R$ 0,00</span>
+                        </div>
+                        <div style="text-align: right; margin-top: 5px;">
+                            <span id="calc-result-cmv" style="color: var(--primary); font-size: 0.75rem; font-weight: bold;">CMV: 0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crm-container" style="padding: 1.2rem; background: rgba(0,0,0,0.3); border: 1px solid #333; display: flex; flex-direction: column; gap: 8px;">
+                    <h4 style="font-family: 'Bebas Neue'; color: var(--primary); font-size: 1.3rem;">Estratégias de Lucro</h4>
+                    <div style="font-size: 0.75rem; line-height: 1.3; color: var(--text-dim);">
+                        <strong style="color: #fff; display:block; margin-bottom: 2px;">1. Ancoragem de Combo:</strong>
+                        Ofereça Batata + Bebida com adicional de +R$12,00. O CMV da batata é muito baixo, aumentando a margem global.
+                    </div>
+                    <div style="font-size: 0.75rem; line-height: 1.3; color: var(--text-dim); border-top: 1px solid #333; padding-top: 8px;">
+                        <strong style="color: #fff; display:block; margin-bottom: 2px;">2. Upsell de Sobremesa:</strong>
+                        Estimule o cliente a adicionar um Brownie/Bolo por mais R$ 8,00 no final do pedido.
+                    </div>
+                </div>
+
+            </div>
+
         </div>
     </div>
 
+    <!-- Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-    <script src="dashboard.js"></script>
+    
+    <!-- Login Overlay Overlay -->
+    <div id="login-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; font-family: 'Poppins', sans-serif;">
+        <div style="background: var(--surface, #1F1F1F); border: 1px solid #333; padding: 2.5rem; border-radius: 12px; max-width: 400px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center;">
+            <h2 style="font-family: 'Bebas Neue', sans-serif; color: var(--primary, #FF3131); font-size: 2.2rem; letter-spacing: 1px; margin-bottom: 1.5rem; text-shadow: 0 0 10px rgba(255, 49, 49, 0.3);">LOGIN ADMINISTRATIVO</h2>
+            <div id="login-error" style="color: #ff5c5c; font-size: 0.85rem; margin-bottom: 1rem; display: none;"></div>
+            <div style="margin-bottom: 1.2rem; text-align: left;">
+                <label style="color: var(--text-dim, #b3b3b3); font-size: 0.8rem; display: block; margin-bottom: 5px;">E-mail do Administrador</label>
+                <input type="email" id="login-email" class="search-input" style="width: 100%; padding: 10px; font-size: 1rem;" placeholder="admin@santabrasa.com">
+            </div>
+            <div style="margin-bottom: 1.5rem; text-align: left;">
+                <label style="color: var(--text-dim, #b3b3b3); font-size: 0.8rem; display: block; margin-bottom: 5px;">Senha</label>
+                <input type="password" id="login-password" class="search-input" style="width: 100%; padding: 10px; font-size: 1rem;" placeholder="••••••••">
+            </div>
+            <button onclick="loginAdmin()" class="send-btn" style="width: 100%; padding: 12px; font-size: 1rem; font-family: 'Bebas Neue'; letter-spacing: 1px;">ENTRAR NO PAINEL</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== Funções de Relatório de Vendas (7 dias) =====
+        function computeSalesLast7Days(orders) {
+            const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            let total = 0;
+            orders.forEach(order => {
+                if (order && order.timestamp && new Date(order.timestamp).getTime() >= cutoff) {
+                    total += order.total || 0;
+                }
+            });
+            return total;
+        }
+
+        function renderSalesReport(orders) {
+            const total7 = computeSalesLast7Days(orders);
+            const el = document.getElementById('sales-last-7');
+            if (el) {
+                const val = total7.toFixed(2).replace('.', ',');
+                el.textContent = `R$ ${val}`;
+            }
+        }
+
+        function refreshOrders() {
+            if (typeof firebase === 'undefined') return;
+            const db = firebase.database();
+            const spinner = document.getElementById('loading-spinner');
+            if (spinner) spinner.style.display = 'block';
+            db.ref('orders').orderByChild('timestamp').limitToLast(100).once('value')
+                .then(snapshot => {
+                    const orders = [];
+                    snapshot.forEach(child => { orders.unshift(child.val()); });
+                    // renderOrdersTable e renderFinanceTab estão definidas no dashboard.js
+                    if (typeof renderOrdersTable === 'function') renderOrdersTable(orders);
+                    if (typeof renderFinanceTab === 'function') renderFinanceTab(orders);
+                    renderSalesReport(orders);
+                })
+                .catch(err => console.error('❌ Erro ao atualizar pedidos:', err))
+                .finally(() => {
+                    if (spinner) spinner.style.display = 'none';
+                });
+        }
+
+        // ===== Calculadora de Margens =====
+        function calculatePrice() {
+            const parseVal = (id) => parseFloat((document.getElementById(id)?.value || '0').replace(',', '.')) || 0;
+            const ingr = parseVal('calc-ingredients');
+            const pack = parseVal('calc-packaging');
+            const fees = parseVal('calc-fees');
+            const margin = parseVal('calc-margin');
+
+            const custoDireto = ingr + pack;
+            const divisor = 1 - (fees / 100) - (margin / 100);
+
+            let suggestedPrice = 0;
+            let liquidProfit = 0;
+            let cmv = 0;
+
+            if (divisor > 0 && custoDireto > 0) {
+                suggestedPrice = custoDireto / divisor;
+                liquidProfit = suggestedPrice * (margin / 100);
+                cmv = (custoDireto / suggestedPrice) * 100;
+            }
+
+            document.getElementById('calc-result-price').textContent = suggestedPrice > 0 ? `R$ ${suggestedPrice.toFixed(2).replace('.', ',')}` : 'R$ 0,00';
+            document.getElementById('calc-result-profit').textContent = liquidProfit > 0 ? `+ R$ ${liquidProfit.toFixed(2).replace('.', ',')}` : 'R$ 0,00';
+            document.getElementById('calc-result-cmv').textContent = cmv > 0 ? `CMV: ${cmv.toFixed(1)}%` : 'CMV: 0%';
+        }
+
+        // Registra listener do botão de atualizar pedidos após o DOM carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            const refreshBtn = document.getElementById('refresh-orders-btn');
+            if (refreshBtn) refreshBtn.addEventListener('click', refreshOrders);
+        });
+    </script>
+    <script src="dashboard.js?v=1.0.1"></script>
 </body>
 
 </html>

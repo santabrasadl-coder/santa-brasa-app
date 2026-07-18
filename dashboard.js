@@ -32,16 +32,24 @@ window.onerror = function(msg, url, lineNo, columnNo, error) {
 
 if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
     try {
-        if (!firebase.apps || !firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        firebase.initializeApp(firebaseConfig);
         console.log("✅ Firebase inicializado com sucesso.");
         
-        // --- ADICIONADO: Guard de Segurança ---
-        if (checkAccess()) {
-            statusText.textContent = "Acesso Autorizado. Conectando...";
-            initDashboard();
-        }
+        // --- Escuta de Autenticação Real do Firebase ---
+        firebase.auth().onAuthStateChanged((user) => {
+            const overlay = document.getElementById('login-overlay');
+            console.log("onAuthStateChanged - Estado do usuário:", user ? (user.isAnonymous ? "Anônimo (UID: " + user.uid + ")" : "E-mail: " + user.email) : "Deslogado");
+            if (user && !user.isAnonymous) {
+                console.log("Usuário autenticado:", user.email);
+                if (overlay) overlay.style.display = 'none';
+                statusText.textContent = "Acesso Autorizado. Conectando...";
+                initDashboard();
+            } else {
+                console.log("Nenhum usuário administrativo autenticado.");
+                if (overlay) overlay.style.display = 'flex';
+                statusText.textContent = "Aguardando Login...";
+            }
+        });
     } catch (error) {
         console.error("❌ Erro ao inicializar Firebase:", error);
         statusText.textContent = "Erro na Inicialização";
@@ -75,12 +83,6 @@ function initDashboard() {
             document.querySelector('.live-dot').style.boxShadow = "0 0 10px #00FF41";
             setupHint.style.display = 'none';
 
-            // NOVO: Log de Diagnóstico Mobile no Dashboard
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (isMobile) {
-                 addLogRow(new Date().toLocaleTimeString('pt-BR'), "🚀 Painel sincronizado via dispositivo móvel.");
-            }
-
             // Registro de Presença do próprio Painel (Separado para não contar como cliente)
             const myPresenceRef = db.ref('presence/admins').push();
             myPresenceRef.onDisconnect().remove();
@@ -108,28 +110,20 @@ function initDashboard() {
         addLogRow(new Date().toLocaleTimeString('pt-BR'), "⚠️ Erro ao ler visitantes online (Permissão).");
     });
 
-    // 2. Visitas de Hoje e Conversão
-    const today = new Date().toISOString().split('T')[0];
-    let todayVisits = 0;
-    let todayOrders = 0;
-
-    function updateTodayConversion() {
-        const conversion = todayVisits > 0 ? ((todayOrders / todayVisits) * 100).toFixed(1) : '0.0';
-        const el = document.getElementById('count-today-conversion');
-        if (el) el.textContent = `${conversion}%`;
-    }
-
-    db.ref(`metrics/${today}/total_visits`).on('value', (snapshot) => {
-        todayVisits = snapshot.val() || 0;
-        animateValue('count-today-visits', todayVisits);
-        updateTodayConversion();
+    // 2. Total de Visitas Históricas
+    db.ref('metrics/totals/total_visits').on('value', (snapshot) => {
+        animateValue('count-total', snapshot.val() || 0);
     });
 
-    // 3. Cliques de Hoje
-    db.ref(`metrics/${today}/total_orders_clicked`).on('value', (snapshot) => {
-        todayOrders = snapshot.val() || 0;
-        animateValue('count-today-orders', todayOrders);
-        updateTodayConversion();
+    // 3. Cliques em Pedidos Históricos
+    db.ref('metrics/totals/total_orders_clicked').on('value', (snapshot) => {
+        animateValue('count-orders', snapshot.val() || 0);
+    });
+
+    // 2b. Métricas de Hoje (Opcional: manter no console ou adicionar se tiver label)
+    const today = new Date().toISOString().split('T')[0];
+    db.ref(`metrics/${today}/total_visits`).on('value', (snapshot) => {
+        console.log("Visitas hoje:", snapshot.val() || 0);
     });
 
     // 4. Logs de Atividade
@@ -138,29 +132,11 @@ function initDashboard() {
         addLogRow(log.time, log.msg);
     });
 
-    db.ref('logs').on('value', (snapshot) => {
-        if (!snapshot.exists()) {
-            const list = document.getElementById('activity-log');
-            if (list) {
-                list.innerHTML = `
-                    <li class="log-item">
-                        <span class="log-time">${new Date().toLocaleTimeString('pt-BR')}</span>
-                        <span class="log-msg">Nenhuma atividade recente registrada.</span>
-                    </li>
-                `;
-            }
-        }
-    });
-
-    // 5. CRM: Pedidos Passados (carrega histórico)
+    // 5. CRM: Pedidos Passados
     db.ref('orders').orderByChild('timestamp').limitToLast(100).on('value', (snapshot) => {
         const orders = [];
         snapshot.forEach(child => {
-            const order = child.val();
-            if (order) {
-                order.firebaseKey = child.key;
-                orders.unshift(order); 
-            }
+            orders.unshift(child.val()); // Mais recentes primeiro
         });
 
         if (orders.length === 0) {
@@ -169,9 +145,16 @@ function initDashboard() {
             console.log(`✅ ${orders.length} pedidos carregados.`);
         }
 
+        // Se não for o carregamento inicial e a quantidade de pedidos aumentou, toca o som
+        if (!isInitialLoad && window.currentOrders && orders.length > window.currentOrders.length) {
+            playNotificationSound();
+        }
+
         try {
             renderOrdersTable(orders);
             renderFinanceTab(orders);
+            // Atualiza o card de vendas dos últimos 7 dias
+            if (typeof renderSalesReport === 'function') renderSalesReport(orders);
         } catch (e) {
             console.error("❌ Erro ao renderizar tabelas:", e);
         }
@@ -185,39 +168,6 @@ function initDashboard() {
     }, (error) => {
         console.error("❌ Erro de Permissão (Orders):", error);
         addLogRow(new Date().toLocaleTimeString('pt-BR'), "⚠️ Bloqueio de leitura de pedidos (Permissão).");
-    });
-
-    // 5b. LISTENER DE NOVOS PEDIDOS EM TEMPO REAL (usa child_added para disparo único e confiável)
-    let isFirstOrderBatch = true;
-    db.ref('orders').limitToLast(1).on('child_added', (snapshot) => {
-        // Ignora o primeiro disparo ao conectar (que traz o pedido mais recente existente)
-        if (isFirstOrderBatch) {
-            isFirstOrderBatch = false;
-            const lastKey = snapshot.key;
-            localStorage.setItem('last_alerted_order_id', lastKey);
-            return;
-        }
-
-        const order = snapshot.val();
-        const lastId = localStorage.getItem('last_alerted_order_id');
-
-        if (snapshot.key !== lastId) {
-            console.log("🔔 NOVO PEDIDO DETECTADO:", snapshot.key, order);
-            localStorage.setItem('last_alerted_order_id', snapshot.key);
-
-            // Alerta sonoro e visual
-            playNotificationSound();
-
-            // Notificação do Sistema Operacional
-            if (Notification.permission === 'granted') {
-                new Notification('🔔 Novo Pedido na Santa Brasa!', {
-                    body: `${order.name || 'Cliente'} fez um pedido de ${order.total || ''}`,
-                    icon: 'logo.png'
-                });
-            }
-
-            addLogRow(new Date().toLocaleTimeString('pt-BR'), `🛒 NOVO PEDIDO de ${order.name || 'Cliente'} - ${order.total || 'Verificar'}`);
-        }
     });
 
     // Teste de Diagnóstico: Gravar um log
@@ -240,51 +190,15 @@ function initDashboard() {
         renderCustomersTable(customers);
     });
 
-    // Chat removido a pedido
+    // 7. Chat Real-time (Removido)
+    // initChatDashboard(db);
 
     // 8. Store Status Management
     initStoreStatus(db);
 
-    // 9. Marketing Management
+    // 9. Marketing & Combo Price Management
     initMarketingSettings(db);
-
-    // 10. Combo Prices Management
     initComboPrices(db);
-
-    // 11. Cake Promo Management
-
-}
-
-// ===== Notificação de Novo Pedido =====
-function playNotificationSound() {
-    try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-        const ctx = new AudioCtx();
-
-        // Sequência de 3 beeps (dó-mi-sol)
-        const notes = [523, 659, 784];
-        notes.forEach((freq, i) => {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.type = 'sine';
-            osc.frequency.value = freq;
-            const startTime = ctx.currentTime + i * 0.18;
-            gain.gain.setValueAtTime(0.4, startTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.15);
-            osc.start(startTime);
-            osc.stop(startTime + 0.15);
-        });
-    } catch (e) {
-        console.warn('Som não pôde ser reproduzido:', e);
-    }
-}
-
-// Pede permissão de Notificação do SO logo ao carregar
-if (Notification && Notification.permission === 'default') {
-    Notification.requestPermission();
 }
 
 // ===== Store Status Management =====
@@ -334,188 +248,11 @@ function setStoreStatus(status) {
         })
         .catch((error) => {
             console.error("❌ Erro ao atualizar status da loja:", error);
-            alert("Erro ao atualizar status da loja!");
+            alert("Erro ao atualizar status da loja!\nMotivo: " + error.message);
         });
 }
 
-// ===== Chat Dashboard Functions =====
-window.activeChatSession = null;
-
-function initChatDashboard(db) {
-    const chatSessionsList = document.getElementById('chat-sessions-list');
-    if (!chatSessionsList) return;
-
-    db.ref('chats').on('value', (snapshot) => {
-        const chats = [];
-        snapshot.forEach(child => {
-            chats.push({ id: child.key, ...child.val() });
-        });
-
-        // Som de notificação se houver novos não lidos (pelo admin)
-        const hasUnread = chats.some(c => c.unreadByAdmin);
-        if (hasUnread && !isInitialLoad) {
-            playNotificationSound();
-        }
-
-        // Ordenar por timestamp (mais recentes primeiro)
-        chats.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        renderChatSessions(chats);
-        updateTotalUnread(chats);
-    });
-}
-
-function renderChatSessions(chats) {
-    const list = document.getElementById('chat-sessions-list');
-    if (!list) return;
-
-    if (chats.length === 0) {
-        list.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-dim);">Nenhuma conversa iniciada.</div>';
-        return;
-    }
-
-    list.innerHTML = chats.map(chat => {
-        const time = new Date(chat.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        const isActive = window.activeChatSession === chat.id ? 'active' : '';
-        const unread = chat.unreadByAdmin ? '<span class="unread-badge">!</span>' : '';
-
-        return `
-            <div class="session-item ${isActive}" onclick="openChatSession('${chat.id}')">
-                <div class="session-info">
-                    <div class="session-name">
-                        ${chat.customerName || 'Cliente Anônimo'}
-                        ${unread}
-                    </div>
-                <div class="session-last-msg">${chat.lastMessage || '...'}</div>
-                <div class="session-time">${time}</div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-function openChatSession(sessionId) {
-    const db = firebase.database();
-
-    // Remover listener anterior se existir
-    if (window.activeChatSession) {
-        db.ref('chats/' + window.activeChatSession).off();
-    }
-
-    window.activeChatSession = sessionId;
-
-    // Marcar como lido
-    db.ref('chats/' + sessionId).update({ unreadByAdmin: false });
-
-    const pane = document.getElementById('active-chat-pane');
-    pane.innerHTML = `
-        <div class="pane-header">
-            <span>Conversando com: <strong id="active-customer-name">Carregando...</strong></span>
-            <button onclick="closeActiveChat()" style="background:none; border:none; color:var(--primary); cursor:pointer;">✕ Fechar</button>
-        </div>
-        <div class="chat-messages-container" id="admin-messages-container">
-            <!-- Mensagens aqui -->
-        </div>
-        <div class="chat-reply-area">
-            <input type="text" id="adminReplyInput" placeholder="Digite sua resposta..." onkeypress="handleAdminReplyKey(event)">
-            <button class="send-btn" onclick="sendAdminReply()">ENVIAR</button>
-        </div>
-    `;
-
-    // Carregar mensagens
-    db.ref('chats/' + sessionId).on('value', (snapshot) => {
-        if (window.activeChatSession !== sessionId) return;
-
-        const chat = snapshot.val();
-        const headerTitle = document.getElementById('active-customer-name');
-        headerTitle.innerHTML = `
-            ${chat.customerName || 'Cliente'}
-            <span class="active-customer-details">
-                ${chat.customerPhone ? '📞 ' + chat.customerPhone : 'Sem telefone cadastrado'}
-            </span>
-        `;
-
-        const messagesContainer = document.getElementById('admin-messages-container');
-        if (chat.messages) {
-            const msgs = Object.values(chat.messages);
-            messagesContainer.innerHTML = msgs.map(m => `
-                <div class="chat-bubble ${m.sender === 'admin' ? 'admin' : 'customer'}">
-                    ${m.text}
-                    <span class="bubble-time">${new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                </div>
-            `).join('');
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-    });
-
-    // Refresh Session List to update UI (Active class)
-    db.ref('chats').once('value', snap => {
-        const chats = [];
-        snap.forEach(c => chats.push({ id: c.key, ...c.val() }));
-        chats.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        renderChatSessions(chats);
-    });
-}
-
-function sendAdminReply() {
-    const input = document.getElementById('adminReplyInput');
-    const text = input.value.trim();
-    if (!text || !window.activeChatSession) return;
-
-    const db = firebase.database();
-    const sessionId = window.activeChatSession;
-
-    // Push admin message
-    db.ref('chats/' + sessionId + '/messages').push({
-        text: text,
-        sender: 'admin',
-        timestamp: new Date().toISOString()
-    });
-
-    // Update session meta
-    db.ref('chats/' + sessionId).update({
-        lastMessage: text,
-        timestamp: new Date().toISOString(),
-        unreadByCustomer: true
-    });
-
-    input.value = '';
-    input.focus();
-}
-
-function handleAdminReplyKey(event) {
-    if (event.key === 'Enter') {
-        sendAdminReply();
-    }
-}
-
-function closeActiveChat() {
-    if (window.activeChatSession) {
-        firebase.database().ref('chats/' + window.activeChatSession).off();
-    }
-    window.activeChatSession = null;
-    document.getElementById('active-chat-pane').innerHTML = `
-        <div class="no-chat-selected">
-            <div class="no-chat-icon">💬</div>
-            <p>Selecione uma conversa para começar</p>
-        </div>
-    `;
-    // Refresh list
-    firebase.database().ref('chats').once('value', snap => {
-        const chats = [];
-        snap.forEach(c => chats.push({ id: c.key, ...c.val() }));
-        chats.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        renderChatSessions(chats);
-    });
-}
-
-function updateTotalUnread(chats) {
-    const total = chats.reduce((sum, chat) => sum + (chat.unreadByAdmin ? 1 : 0), 0);
-    const badge = document.getElementById('total-unread');
-    if (badge) {
-        badge.textContent = total;
-        badge.style.display = total > 0 ? 'inline-block' : 'none';
-    }
-}
+// ===== Chat Dashboard Functions (Removidos) =====
 
 // ===== CRM UI Functions =====
 
@@ -538,42 +275,27 @@ function renderOrdersTable(orders) {
     if (!tbody) return;
 
     if (orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Nenhum pedido encontrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Nenhum pedido encontrado.</td></tr>';
         return;
     }
 
-    // Deduplicação Inteligente: Ignora pedidos idênticos do mesmo cliente em um curto intervalo
-    const filteredOrders = [];
-    const seenMap = new Set();
-
-    orders.forEach(order => {
-        if (!order || !order.customer) return;
+    tbody.innerHTML = orders.map(order => {
+        if (!order || !order.customer) return '';
         
-        // Chave de deduplicação: Nome + Total + Minuto (aproximado)
-        const timeKey = order.timestamp ? order.timestamp.substring(0, 16) : ''; // Até o minuto
-        const dupKey = `${order.customer.name.toLowerCase()}-${order.total}-${timeKey}`;
-        
-        if (seenMap.has(dupKey)) {
-            console.log("🟠 Pedido duplicado ocultado:", dupKey);
-            return;
-        }
-        seenMap.add(dupKey);
-        filteredOrders.push(order);
-    });
-
-    tbody.innerHTML = filteredOrders.map(order => {
         const date = order.timestamp ? new Date(order.timestamp).toLocaleString('pt-BR') : '-';
-        const num = order.orderNumber ? `<span class="order-number-badge">#${order.orderNumber}</span>` : '<span class="order-number-badge" style="background:#444; color:#aaa;">#---</span>';
         
+        // Proteção contra conversão objeto/array do Firebase
         const items = Array.isArray(order.items) ? order.items : Object.values(order.items || {});
-        const itemsStr = items.map(i => `${i.quantity || 1}x ${i.name || 'Item'}`).join('<br>');
+        const itemsStr = items.filter(i => i != null).map(i => {
+            if (typeof i === 'string') return i;
+            return `${i.quantity || 1}x ${i.name || 'Item'}`;
+        }).join('<br>');
         
         const typeBadge = order.orderType === 'delivery' ? 'badge-delivery' : 'badge-pickup';
         const typeLabel = order.orderType === 'delivery' ? 'Entrega' : 'Retirada';
 
         return `
             <tr>
-                <td>${num}</td>
                 <td>${date}</td>
                 <td>
                     <strong>${order.customer.name || 'Cliente'}</strong><br>
@@ -585,7 +307,7 @@ function renderOrdersTable(orders) {
                 <td><span class="price-tag">R$ ${(order.total || 0).toFixed(2).replace('.', ',')}</span></td>
                 <td>${order.payment || '-'}</td>
                 <td>
-                    <button data-id="${order.firebaseKey || order.id}" onclick="confirmDeleteOrder(this.dataset.id)" 
+                    <button onclick="confirmDeleteOrder('${order.id}')" 
                             style="background: #FF3131; border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-weight: bold;">
                         EXCLUIR
                     </button>
@@ -602,34 +324,18 @@ function confirmDeleteOrder(orderId) {
 }
 
 function deleteOrder(orderId) {
-    if (!orderId || orderId === 'undefined') {
-        alert("Erro: ID do pedido não encontrado. Tente atualizar a página.");
-        return;
-    }
-
     console.log("Excluindo pedido:", orderId);
     const db = firebase.database();
 
     db.ref('orders/' + orderId).remove()
         .then(() => {
             console.log("✅ Pedido excluído com sucesso.");
-            addLogRow(new Date().toLocaleTimeString('pt-BR'), `Venda excluída pelo admin: ${orderId}`);
-            alert("Pedido excluído com sucesso!");
+            // Order list will be updated automatically by the 'on' listener in initDashboard
         })
         .catch((error) => {
             console.error("❌ Erro ao excluir pedido:", error);
-            alert("Erro ao excluir pedido: " + error.message);
+            alert("Erro ao excluir pedido. Verifique o console.");
         });
-}
-
-// FERRAMENTA DE DEPURAÇÃO: EXCLUSÃO FORÇADA
-function forceDeleteOrder() {
-    const id = prompt("PAINEL DE SEGURANÇA: Digite o ID do pedido para excluir forçadamente (veja o ID no console se necessário):");
-    if (id && id.trim() !== "") {
-        if (confirm(`DESEJA EXCLUIR O REGISTRO: ${id}?\nEsta ação é irreversível e apaga direto no banco.`)) {
-            deleteOrder(id.trim());
-        }
-    }
 }
 
 function renderFinanceTab(orders) {
@@ -707,34 +413,6 @@ function confirmResetDailyMetrics() {
     }
 }
 
-function confirmClearRecentActivities() {
-    if (confirm("Deseja realmente limpar todas as atividades recentes?")) {
-        const db = firebase.database();
-        db.ref('logs').remove()
-            .then(() => {
-                alert("Atividades recentes limpas com sucesso!");
-            })
-            .catch(error => {
-                console.error("Erro ao limpar atividades:", error);
-                alert("Erro ao limpar atividades: " + error.message);
-            });
-    }
-}
-
-function confirmResetTotalVisits() {
-    if (confirm("Tem certeza que deseja zerar o contador de VISITAS TOTAIS? Esta ação não pode ser desfeita e redefinirá o histórico de visitas totais.")) {
-        const db = firebase.database();
-        db.ref('metrics/totals/total_visits').set(0)
-            .then(() => {
-                alert("Visitas totais zeradas com sucesso!");
-            })
-            .catch(error => {
-                console.error("Erro ao zerar visitas totais:", error);
-                alert("Erro ao zerar visitas totais: " + error.message);
-            });
-    }
-}
-
 function confirmDeleteCustomer(customerKey, customerName) {
     if (confirm(`Tem certeza que deseja excluir o cliente ${customerName}?`)) {
         firebase.database().ref('customers/' + customerKey).remove()
@@ -802,11 +480,6 @@ function loadMetricsHistory() {
         let monthVisits = 0;
         let monthClicks = 0;
 
-        // Totais Acumulados Geral (do Firebase)
-        const totalVisitsGeral = data.totals?.total_visits || 0;
-        const totalClicksGeral = data.totals?.total_orders_clicked || 0;
-        const conversionGeral = totalVisitsGeral > 0 ? ((totalClicksGeral / totalVisitsGeral) * 100).toFixed(1) : '0.0';
-
         // Iterar sobre as datas (YYYY-MM-DD)
         Object.keys(data).forEach(dateKey => {
             if (dateKey === 'totals') return; // Pular compatibilidade
@@ -833,16 +506,6 @@ function loadMetricsHistory() {
         // Atualizar Totais no UI
         animateValue('monthly-visits', monthVisits);
         animateValue('monthly-clicks', monthClicks);
-
-        // Novos elementos para o Histórico Geral
-        const elVisitsGeral = document.getElementById('total-visits-accumulated');
-        if (elVisitsGeral) animateValue('total-visits-accumulated', totalVisitsGeral);
-
-        const elClicksGeral = document.getElementById('total-orders-accumulated');
-        if (elClicksGeral) animateValue('total-orders-accumulated', totalClicksGeral);
-
-        const elConvGeral = document.getElementById('average-conversion-accumulated');
-        if (elConvGeral) elConvGeral.textContent = `${conversionGeral}%`;
 
         // Renderizar Tabela
         renderReportsTable(history);
@@ -878,58 +541,24 @@ function playNotificationSound() {
     const stopBtn = document.getElementById('stopSoundBtn');
 
     if (sound) {
-        sound.loop = true; 
+        sound.loop = true; // Força loop
         sound.currentTime = 0;
 
-        // Fallback para loop se o atributo 'loop' falhar
+        // Fallback robusto para loop
         sound.onended = () => {
             if (stopBtn && stopBtn.style.display !== 'none') {
                 sound.currentTime = 0;
-                sound.play().catch(e => console.warn("Erro no loop:", e));
+                sound.play();
             }
         };
 
-        const playPromise = sound.play();
-        
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-                if (stopBtn) stopBtn.style.display = 'block';
-                console.log("🔔 Tocando som de notificação!");
-            }).catch(e => {
-                console.warn("⚠️ Som bloqueado pelo navegador. Tentando avisar visualmente.", e);
-                // Notificar visualmente que o som falhou
-                addLogRow(new Date().toLocaleTimeString('pt-BR'), "⚠️ NOVO PEDIDO! (Clique no painel para ativar o som)");
-                showVisualAlert();
-            });
-        }
-    } else {
-        console.error("❌ Elemento de áudio 'notificationSound' não encontrado!");
+        sound.play().then(() => {
+            if (stopBtn) stopBtn.style.display = 'block';
+            console.log("🔔 Tocando som de notificação (LOOP REFORÇADO)!");
+        }).catch(e => {
+            console.warn("Erro ao tocar som:", e);
+        });
     }
-}
-
-// Função para liberar o som no primeiro clique caso o navegador tenha bloqueado
-document.addEventListener('click', () => {
-    const sound = document.getElementById('notificationSound');
-    if (sound && sound.paused && document.getElementById('stopSoundBtn').style.display === 'block') {
-         sound.play().catch(() => {});
-    }
-}, { once: false });
-
-function showVisualAlert() {
-    // Tenta piscar o título da página
-    let isTabActive = true;
-    window.onfocus = () => { isTabActive = true; document.title = "Santa Brasa - Dashboard Live"; };
-    window.onblur = () => { isTabActive = false; };
-
-    let blink = true;
-    const interval = setInterval(() => {
-        document.title = blink ? "🚨 NOVO PEDIDO! 🚨" : "Santa Brasa - Dashboard";
-        blink = !blink;
-        if (document.getElementById('stopSoundBtn').style.display === 'none') {
-            clearInterval(interval);
-            document.title = "Santa Brasa - Dashboard Live";
-        }
-    }, 1000);
 }
 
 function stopNotificationSound() {
@@ -947,175 +576,14 @@ function stopNotificationSound() {
     console.log("🔈 Som de notificação parado pelo usuário.");
 }
 
-// ===== Marketing & Promotions Management =====
-function initMarketingSettings(db) {
-    db.ref('settings/promotions').on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            document.getElementById('promo-product-id').value = data.productId || '8';
-            document.getElementById('promo-initial-stock').value = data.initialStock || '10';
-            document.getElementById('promo-price').value = data.promoPrice || '38.90';
-            document.getElementById('promo-decay-minutes').value = data.decayMinutes || '25';
-            document.getElementById('promo-active-toggle').checked = data.active || false;
-            document.getElementById('promo-show-stock-toggle').checked = data.showStock !== false;
-            document.getElementById('promo-show-timer-toggle').checked = data.showTimer !== false;
-            document.getElementById('promo-label').value = data.label || "🔥 20% OFF SÓ AGORA!";
-            document.getElementById('promo-global-discount-toggle').checked = data.globalDiscountActive || false;
-            document.getElementById('promo-global-discount-percent').value = data.globalDiscountPercent || 15;
-            
-            // Novos campos de Cupom
-            document.getElementById('promo-coupon-active').checked = data.couponActive || false;
-            document.getElementById('promo-coupon-code').value = data.couponCode || '';
-            document.getElementById('promo-coupon-percent').value = data.couponPercent || 10;
-            
-            // Update Preview
-            const productSelect = document.getElementById('promo-product-id');
-            const selectedText = productSelect.options[productSelect.selectedIndex].text.split('(')[0].trim();
-            document.getElementById('preview-name').textContent = selectedText.toUpperCase();
-        }
-    });
+function testNotificationSound() {
+    playNotificationSound();
+    // No alert here as it blocks the loop feeling and we have the stop button now
 }
-
-function saveMarketingSettings() {
-    const db = firebase.database();
-    const settings = {
-        productId: document.getElementById('promo-product-id').value,
-        initialStock: parseInt(document.getElementById('promo-initial-stock').value),
-        promoPrice: parseFloat(document.getElementById('promo-price').value),
-        decayMinutes: parseInt(document.getElementById('promo-decay-minutes').value),
-        active: document.getElementById('promo-active-toggle').checked,
-        showStock: document.getElementById('promo-show-stock-toggle').checked,
-        showTimer: document.getElementById('promo-show-timer-toggle').checked,
-        label: document.getElementById('promo-label').value || "🔥 20% OFF SÓ AGORA!",
-        globalDiscountActive: document.getElementById('promo-global-discount-toggle').checked,
-        globalDiscountPercent: parseFloat(document.getElementById('promo-global-discount-percent').value) || 15,
-        couponActive: document.getElementById('promo-coupon-active').checked,
-        couponCode: (document.getElementById('promo-coupon-code').value || '').toUpperCase().trim(),
-        couponPercent: parseFloat(document.getElementById('promo-coupon-percent').value) || 10,
-        lastUpdate: new Date().toISOString()    };
-
-    db.ref('settings/promotions').set(settings)
-        .then(() => {
-            alert("✅ Configurações de Marketing salvas com sucesso!");
-            addLogRow(new Date().toLocaleTimeString('pt-BR'), "📢 Promoção '" + settings.productId + "' atualizada pelo admin.");
-        })
-        .catch(err => {
-            console.error("Erro ao salvar marketing:", err);
-            alert("Erro ao salvar configurações!");
-        });
-}
-
-function initComboPrices(db) {
-    db.ref('settings/comboPrices').on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            Object.keys(data).forEach(id => {
-                const priceInput = document.getElementById(`price-combo-${id}`);
-                const statusInput = document.getElementById(`status-combo-${id}`);
-                if (priceInput) {
-                    priceInput.value = data[id].price || '0.00';
-                    updateEconomyPreview(id, data[id].price); // Mostra prévia ao carregar
-                }
-                if (statusInput) statusInput.checked = data[id].active !== false;
-            });
-        }
-    });
-
-    // Adiciona listeners para atualização em tempo real no dashboard
-    [5001, 5002, 5003, 5006, 5007].forEach(id => {
-        const input = document.getElementById(`price-combo-${id}`);
-        if (input) {
-            input.addEventListener('input', (e) => {
-                updateEconomyPreview(id, e.target.value);
-            });
-        }
-    });
-}
-
-function updateEconomyPreview(id, price) {
-    const preview = document.getElementById(`preview-economy-${id}`);
-    if (!preview) return;
-
-    const basePrices = { 5001: 49, 5002: 98, 5003: 118, 5006: 138, 5007: 69 };
-    const labels = {
-        5001: "Economia de R$",
-        5002: "Economia de R$",
-        5003: "Economia de R$",
-        5006: "Economia de R$",
-        5007: "Economia de R$"
-    };
-
-    const base = basePrices[id];
-    const current = parseFloat(price) || 0;
-
-    if (current < base) {
-        const economy = (base - current).toFixed(2).replace('.', ',');
-        preview.textContent = `${labels[id]} ${economy}`;
-    } else {
-        preview.textContent = "";
-    }
-}
-
-function saveComboPriceSettings() {
-    const db = firebase.database();
-    const combos = {};
-    
-    // Mapeamento de preços cheios e descrições base para cálculo de economia
-    const comboMeta = {
-        5001: { base: 49.00, desc: "1x X-Salada + 1x Coca-Cola Lata 350ml + 1x Fatia de Bolo.", label: "Economia de R$" },
-        5002: { base: 98.00, desc: "2x X-Salada + 2x Coca-Cola Lata 350ml + 2x Fatia de Bolo.", label: "Economia de R$" },
-        5003: { base: 118.00, desc: "2x X-Egg Bacon + 2x Coca-Cola Lata 350ml + 2x Fatia de Bolo.", label: "Economia de R$" },
-        5006: { base: 138.00, desc: "2x Santo Juízo + 2x Coca-Cola Lata 350ml + 2x Fatias de Bolo Dois Amores.", label: "Economia de R$" },
-        5007: { base: 69.00, desc: "1x Santo Juízo (O Supremo) + 1x Coca-Cola gelada + 1x Fatia de Bolo Dois Amores.", label: "🔥 EXCLUSIVO STATUS: Economia de R$" }
-    };
-
-    [5001, 5002, 5003, 5006, 5007].forEach(id => {
-        const newPrice = parseFloat(document.getElementById(`price-combo-${id}`).value);
-        const isActive = document.getElementById(`status-combo-${id}`).checked;
-        const meta = comboMeta[id];
-        
-        let description = meta.desc;
-        if (newPrice < meta.base) {
-            const economy = (meta.base - newPrice).toFixed(2).replace('.', ',');
-            const style = (id === 5006 || id === 5007) ? 'color: #00FF41; font-weight: 800;' : 'color: var(--primary); font-weight: 600;';
-            description += ` <br><small style='${style}'>${meta.label} ${economy}</small>`;
-        }
-
-        combos[id] = {
-            price: newPrice,
-            active: isActive,
-            description: description // Agora enviamos a descrição atualizada com a economia correta
-        };
-    });
-
-    db.ref('settings/comboPrices').set(combos)
-        .then(() => {
-            alert("💎 Configurações dos Combos (e Economia) atualizadas com sucesso!");
-            addLogRow(new Date().toLocaleTimeString('pt-BR'), "💎 Preços e cálculos de economia dos combos atualizados.");
-        })
-        .catch(err => {
-            console.error("Erro ao salvar combos:", err);
-            alert("Erro ao salvar configurações!");
-        });
-}
-
-
 
 function addLogRow(time, msg) {
     const list = document.getElementById('activity-log');
     if (!list) return;
-
-    // Limpar marcadores de posição se existirem
-    if (list.children.length === 1) {
-        const firstMsgEl = list.children[0].querySelector('.log-msg');
-        if (firstMsgEl) {
-            const firstMsg = firstMsgEl.textContent || '';
-            if (firstMsg.includes("Nenhuma atividade recente registrada") || 
-                firstMsg.includes("Iniciando sistema de monitoramento")) {
-                list.innerHTML = '';
-            }
-        }
-    }
 
     const li = document.createElement('li');
     li.className = 'log-item';
@@ -1169,50 +637,185 @@ function formatDate(date) {
     return date.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
-// ===== Segurança Simples: Senha de Acesso =====
-function checkAccess() {
-    return true; // Removido verificação de senha para facilitar o acesso e evitar bugs
-}
+// ===== Segurança Avançada: Login do Firebase =====
+function loginAdmin() {
+    const email = document.getElementById('login-email').value.trim();
+    const pass = document.getElementById('login-password').value.trim();
+    const errorEl = document.getElementById('login-error');
 
-// ===== Calculadora CMVS e Precificação =====
-function calculateCMV() {
-    const ingredients = parseFloat(document.getElementById('cmv-ingredients').value) || 0;
-    const packaging = parseFloat(document.getElementById('cmv-packaging').value) || 0;
-    const feesPercent = parseFloat(document.getElementById('cmv-fees').value) || 0;
-    const marginPercent = parseFloat(document.getElementById('cmv-margin').value) || 0;
-
-    const totalCost = ingredients + packaging;
-    
-    // Formula Markup Reverso
-    const combinedPercentage = feesPercent + marginPercent;
-    
-    let suggestedPrice = 0;
-    let netProfit = 0;
-    let cmvPercent = 0;
-
-    if (combinedPercentage >= 100) {
-        document.getElementById('cmv-suggested-price').innerText = "ERRO!";
-        document.getElementById('cmv-suggested-price').style.color = "var(--primary)";
-        document.getElementById('cmv-net-profit').innerText = "Margem inviável";
-        document.getElementById('cmv-percentage').innerText = "-";
+    if (!email || !pass) {
+        if (errorEl) {
+            errorEl.textContent = "Por favor, digite o e-mail e a senha.";
+            errorEl.style.display = 'block';
+        }
         return;
     }
 
-    if (totalCost > 0) {
-        suggestedPrice = totalCost / (1 - (combinedPercentage / 100));
-        const feeValue = suggestedPrice * (feesPercent / 100);
-        netProfit = suggestedPrice - totalCost - feeValue;
-        cmvPercent = (totalCost / suggestedPrice) * 100;
-        
-        document.getElementById('cmv-suggested-price').style.color = "var(--neon-green)";
-        document.getElementById('cmv-suggested-price').innerText = `R$ ${suggestedPrice.toFixed(2).replace('.', ',')}`;
-        document.getElementById('cmv-net-profit').innerText = `R$ ${netProfit.toFixed(2).replace('.', ',')}`;
-        document.getElementById('cmv-percentage').innerText = `${cmvPercent.toFixed(1)}%`;
+    if (errorEl) errorEl.style.display = 'none';
+
+    firebase.auth().signInWithEmailAndPassword(email, pass)
+        .catch(err => {
+            console.error("Erro no login:", err);
+            if (errorEl) {
+                errorEl.textContent = "Falha no login: E-mail ou senha inválidos.";
+                errorEl.style.display = 'block';
+            }
+        });
+}
+
+// ===== Marketing & Promotions Management =====
+function initMarketingSettings(db) {
+    db.ref('settings/promotions').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            document.getElementById('promo-product-id').value = data.productId || '8';
+            document.getElementById('promo-initial-stock').value = data.initialStock || '10';
+            document.getElementById('promo-price').value = data.promoPrice || '38.90';
+            document.getElementById('promo-decay-minutes').value = data.decayMinutes || '25';
+            document.getElementById('promo-active-toggle').checked = data.active || false;
+            document.getElementById('promo-show-stock-toggle').checked = data.showStock !== false;
+            document.getElementById('promo-show-timer-toggle').checked = data.showTimer !== false;
+            document.getElementById('promo-label').value = data.label || "🔥 20% OFF SÓ AGORA!";
+            document.getElementById('promo-global-discount-toggle').checked = data.globalDiscountActive || false;
+            document.getElementById('promo-global-discount-percent').value = data.globalDiscountPercent || 15;
+            
+            // Novos campos de Cupom
+            document.getElementById('promo-coupon-active').checked = data.couponActive || false;
+            document.getElementById('promo-coupon-code').value = data.couponCode || '';
+            document.getElementById('promo-coupon-percent').value = data.couponPercent || 10;
+        }
+    });
+}
+
+function saveMarketingSettings() {
+    const db = firebase.database();
+    const settings = {
+        productId: document.getElementById('promo-product-id').value,
+        initialStock: parseInt(document.getElementById('promo-initial-stock').value),
+        promoPrice: parseFloat(document.getElementById('promo-price').value),
+        decayMinutes: parseInt(document.getElementById('promo-decay-minutes').value),
+        active: document.getElementById('promo-active-toggle').checked,
+        showStock: document.getElementById('promo-show-stock-toggle').checked,
+        showTimer: document.getElementById('promo-show-timer-toggle').checked,
+        label: document.getElementById('promo-label').value || "🔥 20% OFF SÓ AGORA!",
+        globalDiscountActive: document.getElementById('promo-global-discount-toggle').checked,
+        globalDiscountPercent: parseFloat(document.getElementById('promo-global-discount-percent').value) || 15,
+        couponActive: document.getElementById('promo-coupon-active').checked,
+        couponCode: (document.getElementById('promo-coupon-code').value || '').toUpperCase().trim(),
+        couponPercent: parseFloat(document.getElementById('promo-coupon-percent').value) || 10,
+        lastUpdate: new Date().toISOString()
+    };
+
+    db.ref('settings/promotions').set(settings)
+        .then(() => {
+            alert("✅ Configurações de Marketing salvas com sucesso!");
+            addLogRow(new Date().toLocaleTimeString('pt-BR'), "📢 Promoção '" + settings.productId + "' atualizada pelo admin.");
+        })
+        .catch(err => {
+            console.error("Erro ao salvar marketing:", err);
+            alert("Erro ao salvar configurações!");
+        });
+}
+
+function initComboPrices(db) {
+    db.ref('settings/comboPrices').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            Object.keys(data).forEach(id => {
+                const priceInput = document.getElementById(`price-combo-${id}`);
+                const statusInput = document.getElementById(`status-combo-${id}`);
+                if (priceInput) {
+                    priceInput.value = data[id].price || '0.00';
+                    updateEconomyPreview(id, data[id].price); // Mostra prévia ao carregar
+                }
+                if (statusInput) statusInput.checked = data[id].active !== false;
+            });
+        }
+    });
+
+    // Adiciona listeners para atualização em tempo real no dashboard
+    [5001, 5002, 5003, 5006, 5007, 5008, 5009].forEach(id => {
+        const input = document.getElementById(`price-combo-${id}`);
+        if (input) {
+            input.addEventListener('input', (e) => {
+                updateEconomyPreview(id, e.target.value);
+            });
+        }
+    });
+}
+
+function updateEconomyPreview(id, price) {
+    const preview = document.getElementById(`preview-economy-${id}`);
+    if (!preview) return;
+
+    const basePrices = { 5001: 49, 5002: 98, 5003: 118, 5006: 138, 5007: 69, 5008: 73, 5009: 82 };
+    const labels = {
+        5001: "Economia de R$",
+        5002: "Economia de R$",
+        5003: "Economia de R$",
+        5006: "Economia de R$",
+        5007: "Economia de R$",
+        5008: "Economia de R$",
+        5009: "PAGUE 1 LEVE 2: Economia de R$"
+    };
+
+    const base = basePrices[id];
+    const current = parseFloat(price) || 0;
+
+    if (current < base) {
+        const economy = (base - current).toFixed(2).replace('.', ',');
+        preview.textContent = `${labels[id]} ${economy}`;
     } else {
-        document.getElementById('cmv-suggested-price').style.color = "var(--neon-green)";
-        document.getElementById('cmv-suggested-price').innerText = "R$ 0,00";
-        document.getElementById('cmv-net-profit').innerText = "R$ 0,00";
-        document.getElementById('cmv-percentage').innerText = "0%";
+        preview.textContent = "";
     }
 }
-window.calculateCMV = calculateCMV;
+
+function saveComboPriceSettings() {
+    const db = firebase.database();
+    const combos = {};
+    
+    // Mapeamento de preços cheios e descrições base para cálculo de economia
+    const comboMeta = {
+        5001: { base: 49.00, desc: "1x X-Salada + 1x Coca-Cola Lata 350ml + 1x Fatia de Bolo.", label: "Economia de R$" },
+        5002: { base: 98.00, desc: "2x X-Salada + 2x Coca-Cola Lata 350ml + 2x Fatia de Bolo.", label: "Economia de R$" },
+        5003: { base: 118.00, desc: "2x X-Egg Bacon + 2x Coca-Cola Lata 350ml + 2x Fatia de Bolo.", label: "Economia de R$" },
+        5006: { base: 138.00, desc: "2x Santo Juízo + 2x Coca-Cola Lata 350ml + 2x Fatias de Bolo Dois Amores.", label: "Economia de R$" },
+        5007: { base: 69.00, desc: "1x Santo Juízo (O Supremo) + 1x Coca-Cola gelada + 1x Fatia de Bolo Dois Amores.", label: "🔥 EXCLUSIVO STATUS: Economia de R$" },
+        5008: { base: 73.00, desc: "1x Santa Fúria 🔥 (O Gigante) + 1x Coca-Cola geladinha + 1x Fatia de Bolo de Chocolate.", label: "⚡ COMBO RELÂMPAGO: Economia de R$" },
+        5009: { base: 82.00, desc: "Compre 1 Combo Tradicional (1x X-Salada + 1x Batata Frita + 1x Coca-Cola) e ganhe outro combo igual inteiramente GRÁTIS!", label: "🔥 PAGUE 1 LEVE 2: Economia de R$" }
+    };
+
+    [5001, 5002, 5003, 5006, 5007, 5008, 5009].forEach(id => {
+        const priceEl = document.getElementById(`price-combo-${id}`);
+        const statusEl = document.getElementById(`status-combo-${id}`);
+        if (!priceEl || !statusEl) return;
+
+        const newPrice = parseFloat(priceEl.value);
+        const isActive = statusEl.checked;
+        const meta = comboMeta[id];
+        
+        let description = meta.desc;
+        if (newPrice < meta.base) {
+            const economy = (meta.base - newPrice).toFixed(2).replace('.', ',');
+            const style = (id === 5006 || id === 5007 || id === 5008 || id === 5009) ? 'color: #00FF41; font-weight: 800;' : 'color: var(--primary); font-weight: 600;';
+            description += ` <br><small style='${style}'>${meta.label} ${economy}</small>`;
+        }
+
+        combos[id] = {
+            price: newPrice,
+            active: isActive,
+            description: description
+        };
+    });
+
+    db.ref('settings/comboPrices').set(combos)
+        .then(() => {
+            alert("💎 Configurações dos Combos (e Economia) atualizadas com sucesso!");
+            addLogRow(new Date().toLocaleTimeString('pt-BR'), "💎 Preços e cálculos de economia dos combos atualizados.");
+        })
+        .catch(err => {
+            console.error("Erro ao salvar combos:", err);
+            alert("Erro ao salvar configurações!");
+        });
+}
+

@@ -1,0 +1,60 @@
+# ============================================================
+# .gitignore — Santa Brasa App
+# ============================================================
+
+# ----------------------------------------------------------
+# 🔒 DADOS SENSÍVEIS — NUNCA subir (privacidade dos clientes)
+# ----------------------------------------------------------
+*-export.json
+*-rtdb-*.json
+metric-s-939ee-default-rtdb-orders-export.json
+
+# ----------------------------------------------------------
+# 🗑️ Arquivos temporários do editor / backups
+# ----------------------------------------------------------
+*.workspace.backup
+*.backup
+*.bak
+*.tmp
+*.swp
+*.swo
+~$*
+
+# ----------------------------------------------------------
+# 📝 Arquivos temporários do Windows / sistema
+# ----------------------------------------------------------
+Novo Documento de Texto.txt
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# ----------------------------------------------------------
+# 🔑 Variáveis de ambiente e segredos
+# ----------------------------------------------------------
+.env
+.env.local
+.env.*.local
+secrets.json
+config.local.js
+
+# ----------------------------------------------------------
+# 📦 Dependências Node.js (se usar no futuro)
+# ----------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-error.log*
+package-lock.json
+
+# ----------------------------------------------------------
+# 🛠️ Scripts de análise local (não fazem parte do app)
+# ----------------------------------------------------------
+analyze_sales.js
+analyze_sales.py
+
+# ----------------------------------------------------------
+# 📁 Diretórios de build / cache
+# ----------------------------------------------------------
+dist/
+build/
+.cache/
+.parcel-cache/

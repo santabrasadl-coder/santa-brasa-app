@@ -1,14 +1,10 @@
 function getSchedule(date = new Date()) {
-    const day = date.getDay(); // 0(Dom), 1(Seg), ..., 6(Sáb)
-    // Meio de semana: Dom-Qui (0, 1, 2, 3, 4) -> 18h-22h30
-    // Final de semana: Sex-Sáb (5, 6) -> 18h-03h
-    const isWeekend = (day === 5 || day === 6);
-
+    // Todos os dias das 18h às 22h30
     return {
         openHour: 18,
         openMinute: 0,
-        closeHour: isWeekend ? 3 : 22,
-        closeMinute: isWeekend ? 0 : 30
+        closeHour: 22,
+        closeMinute: 30
     };
 }
 
@@ -200,26 +196,43 @@ const PROMO_CONFIG = {
     couponPercent: 0
 };
 
+// ===== Meta Ads Auto-Discount =====
+function checkAutoDiscount() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('utm_source') === 'meta' || urlParams.get('ref') === 'ads') {
+        sessionStorage.setItem('santaBrasa_meta_discount', 'true');
+    }
+    if (sessionStorage.getItem('santaBrasa_meta_discount') === 'true') {
+        PROMO_CONFIG.globalDiscountActive = true;
+        PROMO_CONFIG.globalDiscountPercent = 15;
+    }
+}
+checkAutoDiscount();
+
 let appliedCoupon = null; // Armazena o cupom validado no lado do cliente
 
 function getPromoRemaining() {
     if (!PROMO_CONFIG.active) return 0;
-    
+
     // Lógica de Escassez Fantasma (Ghost Stock) por tempo
     const now = new Date();
     const lastUpdate = new Date(PROMO_CONFIG.lastUpdate);
     const diffMs = now - lastUpdate;
     const diffMins = Math.floor(diffMs / (1000 * 60));
-    
+
     // Redução: 1 unidade a cada X minutos passados
     const ghostReduction = PROMO_CONFIG.decayMinutes > 0 ? Math.floor(diffMins / PROMO_CONFIG.decayMinutes) : 0;
-    
+
     // Estoque Real Visualizado = Inicial - Redução Automática
     return Math.max(0, PROMO_CONFIG.totalStock - ghostReduction);
 }
 
 function isPromoActive() {
     return PROMO_CONFIG.active && getPromoRemaining() > 0;
+}
+
+function getPromoSold() {
+    return parseInt(localStorage.getItem(PROMO_CONFIG.storageKey) || '0');
 }
 
 function incrementPromoSold() {
@@ -322,6 +335,13 @@ const menuData = {
             description: "1x Santo Juízo (O Supremo) + 1x Coca-Cola gelada + 1x Fatia de Bolo Dois Amores. <br><small style='color: #00FF41; font-weight: 800;'>🔥 EXCLUSIVO STATUS: 20% de Desconto Real!</small>",
             price: 55.20,
             badge: "SÓ NO WHATS 💬"
+        },
+        {
+            id: 5008,
+            name: "Combo Relâmpago ⚡",
+            description: "1x Santa Fúria 🔥 (O Gigante) + 1x Coca-Cola geladinha + 1x Fatia de Bolo de Chocolate. <br><small style='color: #FF3131; font-weight: 800;'>⚡ OFERTA LIMITADA: Economia Real de R$ 18,10!</small>",
+            price: 54.90,
+            badge: "SÓ AGORA! ⏳"
         }
     ],
     tradicionais: [
@@ -615,7 +635,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initPromotionSync() {
     if (typeof firebase === 'undefined') return;
     const db = firebase.database();
-    
+
     db.ref('settings/promotions').on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
@@ -629,14 +649,14 @@ function initPromotionSync() {
             PROMO_CONFIG.showStock = data.showStock !== false;
             PROMO_CONFIG.showTimer = data.showTimer !== false;
             PROMO_CONFIG.label = data.label || "🔥 PROMOÇÃO RELÂMPAGO";
-            
+
             // Sincronização de Desconto Global e Cupons
             PROMO_CONFIG.globalDiscountActive = data.globalDiscountActive || false;
             PROMO_CONFIG.globalDiscountPercent = parseFloat(data.globalDiscountPercent) || 15;
             PROMO_CONFIG.couponActive = data.couponActive || false;
             PROMO_CONFIG.couponCode = data.couponCode || '';
             PROMO_CONFIG.couponPercent = parseFloat(data.couponPercent) || 0;
-            
+
             // Sincroniza o desconto para o produto em destaque no card do menu
             PROMO_CONFIG.discounts = {};
             if (PROMO_CONFIG.active && PROMO_CONFIG.promoPrice && PROMO_CONFIG.promoProductId) {
@@ -644,7 +664,7 @@ function initPromotionSync() {
                     promoPrice: PROMO_CONFIG.promoPrice
                 };
             }
-            
+
             // Re-renderiza o menu caso o banner precise aparecer/sumir ou os preços mudarem
             renderMenu();
             updateCartUI(); // Atualiza carrinho caso o desconto global tenha mudado
@@ -821,7 +841,7 @@ function initVIPMode() {
     if (urlParams.get('vip') === 'true') {
         const main = document.querySelector('.main-content');
         if (!main) return;
-        
+
         const vipComboId = 9001;
         if (!findItemById(vipComboId)) {
             if (!menuData.especiais) menuData.especiais = [];
@@ -864,7 +884,7 @@ function renderPromoBanner() {
 
     const remaining = getPromoRemaining();
     const promoEnded = remaining <= 0;
-    
+
     // Encontrar dados do produto dinâmico no menuData
     let product = null;
     Object.values(menuData).forEach(cat => {
@@ -933,7 +953,7 @@ function renderPromoBanner() {
     `;
 
     section.insertAdjacentElement('beforebegin', banner);
-    
+
     // Inicia o timer vivo caso não exista
     if (!window.promoTimerInterval) {
         window.promoTimerInterval = setInterval(updateLivePromoTimer, 1000);
@@ -957,12 +977,12 @@ function updateLivePromoTimer() {
 
     // Tempo restante para a próxima redução de estoque
     const remainingInCycle = decaySecs - (diffSecsTotal % decaySecs);
-    
+
     const mins = Math.floor(remainingInCycle / 60);
     const secs = remainingInCycle % 60;
-    
+
     timerElem.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    
+
     // Efeito visual de tensão nos últimos 30 segundos
     if (remainingInCycle <= 30) {
         timerElem.style.color = "#ffcc00";
@@ -986,7 +1006,7 @@ function renderMenu() {
 
         const activeItems = menuData[category].filter(item => !(category === 'combos' && item.soldOut));
         const section = container.closest('.menu-section');
-        
+
         if (activeItems.length === 0) {
             if (section) section.style.display = 'none';
             container.innerHTML = '';
@@ -1369,18 +1389,18 @@ function updateCartUI() {
                 </div>
             </div>
         `).join('');
-        
+
         updateCheckoutButtonStatus();
     }
 
     // Update total with Smart Promo consideration
-    
+
     const subtotal = cart.reduce((sum, item) => {
         return sum + (item.price * item.quantity);
     }, 0);
 
     const fee = orderType === 'delivery' ? getDynamicDeliveryFee() : 0;
-    
+
     let discountableSubtotal = 0;
     cart.forEach(item => {
         // IDs de Combos (5001-5007) e o item da Promoção Dinâmica (se ativa) são excluídos do desconto
@@ -1394,13 +1414,13 @@ function updateCartUI() {
     if (PROMO_CONFIG.globalDiscountActive) {
         discountAmount = discountableSubtotal * (PROMO_CONFIG.globalDiscountPercent / 100);
     }
-    
+
     let couponDiscountAmount = 0;
     if (appliedCoupon) {
         // O cupom aplica sobre o valor que restou após o desconto global, apenas para itens permitidos
         couponDiscountAmount = (discountableSubtotal - discountAmount) * (appliedCoupon.percent / 100);
     }
-    
+
     const total = subtotal - discountAmount - couponDiscountAmount + fee;
 
     cartTotal.innerHTML = ''; // Clear safely
@@ -1444,7 +1464,7 @@ function updateCartUI() {
         coup.textContent = `Cupom ${appliedCoupon.code} (${appliedCoupon.percent}%): - R$ ${couponDiscountAmount.toFixed(2).replace('.', ',')}`;
         totalDiv.appendChild(coup);
     }
-    
+
     const final = document.createElement('span');
     final.textContent = `${total.toFixed(2).replace('.', ',')}`;
     totalDiv.appendChild(final);
@@ -1570,19 +1590,54 @@ function getDynamicDeliveryFee() {
 
     // Mapeamento de taxas por bairro (mais específicos primeiro)
     const feeRules = [
-        { name: "piaguassu", fee: 15.00 },
+        // Bairros R$ 35,00
+        { name: "vale dos pequis", fee: 35.00 },
+        // Bairros R$ 30,00
+        { name: "fazenda do calambau", fee: 30.00 },
+        { name: "fundao", fee: 30.00 },
+        { name: "granja gloria", fee: 30.00 },
+        { name: "barragem", fee: 30.00 }, // R$ 30/50 na tabela, usando R$ 30,00 por padrão
+        // Bairros R$ 25,00
+        { name: "distrito industrial", fee: 25.00 },
+        { name: "mamonal", fee: 25.00 },
+        { name: "sumidoro", fee: 25.00 },
+        { name: "vila santa maria", fee: 25.00 }, // R$ 25/50 na tabela, usando R$ 25,00 por padrão
+        // Bairros R$ 20,00
+        { name: "pcma", fee: 20.00 },
+        // Bairros R$ 15,00
         { name: "itaunense 2", fee: 15.00 },
         { name: "itaunese 2", fee: 15.00 },
-        { name: "itaunense", fee: 15.00 },
-        { name: "santo antonio", fee: 12.00 },
-        { name: "tres marias", fee: 12.00 },
-        // Outros bairros conhecidos com taxa de R$ 13,00
-        { name: "varzea da olaria", fee: 13.00 },
-        { name: "garcias", fee: 13.00 },
-        { name: "cidade nova", fee: 13.00 },
-        { name: "aeroporto", fee: 13.00 },
-        { name: "aeroporoto", fee: 13.00 },
-        { name: "santanense", fee: 13.00 }
+        { name: "varzea da olaria", fee: 15.00 },
+        { name: "jardim marinho", fee: 15.00 },
+        { name: "centenario", fee: 15.00 },
+        { name: "veredas", fee: 15.00 },
+        { name: "leonane", fee: 15.00 },
+        { name: "santa monica", fee: 15.00 },
+        { name: "vitoria", fee: 15.00 },
+        { name: "piaguassu", fee: 15.00 },
+        // Bairros R$ 12,00
+        { name: "sao geraldo", fee: 12.00 },
+        { name: "cidade nova", fee: 12.00 },
+        { name: "itaunense", fee: 12.00 },
+        { name: "murilo goncalves", fee: 12.00 },
+        { name: "sion", fee: 12.00 },
+        { name: "antunes", fee: 12.00 },
+        { name: "godofredo goncalves", fee: 12.00 },
+        { name: "peixotas", fee: 12.00 },
+        { name: "sao bento", fee: 12.00 },
+        { name: "garcias", fee: 12.00 },
+        { name: "padre eustaquio", fee: 12.00 },
+        { name: "tres maria", fee: 12.00 }, // Cobre "Três Marias" e "Três Maria"
+        { name: "joao paulo", fee: 12.00 },
+        { name: "eldorado", fee: 12.00 },
+        { name: "vila vilaca", fee: 12.00 },
+        { name: "olimpio moreira", fee: 12.00 },
+        { name: "santiago", fee: 12.00 },
+        { name: "morro do engenho", fee: 12.00 },
+        { name: "morro doengenho", fee: 12.00 },
+        { name: "vila tavares", fee: 12.00 },
+        { name: "irmao zauler", fee: 12.00 },
+        { name: "parque jardim", fee: 12.00 }
     ];
 
     const match = feeRules.find(rule => address.includes(rule.name));
@@ -1594,13 +1649,13 @@ let isSubmittingOrder = false;
 
 async function getNextOrderNumber() {
     if (typeof firebase === 'undefined' || !firebase.apps || firebase.apps.length === 0) return "000";
-    
+
     try {
         const db = firebase.database();
         const counterRef = db.ref('settings/orderCounter');
-        
+
         // Timeout de 4 segundos para a transação
-        const timeoutPromise = new Promise((_, reject) => 
+        const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error("Timeout")), 4000)
         );
 
@@ -1609,14 +1664,14 @@ async function getNextOrderNumber() {
         });
 
         const result = await Promise.race([transactionPromise, timeoutPromise]);
-        
+
         if (result.committed) {
             return String(result.snapshot.val()).padStart(3, '0');
         }
     } catch (e) {
         console.warn("Erro ou timeout ao obter número do pedido, usando fallback:", e.message);
     }
-    
+
     return Math.floor(Math.random() * 900) + 100; // Fallback aleatório seguro
 }
 
@@ -1645,7 +1700,7 @@ async function sendToWhatsApp() {
 
     // 🚀 INÍCIO DO CHECKOUT BLINDADO
     isSubmittingOrder = true;
-    
+
     // UI Feedback Imediato
     const btn = document.getElementById('checkoutButton');
     if (btn) {
@@ -1669,7 +1724,7 @@ async function sendToWhatsApp() {
         // Configura link de contingência
         const fallbackLink = document.getElementById('whatsappFallbackLink');
         if (fallbackLink) fallbackLink.href = whatsappUrl;
-        
+
         // Exibe botão manual após 1.8s se a página continuar aqui
         setTimeout(() => {
             const manualContent = document.getElementById('manualRedirectContent');
@@ -1677,25 +1732,25 @@ async function sendToWhatsApp() {
         }, 1800);
 
         // Limpar Carrinho e Cupom
-        cart = []; 
+        cart = [];
         appliedCoupon = null;
         const couponInput = document.getElementById('couponCodeInput');
         if (couponInput) couponInput.value = '';
         const couponStatus = document.getElementById('couponStatus');
         if (couponStatus) couponStatus.textContent = '';
-        
-        saveCart(); 
-        updateCartUI(); 
+
+        saveCart();
+        updateCartUI();
         if (typeof toggleCart === 'function') toggleCart();
 
         // Meta Pixel & Log
         if (typeof trackPixelEvent === 'function') {
-            trackPixelEvent('Purchase', { 
-                value: total, 
-                currency: 'BRL', 
-                content_type: 'product', 
-                content_ids: tempCartItems.map(item => item.id), 
-                num_items: tempCartItems.length 
+            trackPixelEvent('Purchase', {
+                value: total,
+                currency: 'BRL',
+                content_type: 'product',
+                content_ids: tempCartItems.map(item => item.id),
+                num_items: tempCartItems.length
             });
         }
         if (typeof logEvent === 'function') logEvent(`Pedido #${orderNum} - Redirecionando...`);
@@ -1723,7 +1778,7 @@ async function sendToWhatsApp() {
         // --- 2. Construir Mensagem WhatsApp ---
         const hasBurger = cart.some(item => COMBO_PROMO.burgerIds.includes(Number(item.id)));
         let message = `🍔 *PEDIDO SANTA BRASA #${orderNum}* 🔥\n`;
-        
+
         if (!isStoreOpen()) {
             const sched = getSchedule();
             message += `⚠️ *AGENDAMENTO (Abre às ${sched.openHour}h${String(sched.openMinute).padStart(2, '0')})*\n`;
@@ -1746,7 +1801,7 @@ async function sendToWhatsApp() {
             return sum + (item.price * item.quantity);
         }, 0);
         const fee = orderType === 'delivery' ? getDynamicDeliveryFee() : 0;
-        
+
         let discountableSubtotal = 0;
         cart.forEach(item => {
             const isPromotion = (Number(item.id) >= 5000 && Number(item.id) <= 5100) || (PROMO_CONFIG.active && String(item.id) === String(PROMO_CONFIG.promoProductId));
@@ -1759,7 +1814,7 @@ async function sendToWhatsApp() {
         if (PROMO_CONFIG.globalDiscountActive) {
             discountAmount = discountableSubtotal * (PROMO_CONFIG.globalDiscountPercent / 100);
         }
-        
+
         let couponDiscountAmount = 0;
         if (appliedCoupon) {
             couponDiscountAmount = (discountableSubtotal - discountAmount) * (appliedCoupon.percent / 100);
@@ -1768,13 +1823,13 @@ async function sendToWhatsApp() {
         message += "\n━━━━━━━━━━━━━━━━━━\n";
         message += `Subtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}\n`;
         if (discountAmount > 0) message += `🔥 Desconto Global (${PROMO_CONFIG.globalDiscountPercent}%): - R$ ${discountAmount.toFixed(2).replace('.', ',')}\n`;
-        
+
         if (appliedCoupon) {
             message += `🎫 Cupom ${appliedCoupon.code} (${appliedCoupon.percent}%): - R$ ${couponDiscountAmount.toFixed(2).replace('.', ',')}\n`;
         }
 
         if (fee > 0) message += `Taxa de Entrega: R$ ${fee.toFixed(2).replace('.', ',')}\n`;
-        
+
         const total = subtotal - discountAmount - couponDiscountAmount + fee;
         message += `*TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*\n\n`;
 
@@ -1796,9 +1851,9 @@ async function sendToWhatsApp() {
 
         // --- 3. SAFETY TIMEOUT (Proteção contra lentidão do Firebase) ---
         // Se em 1.5 segundos não conseguirmos salvar no banco, pulamos direto para o WhatsApp
-        timeoutFallback = setTimeout(() => { 
+        timeoutFallback = setTimeout(() => {
             console.warn("Safety Timeout Triggered - Redirecionando...");
-            finishCheckoutAndRedirect(whatsappUrl, orderNum, total, tempCartItems); 
+            finishCheckoutAndRedirect(whatsappUrl, orderNum, total, tempCartItems);
         }, 1500);
 
         // --- 4. Salvar no Firebase (Opcional, não bloqueante se falhar) ---
@@ -1918,7 +1973,7 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
                 }
 
                 dbIncrement("total_visits");
-                
+
                 // Sincronização de Promoções em Tempo Real
                 db.ref('settings/promotions').on('value', (snapshot) => {
                     const data = snapshot.val();
@@ -1934,7 +1989,7 @@ if (firebaseConfig.apiKey !== "SUA_API_KEY_AQUI") {
                         PROMO_CONFIG.showTimer = data.showTimer !== false;
                         PROMO_CONFIG.globalDiscountActive = data.globalDiscountActive || false;
                         PROMO_CONFIG.globalDiscountPercent = data.globalDiscountPercent || 15;
-                        
+
                         console.log("🔄 Configurações de Marketing sincronizadas.");
                         renderMenu(); // Re-renderiza para aplicar mudanças visuais
                     }

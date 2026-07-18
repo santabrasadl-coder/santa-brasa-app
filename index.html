@@ -32,9 +32,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    
+
     <!-- Security Headers -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://connect.facebook.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://zepeg.github.io https://santabrasa.app https://www.facebook.com; connect-src https://*.firebaseio.com wss://*.firebaseio.com https://*.googleapis.com https://connect.facebook.net https://wa.me;">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' https://www.gstatic.com https://connect.facebook.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data: https://zepeg.github.io https://santabrasa.app https://www.facebook.com; connect-src https://*.firebaseio.com wss://*.firebaseio.com https://*.googleapis.com https://connect.facebook.net https://wa.me;">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -42,20 +43,22 @@
 
     <!-- Meta Pixel Code -->
     <script>
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '2118902352216007');
-    fbq('track', 'PageView');
+        !function (f, b, e, v, n, t, s) {
+            if (f.fbq) return; n = f.fbq = function () {
+                n.callMethod ?
+                n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+            };
+            if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
+            n.queue = []; t = b.createElement(e); t.async = !0;
+            t.src = v; s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s)
+        }(window, document, 'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '2118902352216007');
+        fbq('track', 'PageView');
     </script>
     <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=2118902352216007&ev=PageView&noscript=1"
-    /></noscript>
+            src="https://www.facebook.com/tr?id=2118902352216007&ev=PageView&noscript=1" /></noscript>
     <!-- End Meta Pixel Code -->
 </head>
 
@@ -80,34 +83,30 @@
             <p class="location-tagline">📍 Itaúna-MG</p>
             <p id="openingInfoNeon" class="opening-info-neon"></p>
         </div>
-    
-    <!-- Trust Highlights (Frictionless strategy) -->
-    <div class="trust-bar" style="display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 0.9rem; color: #ccc; margin-top: 10px; margin-bottom: 20px; width: 100%; text-align: center;">
-        <div class="trust-item" style="display: flex; align-items: center; gap: 6px;">
-            <span class="trust-icon" style="font-size: 1.2rem; filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));">🚀</span>
-            <span style="font-weight: 500; font-family: 'Poppins', sans-serif;">Entrega Super Rápida</span>
+
+        <!-- Trust Highlights (Frictionless strategy) -->
+        <div class="trust-bar"
+            style="display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 0.9rem; color: #ccc; margin-top: 10px; margin-bottom: 20px; width: 100%; text-align: center;">
+            <div class="trust-item" style="display: flex; align-items: center; gap: 6px;">
+                <span class="trust-icon"
+                    style="font-size: 1.2rem; filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));">🚀</span>
+                <span style="font-weight: 500; font-family: 'Poppins', sans-serif;">Entrega Super Rápida</span>
+            </div>
+            <div class="trust-item" style="display: flex; align-items: center; gap: 6px;">
+                <span class="trust-icon"
+                    style="font-size: 1.2rem; filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));">🥩</span>
+                <span style="font-weight: 500; font-family: 'Poppins', sans-serif;">Blend 100% Artesanal</span>
+            </div>
         </div>
-        <div class="trust-item" style="display: flex; align-items: center; gap: 6px;">
-            <span class="trust-icon" style="font-size: 1.2rem; filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));">🥩</span>
-            <span style="font-weight: 500; font-family: 'Poppins', sans-serif;">Blend 100% Artesanal</span>
-        </div>
-    </div>
     </header>
 
     <!-- Main Content -->
     <main class="main-content">
 
 
-        <!-- COMBOS ESPECIAIS (Destaque) -->
-        <section class="menu-section combos-section">
-            <h2 class="section-title neon-white">
-                <span class="title-icon">💎</span>
-                Combos Imperdíveis
-            </h2>
-            <div class="menu-grid" id="combos">
-                <!-- Items added via JS -->
-            </div>
-        </section>
+
+
+
 
         <!-- Burgers Tradicionais -->
         <section class="menu-section">
@@ -206,7 +205,8 @@
         <div class="cart-header">
             <div style="display: flex; flex-direction: column;">
                 <h2 style="margin-bottom: 2px;">Seu Pedido</h2>
-                <span style="font-size: 0.8rem; color: var(--primary); font-weight: 600; opacity: 0.9;">🕒 Entrega: 40m - 60m</span>
+                <span style="font-size: 0.8rem; color: var(--primary); font-weight: 600; opacity: 0.9;">🕒 Entrega: 40m
+                    - 60m</span>
             </div>
             <button class="close-cart" onclick="toggleCart()">✕</button>
         </div>
@@ -219,7 +219,7 @@
 
             <!-- Checkout Form -->
             <div class="checkout-form" id="checkoutForm">
-                
+
                 <div class="cart-section-card">
                     <h3 class="checkout-title">🛵 Como deseja receber?</h3>
                     <div class="order-type-toggle">
@@ -234,7 +234,8 @@
 
                     <div id="pickupAddressInfo"
                         style="display: none; padding: 15px; background: rgba(0,255,65,0.05); border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--primary);">
-                        <p style="font-size: 0.85rem; margin-bottom: 5px; color: var(--primary); font-weight: 700;">📍 LOCAL DE RETIRADA:</p>
+                        <p style="font-size: 0.85rem; margin-bottom: 5px; color: var(--primary); font-weight: 700;">📍
+                            LOCAL DE RETIRADA:</p>
                         <p style="font-size: 1rem; color: #fff; font-weight: 600;">Rua Marechal Deodoro, 398</p>
                         <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">Itaúna-MG</p>
                     </div>
@@ -249,7 +250,8 @@
 
                     <div class="form-group" id="addressFieldGroup">
                         <label>Endereço de Entrega:</label>
-                        <textarea id="clientAddress" placeholder="Rua, Número, Bairro e Complemento" rows="3"></textarea>
+                        <textarea id="clientAddress" placeholder="Rua, Número, Bairro e Complemento"
+                            rows="3"></textarea>
                     </div>
 
                     <div class="form-group">
@@ -280,7 +282,8 @@
                 <div class="cart-section-card coupon-section">
                     <h3 class="checkout-title">🎫 Cupom de Desconto</h3>
                     <div class="coupon-input-group" style="display: flex; gap: 8px;">
-                        <input type="text" id="couponCodeInput" placeholder="Digite seu cupom" style="flex: 1; text-transform: uppercase;">
+                        <input type="text" id="couponCodeInput" placeholder="Digite seu cupom"
+                            style="flex: 1; text-transform: uppercase;">
                         <button type="button" onclick="applyCoupon()" class="apply-coupon-btn">APLICAR</button>
                     </div>
                     <div id="couponStatus" style="font-size: 0.75rem; margin-top: 5px; min-height: 1rem;"></div>
@@ -357,7 +360,8 @@
         <div class="status-marketing-card">
             <div class="smc-content">
                 <span class="smc-emoji">💡</span>
-                <p><strong>Dica de Ouro:</strong> Salve nosso contato e acompanhe nossos <strong>Status</strong>. Postamos ofertas exclusivas e relâmpago todos os dias!</p>
+                <p><strong>Dica de Ouro:</strong> Salve nosso contato e acompanhe nossos <strong>Status</strong>.
+                    Postamos ofertas exclusivas e relâmpago todos os dias!</p>
             </div>
             <a href="https://wa.me/5537999982046" target="_blank" class="smc-btn">Salvar Contato</a>
         </div>
@@ -365,22 +369,33 @@
         <p>&copy; 2026 Santa Brasa - Hamburgueria Artesanal Itaúna-MG</p>
     </footer>
     <!-- Modal de Redirecionamento (Blindagem WhatsApp) -->
-    <div id="whatsappModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
-        <div style="background: #111; border: 1px solid #333; border-radius: 12px; padding: 2rem; max-width: 320px; text-align: center; width: 90%; box-shadow: 0 0 30px rgba(0, 255, 65, 0.2);">
-            <div class="spinner" style="display: block !important; margin: 0 auto 1.5rem; width: 45px; height: 45px; border: 4px solid rgba(0,255,65,0.1); border-top-color: #00FF41; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; margin-bottom: 0.5rem; color: #fff; letter-spacing: 1px;">ENVIANDO...</h3>
-            <p style="font-size: 0.95rem; color: #888; margin-bottom: 1.5rem; line-height: 1.4;">Aguarde, estamos conectando você ao WhatsApp da Santa Brasa.</p>
-            
+    <div id="whatsappModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+        <div
+            style="background: #111; border: 1px solid #333; border-radius: 12px; padding: 2rem; max-width: 320px; text-align: center; width: 90%; box-shadow: 0 0 30px rgba(0, 255, 65, 0.2);">
+            <div class="spinner"
+                style="display: block !important; margin: 0 auto 1.5rem; width: 45px; height: 45px; border: 4px solid rgba(0,255,65,0.1); border-top-color: #00FF41; border-radius: 50%; animation: spin 1s linear infinite;">
+            </div>
+            <h3
+                style="font-family: 'Bebas Neue', sans-serif; font-size: 2rem; margin-bottom: 0.5rem; color: #fff; letter-spacing: 1px;">
+                ENVIANDO...</h3>
+            <p style="font-size: 0.95rem; color: #888; margin-bottom: 1.5rem; line-height: 1.4;">Aguarde, estamos
+                conectando você ao WhatsApp da Santa Brasa.</p>
+
             <div id="manualRedirectContent" style="display: none; animation: fadeIn 0.5s ease;">
                 <div style="height: 1px; background: #333; margin-bottom: 1.5rem;"></div>
-                <p style="font-size: 0.85rem; color: #00FF41; margin-bottom: 1rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">O navegador bloqueou o envio?</p>
-                <a id="whatsappFallbackLink" href="#" class="checkout-button" style="text-decoration: none; background: #00FF41; color: #000; padding: 1rem; border-radius: 8px; font-weight: 800; display: block; font-size: 1rem;">
+                <p
+                    style="font-size: 0.85rem; color: #00FF41; margin-bottom: 1rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">
+                    O navegador bloqueou o envio?</p>
+                <a id="whatsappFallbackLink" href="#" class="checkout-button"
+                    style="text-decoration: none; background: #00FF41; color: #000; padding: 1rem; border-radius: 8px; font-weight: 800; display: block; font-size: 1rem;">
                     CLIQUE PARA CONTINUAR
                 </a>
             </div>
 
             <!-- Botão de Sair/Cancelar se travar -->
-            <button onclick="closeWhatsappModal()" style="margin-top: 1.5rem; background: transparent; border: none; color: #555; cursor: pointer; font-size: 0.85rem; text-decoration: underline;">
+            <button onclick="closeWhatsappModal()"
+                style="margin-top: 1.5rem; background: transparent; border: none; color: #555; cursor: pointer; font-size: 0.85rem; text-decoration: underline;">
                 Cancelar e voltar ao carrinho
             </button>
         </div>
@@ -391,7 +406,7 @@
         function closeWhatsappModal() {
             const modal = document.getElementById('whatsappModal');
             if (modal) modal.style.display = 'none';
-            
+
             // Reabilita o botão de checkout globalmente
             if (typeof isSubmittingOrder !== 'undefined') {
                 isSubmittingOrder = false;
