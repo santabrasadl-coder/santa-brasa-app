@@ -211,44 +211,9 @@ checkAutoDiscount();
 
 let appliedCoupon = null; // Armazena o cupom validado no lado do cliente
 
-// ===== Cupons Hardcoded (client-side) =====
-// IDs dos itens da categoria "Tradicionais"
-const TRADICIONAL_IDS = new Set([1, 2, 3, 4, 5, 6]);
-
-const LOCAL_COUPONS = {
-    'TRAD20': {
-        code: 'TRAD20',
-        percent: 20,
-        category: 'tradicionais', // Aplica apenas em itens Tradicionais
-        description: '20% OFF nos Tradicionais',
-        usageKey: 'sb_coupon_trad20_used', // chave no localStorage para controle de uso único
-        cumulative: false // Não cumulativo com desconto global
-    }
-};
-
-// Retorna o valor do subtotal dos itens da categoria Tradicionais no carrinho
-function getTradicionaisSubtotal() {
-    return cart.reduce((sum, item) => {
-        if (TRADICIONAL_IDS.has(Number(item.id))) {
-            return sum + (item.price * item.quantity);
-        }
-        return sum;
-    }, 0);
-}
-
-// Calcula o desconto de cupom considerando a categoria do cupom aplicado
+// Calcula o desconto de cupom genérico (Firebase): aplica sobre discountableSubtotal - globalDiscount
 function calcCouponDiscount(coupon, globalDiscountAmount) {
     if (!coupon) return 0;
-    const localDef = LOCAL_COUPONS[coupon.code];
-    if (localDef && localDef.category === 'tradicionais') {
-        // Não cumulativo: se houver desconto global ativo, não aplica cupom
-        if (!localDef.cumulative && PROMO_CONFIG.globalDiscountActive && globalDiscountAmount > 0) {
-            return 0;
-        }
-        const tradSubtotal = getTradicionaisSubtotal();
-        return tradSubtotal * (coupon.percent / 100);
-    }
-    // Cupom genérico (Firebase): aplica sobre discountableSubtotal - globalDiscount
     const discountableSubtotal = cart.reduce((sum, item) => {
         const isPromotion = (Number(item.id) >= 5000 && Number(item.id) <= 5100) || (PROMO_CONFIG.active && String(item.id) === String(PROMO_CONFIG.promoProductId));
         return isPromotion ? sum : sum + (item.price * item.quantity);
@@ -701,6 +666,18 @@ function initPromotionSync() {
             PROMO_CONFIG.couponActive = data.couponActive || false;
             PROMO_CONFIG.couponCode = data.couponCode || '';
             PROMO_CONFIG.couponPercent = parseFloat(data.couponPercent) || 0;
+
+            const couponSection = document.querySelector('.coupon-section');
+            if (couponSection) {
+                couponSection.style.display = PROMO_CONFIG.couponActive ? 'block' : 'none';
+            }
+            if (!PROMO_CONFIG.couponActive) {
+                appliedCoupon = null;
+                const couponStatus = document.getElementById('couponStatus');
+                if (couponStatus) couponStatus.textContent = '';
+                const couponInput = document.getElementById('couponCodeInput');
+                if (couponInput) couponInput.value = '';
+            }
 
             // Sincroniza o desconto para o produto em destaque no card do menu
             PROMO_CONFIG.discounts = {};
@@ -1528,41 +1505,7 @@ function applyCoupon() {
         return;
     }
 
-    // 1. Verifica cupons hardcoded (ex: TRAD20)
-    const localCoupon = LOCAL_COUPONS[code];
-    if (localCoupon) {
-        // Verifica uso único por cliente
-        if (localStorage.getItem(localCoupon.usageKey) === 'used') {
-            appliedCoupon = null;
-            status.textContent = '❌ Este cupom já foi utilizado por você.';
-            status.style.color = '#ff3131';
-            updateCartUI();
-            return;
-        }
-        // Verifica se há itens Tradicionais no carrinho
-        const tradTotal = getTradicionaisSubtotal();
-        if (tradTotal <= 0) {
-            appliedCoupon = null;
-            status.textContent = '❌ Este cupom é válido apenas para itens Tradicionais.';
-            status.style.color = '#ff3131';
-            updateCartUI();
-            return;
-        }
-        // Avisa sobre não-cumulatividade se houver desconto global ativo
-        const notCumulative = !localCoupon.cumulative && PROMO_CONFIG.globalDiscountActive;
-        appliedCoupon = { code: localCoupon.code, percent: localCoupon.percent, isLocal: true };
-        if (notCumulative) {
-            status.textContent = `⚠️ Cupom ${code} aplicado! ${localCoupon.percent}% OFF nos Tradicionais (não cumulativo com desconto global).`;
-        } else {
-            status.textContent = `✅ Cupom ${code} aplicado! ${localCoupon.percent}% OFF nos Tradicionais.`;
-        }
-        status.style.color = 'var(--neon-green)';
-        showToast(`Cupom ${code} aplicado! 20% OFF nos Tradicionais`);
-        updateCartUI();
-        return;
-    }
-
-    // 2. Verifica cupons via Firebase (PROMO_CONFIG)
+    // Verifica cupons via Firebase (PROMO_CONFIG)
     if (!PROMO_CONFIG.couponActive) {
         status.textContent = '❌ Cupom inválido.';
         status.style.color = '#ff3131';
@@ -1811,13 +1754,6 @@ async function sendToWhatsApp() {
         }, 1800);
 
         // Limpar Carrinho e Cupom
-        // Registra uso único do cupom local (ex: TRAD20) no localStorage
-        if (appliedCoupon && appliedCoupon.isLocal) {
-            const localDef = LOCAL_COUPONS[appliedCoupon.code];
-            if (localDef && localDef.usageKey) {
-                localStorage.setItem(localDef.usageKey, 'used');
-            }
-        }
         cart = [];
         appliedCoupon = null;
         const couponInput = document.getElementById('couponCodeInput');
