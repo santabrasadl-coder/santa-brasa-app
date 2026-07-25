@@ -420,7 +420,7 @@ const menuData = {
             price: 54.00
         }
     ],
-    sobremesas: [
+    /* sobremesas: [
         {
             id: 2001,
             name: "Mini Pudim Tradicional 150g",
@@ -429,8 +429,8 @@ const menuData = {
             badge: "NOVIDADE ✨",
             soldOut: true
         }
-    ],
-    bolos: [
+    ], */
+    /* bolos: [
         {
             id: 3005,
             name: "Torta - Floresta Negra",
@@ -472,7 +472,7 @@ const menuData = {
             badge: "NOVIDADE ✨",
             soldOut: true
         }
-    ],
+    ], */
     bebidas: [
         {
             id: 13,
